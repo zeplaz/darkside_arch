@@ -1,0 +1,18 @@
+# Local-only workspaces (never commit)
+llm/
+world/
+
+# Runtime artifacts
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env
+.env.*
