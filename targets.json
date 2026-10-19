@@ -1,0 +1,5 @@
+{
+  "observe_interval_ms": 250,
+  "module": "darksiders1.exe",
+  "targets": []
+}
