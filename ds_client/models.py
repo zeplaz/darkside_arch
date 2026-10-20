@@ -28,6 +28,15 @@ TYPE_SPECS: dict[str, tuple[int, str]] = {
 
 _FLOAT_TYPES = frozenset({"float", "double"})
 
+# Categories used by docs/memory_map.md sectioning
+CATEGORY_LOCATION = "location_flag"
+CATEGORY_INVENTORY = "inventory"
+CATEGORY_STAT = "stat"
+CATEGORY_MISC = "misc"
+VALID_CATEGORIES = frozenset(
+    {CATEGORY_LOCATION, CATEGORY_INVENTORY, CATEGORY_STAT, CATEGORY_MISC}
+)
+
 
 @dataclass(frozen=True)
 class WatchTarget:
@@ -39,8 +48,16 @@ class WatchTarget:
     offsets: tuple[int, ...]
     size: int
     unpacker: struct.Struct
+    dtype: str
     notes: str
+    label: str = ""
+    region: str = ""
+    category: str = CATEGORY_MISC
     bitmask: Optional[int] = None
+
+    @property
+    def display_name(self) -> str:
+        return self.label or self.id
 
     def decode(self, raw: bytes) -> str:
         value = self.unpacker.unpack_from(raw)[0]
@@ -52,6 +69,9 @@ class WatchTarget:
             return repr(value)
         return str(value)
 
+    def format_bitmask(self) -> str:
+        return "None" if self.bitmask is None else f"0x{self.bitmask:X}"
+
 
 @dataclass(frozen=True)
 class Event:
@@ -60,6 +80,12 @@ class Event:
     address_hex: str
     value_raw: str
     notes: str
+    target_id: str = ""
+    prev_value: str = ""
+    label: str = ""
+    region: str = ""
+    category: str = ""
+    tagged: int = 0
 
 
 def _parse_int(value: object, field: str) -> int:
@@ -89,6 +115,17 @@ def _build_target(raw: dict, default_module: str) -> Optional[WatchTarget]:
     if not offsets_raw:
         raise ValueError(f"target {target_id!r} requires offsets")
 
+    category = str(raw.get("category", CATEGORY_MISC)).strip().lower() or CATEGORY_MISC
+    if category not in VALID_CATEGORIES:
+        raise ValueError(
+            f"unsupported category {category!r} on target {target_id}; "
+            f"expected one of {sorted(VALID_CATEGORIES)}"
+        )
+
+    label = str(raw.get("label", "")).strip()
+    region = str(raw.get("region", "")).strip()
+    notes = str(raw.get("notes", "")).strip()
+
     return WatchTarget(
         id=target_id,
         event_type=str(raw.get("event_type", "MEMORY_STATE")),
@@ -96,7 +133,11 @@ def _build_target(raw: dict, default_module: str) -> Optional[WatchTarget]:
         offsets=tuple(_parse_int(o, "offset") for o in offsets_raw),
         size=size,
         unpacker=struct.Struct("<" + fmt),
-        notes=str(raw.get("notes", "")),
+        dtype=dtype,
+        notes=notes,
+        label=label,
+        region=region,
+        category=category,
         bitmask=bitmask,
     )
 

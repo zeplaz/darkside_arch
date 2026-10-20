@@ -1,4 +1,7 @@
-"""Orchestrator: process lifecycle, observation loop, event publishing."""
+"""Orchestrator: process lifecycle, observation loop, event publishing.
+
+This is the runtime client loop. Mapping / scan / export live under `tools/`.
+"""
 
 from __future__ import annotations
 
@@ -24,10 +27,20 @@ from ds_client.sinks import (
     init_db,
     now,
     start_session,
+    sync_memory_map_from_targets,
+    upsert_memory_map_from_target,
 )
 from ds_client import win32
 
 POLL_PROCESS_SECONDS = 1.5
+
+# Old flag names that moved to `python -m tools ...`
+_DEV_FLAG_HINTS = (
+    "--scan",
+    "--export-docs",
+    "--sync-map",
+    "--tag",
+)
 
 
 def find_process(name: str = PROCESS_NAME) -> Optional[int]:
@@ -55,6 +68,7 @@ def observe_session(
     targets: tuple[WatchTarget, ...],
     interval_s: float,
     bus: EventBus,
+    conn: sqlite3.Connection,
 ) -> None:
     last_values: dict[str, str] = {}
 
@@ -74,18 +88,36 @@ def observe_session(
             if raw is None:
                 continue
             value_raw = target.decode(raw)
-            if last_values.get(target.id) == value_raw:
+            prev = last_values.get(target.id)
+            if prev == value_raw:
                 continue
             last_values[target.id] = value_raw
+
+            notes = target.notes or target.display_name
+            if prev is not None:
+                notes = f"{prev} -> {value_raw} | {notes}"
+
             bus.publish(
                 Event(
                     session_id=session_id,
                     event_type=target.event_type,
                     address_hex=f"0x{addr:X}",
                     value_raw=value_raw,
-                    notes=target.notes or target.id,
+                    prev_value=prev or "",
+                    notes=notes,
+                    target_id=target.id,
+                    label=target.display_name,
+                    region=target.region,
+                    category=target.category,
                 )
             )
+            if prev is not None:
+                upsert_memory_map_from_target(
+                    conn,
+                    target,
+                    verified_value=value_raw,
+                    address_hex=f"0x{addr:X}",
+                )
         bus.flush()
         time.sleep(interval_s)
 
@@ -120,7 +152,7 @@ def attach_and_run(
         )
         bus.flush()
 
-        observe_session(handle, session_id, bases, targets, interval_s, bus)
+        observe_session(handle, session_id, bases, targets, interval_s, bus, conn)
 
         bus.publish(
             Event(
@@ -137,7 +169,7 @@ def attach_and_run(
         win32.close_handle(handle)
 
 
-def main() -> int:
+def run_watch_loop() -> int:
     if sys.platform != "win32":
         print("[ERROR] This watcher requires Windows.")
         return 1
@@ -153,6 +185,9 @@ def main() -> int:
     bus = EventBus([TerminalSink(), SqliteSink(conn)])
 
     print(f"[INIT] Loaded {len(targets)} watch target(s) from {TARGETS_FILE}")
+    if targets:
+        sync_memory_map_from_targets(conn, targets)
+        print(f"[INIT] Synced {len(targets)} target(s) into memory_map")
 
     try:
         while True:
@@ -165,6 +200,8 @@ def main() -> int:
             try:
                 interval_ms, targets = load_targets()
                 interval_s = max(interval_ms, 1) / 1000.0
+                if targets:
+                    sync_memory_map_from_targets(conn, targets)
             except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
                 print(f"[WARN] targets reload failed: {exc}")
     except KeyboardInterrupt:
@@ -173,3 +210,31 @@ def main() -> int:
         bus.flush()
         conn.close()
     return 0
+
+
+def main(argv: Optional[list[str]] = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    for flag in _DEV_FLAG_HINTS:
+        if flag in argv or any(a.startswith(flag + "=") for a in argv):
+            print(
+                f"[ERROR] {flag} moved to the developer tools package.\n"
+                "        pip install -r requirements-dev.txt\n"
+                "        python -m tools --help\n"
+                "        See tools/README.md"
+            )
+            return 2
+    if argv in (["-h"], ["--help"]):
+        print(
+            "usage: python -m ds_client\n\n"
+            "Runtime memory watcher for Darksiders Warmastered (x64).\n"
+            "Reads targets.json, attaches to darksiders1.exe, logs deltas.\n\n"
+            "Developer mapping tools (scan / tag / export):\n"
+            "  python -m tools --help\n"
+            "  See ds_client/README.md and tools/README.md"
+        )
+        return 0
+    if argv:
+        print(f"[ERROR] Unexpected arguments: {' '.join(argv)}")
+        print("        Runtime client takes no flags. Try: python -m tools --help")
+        return 2
+    return run_watch_loop()

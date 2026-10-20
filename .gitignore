@@ -2,7 +2,7 @@
 llm/
 world/
 
-# Runtime artifacts
+# Runtime SQLite (auto-created by ds_client / tools)
 *.db
 *.db-journal
 *.db-wal
@@ -12,7 +12,39 @@ world/
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+.Python
 .venv/
 venv/
+env/
 .env
 .env.*
+*.egg-info/
+.eggs/
+dist/
+build/
+pip-wheel-metadata/
+
+# Test / type / lint caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# OS / editor junk
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*~
+.idea/
+.vscode/
+*.code-workspace
+
+# Logs / local dumps
+*.log
+*.stackdump

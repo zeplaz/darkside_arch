@@ -1,69 +1,82 @@
 # darkside_arch
 
-Passive process watcher for **Darksiders Warmastered Edition** (`darksiders1.exe`).
+Out-of-process **Darksiders Warmastered Edition** (`darksiders1.exe`) memory client for Archipelago.
 
-Reads game memory via Windows APIs (`OpenProcess` / `ReadProcessMemory`). No injection. No hooks.
+No injection. No hooks. Windows x64 Steam build only.
 
-Events go to stdout and `darksiders_debug.db` (SQLite, WAL). Watch definitions live in `targets.json`.
+## Two tracks
+
+| Track | Who | Package | Install | Entry |
+|-------|-----|---------|---------|-------|
+| **Client (runtime)** | Players / final AP client | [`ds_client/`](ds_client/README.md) | `pip install -r requirements.txt` | `python -m ds_client` |
+| **Dev tools** | Mappers / contributors | [`tools/`](tools/README.md) | `pip install -r requirements-dev.txt` | `python -m tools …` |
+
+| Doc | Purpose |
+|-----|---------|
+| [`docs/memory_map.md`](docs/memory_map.md) | Verified x64 offsets (commit when real) |
+| [`docs/WORLD.md`](docs/WORLD.md) | Sacha world fork pin, sync, naming checklist |
+| [`docs/README.md`](docs/README.md) | Docs index |
 
 ## Layout
 
 ```
-ds_client/
-  win32.py      # OpenProcess / RPM / module base
-  models.py     # WatchTarget, Event, targets.json loader
-  sinks.py      # Terminal + SQLite (+ future AP sink)
-  watcher.py    # attach / observe / lifecycle
-targets.json    # memory watch definitions (edit without touching engine)
+darkside_arch/
+  requirements.txt       # client runtime (psutil)
+  requirements-dev.txt   # + PyMemoryEditor[speed]
+  targets.json           # watch definitions (shared)
+  ds_client/             # FINAL CLIENT
+  tools/                 # DEV scan / tag / export
+  docs/                  # memory map + world sync notes
+  llm/                   # gitignored scratch
+  world/                 # gitignored local world clone
 ```
 
-## Requirements
+## Quick start
 
-- Windows
-- Python 3.11+
-- `pip install -r requirements.txt`
-
-## Run
+### A) Client (observe memory)
 
 ```bash
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
 python -m ds_client
 ```
 
-Polls for `darksiders1.exe`, resolves the module base (ASLR-safe), then observes configured targets on change only. If the game exits, the session ends and the watcher waits to reattach.
+Needs enabled entries in `targets.json`. Details: [ds_client/README.md](ds_client/README.md).
 
-## targets.json
+### B) Dev mapping
 
-```json
-{
-  "observe_interval_ms": 250,
-  "module": "darksiders1.exe",
-  "targets": [
-    {
-      "id": "chest_scalding_01",
-      "event_type": "LOCATION_CHECK",
-      "offsets": ["0xA8E10"],
-      "type": "uint8",
-      "bitmask": "0x04",
-      "notes": "Chest_ScaldingGallow_01 Opened"
-    },
-    {
-      "id": "example_pointer_chain",
-      "event_type": "MEMORY_STATE",
-      "offsets": ["0x123456", "0x10", "0x8"],
-      "type": "int32",
-      "notes": "base+A -> +B -> +C"
-    }
-  ]
-}
+```bash
+pip install -r requirements-dev.txt
+python -m tools scan --type uint32 --id soul_count --label Soul_Count --category stat --auto-save
+python -m ds_client
+python -m tools tag "Crossroads Currency Chest Down Stairs" --region Crossroads --category location_flag
+python -m tools export-docs
 ```
 
-| Field | Meaning |
-|-------|---------|
-| `offsets` | Module-relative: one entry = `base+offset`. Multiple = pointer chain ending at the final address. |
-| `type` | `bool`, `uint8/16/32/64`, `int8/16/32/64`, `float`, `double` |
-| `bitmask` | Optional; compare only masked bits (chest/boss flags). |
-| `enabled` | Optional; `false` skips the target without deleting it. |
+`--auto-save` upserts module-relative offsets into `targets.json` (`enabled: true`). Details: [tools/README.md](tools/README.md).
 
-## Scope
+## Commit vs local-only
 
-Client-side observer. The Archipelago **world** is separate and not tracked here. Future networking belongs in a sink (e.g. `ap_client.py`), not in the memory loop.
+| Artifact | Commit? |
+|----------|---------|
+| `ds_client/`, `tools/`, `docs/`, `targets.json`, `requirements*.txt` | yes |
+| `darksiders_debug.db` | no (auto-created SQLite) |
+| `llm/`, `world/`, `.venv/` | no |
+
+## Continuity
+
+| Resource | URL |
+|----------|-----|
+| This client | https://github.com/zeplaz/darkside_arch |
+| World (Sacha) | https://github.com/Sachaqc/Archipelago-Darksiders |
+| Fork vs AP `main` | https://github.com/ArchipelagoMW/Archipelago/compare/main...Sachaqc:Archipelago-Darksiders:main |
+| World sync notes | [docs/WORLD.md](docs/WORLD.md) |
+| AP network protocol | https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/network%20protocol.md |
+| AP developer docs | https://archipelago.gg/doc/developer |
+
+## Roadmap
+
+- **Now (client):** attach → `targets.json` → deltas → SQLite
+- **Now (tools):** scan `--auto-save` → verify → tag → export `docs/memory_map.md`
+- **Later (client):** Archipelago WebSocket sink inside `ds_client/` (not `tools/`)

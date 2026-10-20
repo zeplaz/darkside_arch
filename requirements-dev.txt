@@ -1,0 +1,3 @@
+# Developer / mapping toolchain (scanner, docs export helpers)
+-r requirements.txt
+PyMemoryEditor[speed]>=3.4,<4

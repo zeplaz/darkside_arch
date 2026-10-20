@@ -1,1 +1,2 @@
+# Runtime client dependencies (end-user / Archipelago client path)
 psutil>=5.9,<7

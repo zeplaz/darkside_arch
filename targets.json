@@ -1,5 +1,29 @@
 {
   "observe_interval_ms": 250,
   "module": "darksiders1.exe",
-  "targets": []
+  "targets": [
+    {
+      "id": "chest_crossroads_currency_down_stairs",
+      "enabled": false,
+      "event_type": "LOCATION_CHECK",
+      "category": "location_flag",
+      "label": "Crossroads Currency Chest Down Stairs",
+      "region": "Crossroads",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "notes": "TEMPLATE — replace offsets via: python -m tools scan --auto-save"
+    },
+    {
+      "id": "soul_count",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "stat",
+      "label": "Soul_Count",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "uint32",
+      "notes": "TEMPLATE — replace offsets via: python -m tools scan --auto-save"
+    }
+  ]
 }
