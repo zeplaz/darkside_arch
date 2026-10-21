@@ -1,15 +1,16 @@
-# World fork sync (Sacha’s Archipelago-Darksiders)
+# World fork
 
-This client does **not** vendor the Archipelago world. Location/item IDs and logic live here:
+Location and item **names** live in Sacha’s world, not this repo.
 
-- Fork: https://github.com/Sachaqc/Archipelago-Darksiders
-- vs AP core: https://github.com/ArchipelagoMW/Archipelago/compare/main...Sachaqc:Archipelago-Darksiders:main
+| | |
+|--|--|
+| Fork | https://github.com/Sachaqc/Archipelago-Darksiders |
+| vs AP `main` | https://github.com/ArchipelagoMW/Archipelago/compare/main...Sachaqc:Archipelago-Darksiders:main |
+| Local clone (gitignored) | `world/Archipelago-Darksiders/` |
 
-Local clone path (gitignored): `world/Archipelago-Darksiders/`
+## Pin
 
-## Documented pin
-
-Update this table whenever you `git pull` the world clone.
+Update this table after every `git pull` of the clone.
 
 | Field | Value |
 |-------|--------|
@@ -17,12 +18,7 @@ Update this table whenever you `git pull` the world clone.
 | Commit | `71ddf44` — *First test without Errors* (2026-10-19) |
 | vs AP `main` | ahead **3** / behind **2** (diverged) |
 
-Ahead (Darksiders work): `a73deac` → `4aeefc6` → `71ddf44`.  
-Behind 2 = Sacha has not merged the latest Archipelago core commits — world-fork maintenance, not a `darkside_arch` fix.
-
-## Sync local clone
-
-Windows (PowerShell):
+Ahead: `a73deac` → `4aeefc6` → `71ddf44`. Behind 2 is Sacha not merging AP core — not a `darkside_arch` bug.
 
 ```powershell
 if (-not (Test-Path world\Archipelago-Darksiders)) {
@@ -32,45 +28,44 @@ if (-not (Test-Path world\Archipelago-Darksiders)) {
 git -C world\Archipelago-Darksiders fetch origin
 git -C world\Archipelago-Darksiders pull --ff-only origin main
 git -C world\Archipelago-Darksiders log -1 --oneline
+python -m tools sync-world
 ```
 
-Then bump the pin table above.
+## What `71ddf44` means here
 
-## What `71ddf44` implies for this client
+| World file | Change | What we do |
+|------------|--------|------------|
+| `Locations.py` | Unique AP ids | `label` must match names exactly |
+| `Items.py` | `Deaths Blessing`, `Soul Bridge`, more gauntlets | Gear watches use these names |
+| `Rules.py` | Goal: Armageddon Blade Shards ×7 | Map late flags later |
+| `Regions.py` | Graph matches rules | `--region` strings |
+| `archipelago.json` | AP ≥ **0.6.7**, world **0.0.1** | Future sink ≥ 0.6.7 |
+| Boss block | Still commented | Do not invent boss flags |
 
-| Area | Change | Client impact |
-|------|--------|----------------|
-| `Locations.py` | Unique location ID ranges | `label` / `tools tag` must match names exactly |
-| `Items.py` | `Deaths Blessing` id fix; `Soul Bridge`; more Progressive Gauntlets | Gear watches use these **names** |
-| `Rules.py` | Goal: `Armageddon Blade Shards` ×7; new entrances | Map late-game flags later |
-| `Regions.py` | Graph matches new rules | `--region` strings |
-| `archipelago.json` | `minimum_ap_version` **0.6.7**, `world_version` **0.0.1** | Future AP sink ≥ 0.6.7 |
-| Boss locations | Still commented out | Do not invent boss flags yet |
+## Contract
 
-## Early mapping names (from current `Locations.py`)
+| Rule | |
+|------|--|
+| Names | `targets.json` `label` = `Locations.py` / `Items.py` byte-for-byte |
+| IDs | AP numbers stay in the world package; we store offsets + labels |
+| After a world pull | Bump the pin, `sync-world`, re-check names before more captures |
 
-**Crossroads**
+```powershell
+python -m tools locations --region Crossroads --unmapped
+```
 
-- `Crossroads Currency Chest Down Stairs`
-- `Crossroads Currency Chest South Crater`
-- `Crossroads Currency Chest in Subway Station`
-- `Crossroads Life Chest Behind Gholen West`
-- `Crossroads Life Chest Behind Gholen North`
-- `Crossroads Life Chest NE Crater`
-- `Crossroads Rare Chest Blocked by Ice` (skip until ice tools)
-- `Crossroads Secret Chest Destroy Fire Hydrants`
-- `Crossroads Soldier Artifact in Subway Station`
+## Start here (Crossroads)
 
-**Choking Grounds** (next)
+| Location | Note |
+|----------|------|
+| `Crossroads Currency Chest Down Stairs` | |
+| `Crossroads Currency Chest South Crater` | |
+| `Crossroads Currency Chest in Subway Station` | |
+| `Crossroads Life Chest Behind Gholen West` | |
+| `Crossroads Life Chest Behind Gholen North` | |
+| `Crossroads Life Chest NE Crater` | |
+| `Crossroads Rare Chest Blocked by Ice` | Skip until ice tools |
+| `Crossroads Secret Chest Destroy Fire Hydrants` | |
+| `Crossroads Soldier Artifact in Subway Station` | |
 
-- `Choking Grounds Currency Chest North of Cemetery`
-- `Choking Grounds Soldier Artifact North of Vulgrim`
-- (full list in `Locations.py`)
-
-**Progression items later:** `Crossblade`, `Shadowflight`, `Progressive Gauntlet`, `Soul Bridge`, `Mask of Shadows`, `Ruin`, `Armageddon Blade Shards`
-
-## Contract with `darkside_arch`
-
-1. `targets.json` `label` and `tools tag` strings match the world **byte-for-byte**.
-2. AP numeric IDs stay in the world package; this client stores offsets + labels; a future sink maps label → id.
-3. After each world pull, refresh this pin and re-check names before more scans.
+Full list: `Locations.py` or `python -m tools locations`. Later gear names: `Crossblade`, `Shadowflight`, `Progressive Gauntlet`, `Soul Bridge`, `Mask of Shadows`, `Ruin`, `Armageddon Blade Shards`.

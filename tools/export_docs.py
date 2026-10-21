@@ -19,9 +19,11 @@ DOCS_PATH = Path("docs") / "memory_map.md"
 
 
 def _format_chain(module: str, offsets_json: str) -> str:
+    if not offsets_json:
+        return f"{module} + ?"
     try:
         offsets = json.loads(offsets_json)
-    except json.JSONDecodeError:
+    except (TypeError, json.JSONDecodeError):
         return f"{module} + ?"
     if not offsets:
         return f"{module} + ?"
@@ -69,7 +71,8 @@ def render_memory_map_markdown(rows: Sequence[Mapping[str, Any]]) -> str:
     misc: list[str] = []
 
     for row in rows:
-        cat = (row.get("category") or "misc").lower()
+        keys = row.keys() if hasattr(row, "keys") else row
+        cat = str((row["category"] if "category" in keys else None) or "misc").lower()
         if cat == CATEGORY_LOCATION:
             locations.append(_location_line(row))
         elif cat in (CATEGORY_INVENTORY, CATEGORY_STAT):

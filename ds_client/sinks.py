@@ -281,3 +281,32 @@ def list_memory_map(conn: sqlite3.Connection) -> list[sqlite3.Row]:
             """
         )
     )
+
+
+def list_recent_events(
+    conn: sqlite3.Connection, *, limit: int = 40
+) -> list[sqlite3.Row]:
+    return list(
+        conn.execute(
+            """
+            SELECT log_id, timestamp, event_type, address_hex, value_raw,
+                   prev_value, target_id, label, region, category, notes, tagged
+            FROM event_logs
+            WHERE event_type != 'SESSION'
+            ORDER BY log_id DESC
+            LIMIT ?
+            """,
+            (max(1, limit),),
+        )
+    )
+
+
+def telemetry_snapshot(conn: sqlite3.Connection, *, event_limit: int = 40) -> dict:
+    """JSON-friendly snapshot for the live dashboard."""
+    maps = []
+    for row in list_memory_map(conn):
+        maps.append({k: row[k] for k in row.keys()})
+    events = []
+    for row in list_recent_events(conn, limit=event_limit):
+        events.append({k: row[k] for k in row.keys()})
+    return {"memory_map": maps, "events": events}

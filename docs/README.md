@@ -1,32 +1,19 @@
 # docs
 
-Mapping reference and world-sync notes for **Darksiders Warmastered (x64)**.
-
-## Files
-
-| File | Commit? | Purpose |
-|------|---------|---------|
-| [memory_map.md](memory_map.md) | yes | Verified offsets (regenerate with tools; commit when real) |
-| [WORLD.md](WORLD.md) | yes | World fork pin, sync commands, early location names |
+| File | Commit | What it is |
+|------|--------|------------|
+| [memory_map.md](memory_map.md) | yes | Locked-in offsets. Auto-written by `export-docs` |
+| [WORLD.md](WORLD.md) | yes | World-fork pin, sync, name contract |
+| [SAVES.md](SAVES.md) | yes | Sacha Keen `.sav` / JSON — types, not offsets |
+| [world_locations.json](world_locations.json) | yes | Catalog cache from `Locations.py` |
 | `README.md` | yes | This index |
 
-## Produce `memory_map.md`
+| When | Command |
+|------|---------|
+| Mapping session | `python -m tools dashboard` |
+| Chest / flag | `python -m tools capture --region Crossroads` |
+| Souls | `python -m tools scan --auto-save` |
+| After verify | `python -m tools export-docs` |
+| World clone updated | `python -m tools sync-world` then bump [WORLD.md](WORLD.md) |
 
-```bash
-pip install -r requirements-dev.txt
-python -m tools scan … --auto-save
-python -m ds_client
-python -m tools tag "…" --region "…" --category location_flag
-python -m tools export-docs
-```
-
-`export-docs` reads SQLite `memory_map` (and syncs enabled `targets.json` rows). A local dirty `darksiders_debug.db` can add unverified rows — only commit `memory_map.md` after you trust the contents.
-
-## Naming
-
-Exact strings from the world package ([WORLD.md](WORLD.md)):
-
-- https://github.com/Sachaqc/Archipelago-Darksiders/blob/main/worlds/darksiders/Locations.py
-- https://github.com/Sachaqc/Archipelago-Darksiders/blob/main/worlds/darksiders/Items.py
-
-Compare: https://github.com/ArchipelagoMW/Archipelago/compare/main...Sachaqc:Archipelago-Darksiders:main
+Do not run `export-docs` on every probe. Labels must match [WORLD.md](WORLD.md) byte-for-byte.

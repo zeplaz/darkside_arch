@@ -48,3 +48,6 @@ Desktop.ini
 # Logs / local dumps
 *.log
 *.stackdump
+snapshots/
+saves/
+*.sav

@@ -71,15 +71,46 @@ def observe_session(
     conn: sqlite3.Connection,
 ) -> None:
     last_values: dict[str, str] = {}
+    known_ids = {t.id for t in targets}
 
     if not targets:
         print(
             f"[{now()}] [SESSION {session_id}] No watch targets configured. "
-            "Waiting for process exit or Ctrl+C..."
+            "Waiting for process exit, targets.json update, or Ctrl+C..."
         )
 
     while win32.process_alive(handle):
+        # Hot-reload targets.json so scan --auto-save is picked up without restart.
+        try:
+            interval_ms, targets = load_targets()
+            interval_s = max(interval_ms, 1) / 1000.0
+        except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+            print(f"[WARN] targets reload failed: {exc}")
+
+        new_ids = {t.id for t in targets}
+        if new_ids != known_ids:
+            added = new_ids - known_ids
+            removed = known_ids - new_ids
+            known_ids = new_ids
+            if added:
+                print(f"[{now()}] [TARGETS] +{sorted(added)}")
+            if removed:
+                print(f"[{now()}] [TARGETS] -{sorted(removed)}")
+            sync_memory_map_from_targets(conn, targets)
+
         for target in targets:
+            if target.module not in module_bases:
+                try:
+                    module_bases[target.module] = win32.get_module_base(
+                        handle, target.module
+                    )
+                    print(
+                        f"[BASE] {target.module} @ 0x{module_bases[target.module]:X}"
+                    )
+                except OSError as exc:
+                    print(f"[WARN] module base {target.module}: {exc}")
+                    continue
+
             base = module_bases[target.module]
             addr = win32.resolve_address(handle, base, target.offsets)
             if addr is None:

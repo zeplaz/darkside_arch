@@ -1,81 +1,138 @@
-# tools — developer mapping toolchain
+# tools
 
-Discover and document Steam x64 offsets. Players do **not** need this package — see [`../ds_client/`](../ds_client/README.md).
+Mapper-only. Discovers module-relative offsets and writes `targets.json`. Players use [ds_client](../ds_client/README.md).
 
-## Setup
-
-```bash
-python -m venv .venv
-.\.venv\Scripts\activate
+```powershell
 pip install -r requirements-dev.txt
 ```
 
-Installs client deps + `PyMemoryEditor[speed]`.
+## What to run
 
-## Commands
+| Job | Command | Writes |
+|-----|---------|--------|
+| Chest / artifact / flag | `python -m tools capture --region Crossroads` | `targets.json` if one `0→1` |
+| HUD souls | `python -m tools scan --auto-save` | `targets.json` (opt-in) |
+| Live page | `python -m tools dashboard` | nothing (reads SQLite) |
+| List AP checks | `python -m tools locations --region Crossroads --unmapped` | stdout |
+| Refresh names from world clone | `python -m tools sync-world` | `docs/world_locations.json` |
+| Push `targets.json` → DB | `python -m tools sync-map` | `darksiders_debug.db` |
+| Lock-in Markdown | `python -m tools export-docs` | `docs/memory_map.md` |
+| Tag last live delta | `python -m tools tag "Exact Location Name"` | SQLite |
+| One PE dump | `python -m tools snapshot --name NAME` | `snapshots/NAME/` |
+| Diff two dumps | `python -m tools diff A B` | stdout |
+| Keen JSON summary | `python -m tools save-brief PATH.json` | stdout |
+| Keen JSON delta | `python -m tools save-diff --before A.json --after B.json` | stdout |
 
-| Command | Purpose |
-|---------|---------|
-| `python -m tools scan … [--auto-save]` | Exact + refine scan; `--auto-save` upserts `targets.json` |
-| `python -m tools sync-map` | `targets.json` → SQLite `memory_map` |
-| `python -m tools tag LABEL [--region R] [--category C]` | Tag latest delta |
-| `python -m tools export-docs [PATH]` | Write `docs/memory_map.md` |
+Location **labels** must match Sacha’s `Locations.py` byte-for-byte ([docs/WORLD.md](../docs/WORLD.md)). Pick from the catalog; do not invent names.
 
-## Soul count (first goal)
+## Mapping loop
 
-1. Game running, free roam, note HUD souls.
-2. Scan and save:
+1. Game running, stand at a still-closed check.
+2. `python -m tools dashboard` (leave open).
+3. `python -m tools capture --region Crossroads` → pick row → Enter → open → Enter.
+4. Souls only: `python -m tools scan --auto-save`.
+5. When verified: `python -m tools export-docs`.
 
-```bash
-python -m tools scan --type uint32 --id soul_count --label Soul_Count --category stat --auto-save
+| Live | Locked-in |
+|------|-----------|
+| `dashboard` + SQLite | `export-docs` → `docs/memory_map.md` |
+| Every probe | Only after verify |
+
+Heap-only flags will not show in capture. That is a pointer-path problem, not a HUD scan.
+
+## `capture` — location checks
+
+Stand still → Enter (idle pair) → open/trigger → Enter. Default type is `uint8`. Auto-save is **on**.
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `--region` | (all) | Filter picker, e.g. `Crossroads` |
+| `--location` | | Exact name or unique substring |
+| `--next` | off | First unmapped in `--region` (no menu) |
+| `--no-auto-save` | | Print only; do not write `targets.json` |
+| `--all-deltas` | | Show every changed byte, not only `0→1` |
+| `--process` | `darksiders1.exe` | |
+
+```powershell
+python -m tools capture --region Crossroads
+python -m tools capture --location "Down Stairs"
+python -m tools capture --next --region Crossroads
 ```
 
-3. Verify:
+## `scan` — known HUD numbers
 
-```bash
-python -m ds_client
+Type the HUD value, change it in-game, refine. **Not** for chests. Default is souls as `float`.
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `--type` | `float` | `float` souls; `int32` health; `uint8`/`bool` flags (prefer `capture`) |
+| `--id` | `soul_count` | `targets.json` id |
+| `--label` | `Soul_Count` | Display / docs name |
+| `--category` | `stat` | `stat` \| `inventory` \| `location_flag` \| `misc` |
+| `--auto-save` | off | Write `targets.json` + sync SQLite |
+| `--writeable-only` | off | Faster; may miss read-only |
+| `--no-pointer-scan` | off | Skip heap pointer recovery |
+| `--process` | `darksiders1.exe` | |
+| `--targets` | `targets.json` | |
+
+```powershell
+python -m tools scan --auto-save
 ```
 
-Omit `--auto-save` for a dry-run print only.
+## `dashboard`
 
-## Chest / flag
+http://127.0.0.1:8765/ — real catalog and snapshot buttons, not a mock. You still pick the row.
 
-Use **exact** world names ([docs/WORLD.md](../docs/WORLD.md)):
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `--host` | `127.0.0.1` | |
+| `--port` | `8765` | |
+| `--db` | `darksiders_debug.db` | |
+| `--no-browser` | off | Do not open a tab |
 
-```bash
-python -m tools scan --type uint8 --id chest_crossroads_currency_down_stairs \
-  --label "Crossroads Currency Chest Down Stairs" \
-  --category location_flag --auto-save
-```
+## `locations` / `sync-world` / `sync-map` / `export-docs` / `tag`
 
-Then:
+| Command | Option | Default | Meaning |
+|---------|--------|---------|---------|
+| `locations` | `--region` | | Filter by region or name |
+| `locations` | `--unmapped` | off | Hide rows that already have a real offset |
+| `export-docs` | `[PATH]` | `docs/memory_map.md` | Output file |
+| `tag` | `LABEL` | required | Exact world name |
+| `tag` | `--region` | | |
+| `tag` | `--category` | | `location_flag` \| `inventory` \| `stat` \| `misc` |
 
-```bash
-python -m tools tag "Crossroads Currency Chest Down Stairs" --region Crossroads --category location_flag
-python -m tools export-docs
-```
+`sync-world` and `sync-map` take no options.
 
-## Loop
+## `snapshot` / `diff`
 
-1. `scan … --auto-save`
-2. `python -m ds_client` (baseline → action → delta)
-3. optional `tag`
-4. `export-docs` → commit `docs/memory_map.md` only when verified
+Manual capture equivalent. Dumps writable `.data` / `.bss`.
 
-## ASLR + schema
+| Command | Option | Meaning |
+|---------|--------|---------|
+| `snapshot` | `--name` | Folder under `snapshots/` (required) |
+| `snapshot` | `--process` | Default `darksiders1.exe` |
+| `diff` | `BEFORE AFTER` | Snapshot names |
+| `diff` | `--stable S` | Earlier idle dump; drops ticking bytes |
+| `diff` | `--zero-to-one` | Keep only `0→1` |
 
-`--auto-save` writes module-relative `offsets` into this repo’s schema (`observe_interval_ms` / `module` / `targets[]`). Absolute VAs are debug-only and never stored. Same `id` updates in place; new `id` appends. Existing `region` / `bitmask` are preserved when the scan omits them.
+## `save-brief` / `save-diff`
 
-## Package files
+Keen **JSON** exports only. Not a chest keymap. See [docs/SAVES.md](../docs/SAVES.md).
 
-| File | Role |
-|------|------|
-| `scanner.py` | PME scan + `--auto-save` |
-| `export_docs.py` | SQLite → Markdown |
-| `cli.py` / `__main__.py` | `python -m tools` |
+| Command | Option | Meaning |
+|---------|--------|---------|
+| `save-brief` | `PATH.json` | Summarize one export |
+| `save-diff` | `--before` / `--after` | Field-level delta |
+| `save-diff` | `--include-tiles` | Also print minimap fog (`MapTileData`) |
 
-## Related
+## `targets.json`
 
-- [ds_client/README.md](../ds_client/README.md)
-- [docs/README.md](../docs/README.md)
-- [docs/WORLD.md](../docs/WORLD.md)
+`--auto-save` writes module-relative `offsets`. Same `id` updates; new `id` appends. Absolute VAs are never stored.
+
+| Field | Meaning |
+|-------|---------|
+| `offsets` | One = `base+RVA`; many = pointer chain |
+| `type` | See `ds_client` types |
+| `label` | Must match `Locations.py` for checks |
+| `category` | `location_flag` \| `inventory` \| `stat` \| `misc` |
+| `enabled` | `false` skips without deleting |

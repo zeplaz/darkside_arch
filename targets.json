@@ -22,8 +22,8 @@
       "label": "Soul_Count",
       "region": "",
       "offsets": ["0x0"],
-      "type": "uint32",
-      "notes": "TEMPLATE — replace offsets via: python -m tools scan --auto-save"
+      "type": "float",
+      "notes": "Keen PlayerSaveData.Souls is float. Scan with --type float. TEMPLATE — replace offsets via: python -m tools scan --type float --auto-save"
     }
   ]
 }

@@ -1,0 +1,796 @@
+{
+  "locations": [
+    {
+      "name": "Anvil Ford Challenge Currency Chest Lower Platform",
+      "ap_id": 100,
+      "region": "Anvil Ford Challenge",
+      "kind": "chest"
+    },
+    {
+      "name": "Anvil Ford Challenge Life Chest Inside Large Crystal",
+      "ap_id": 101,
+      "region": "Anvil Ford Challenge",
+      "kind": "chest"
+    },
+    {
+      "name": "Anvil Ford Challenge Life Chest Inside Small Crystals",
+      "ap_id": 102,
+      "region": "Anvil Ford Challenge",
+      "kind": "chest"
+    },
+    {
+      "name": "Anvil Ford Challenge Life Chest after Toss",
+      "ap_id": 103,
+      "region": "Anvil Ford Challenge",
+      "kind": "chest"
+    },
+    {
+      "name": "Anvil Ford Challenge Life Chest before Toss",
+      "ap_id": 104,
+      "region": "Anvil Ford Challenge",
+      "kind": "chest"
+    },
+    {
+      "name": "Anvil Ford Challenge Life Chest Elevator Shaft",
+      "ap_id": 105,
+      "region": "Anvil Ford Challenge",
+      "kind": "chest"
+    },
+    {
+      "name": "Anvil Ford Challenge Life Chest East Uriel Arena",
+      "ap_id": 106,
+      "region": "Anvil Ford Challenge",
+      "kind": "chest"
+    },
+    {
+      "name": "Anvil Ford Challenge Life Chest West Uriel Arena",
+      "ap_id": 107,
+      "region": "Anvil Ford Challenge",
+      "kind": "chest"
+    },
+    {
+      "name": "Anvil Ford Challenge Wrath Chest after Demonic Growth",
+      "ap_id": 108,
+      "region": "Anvil Ford Challenge",
+      "kind": "chest"
+    },
+    {
+      "name": "Broken Stair Soldier Artifact Near Entrance",
+      "ap_id": 30,
+      "region": "Broken Stair",
+      "kind": "artifact"
+    },
+    {
+      "name": "Broken Stair Beholder Key Chest",
+      "ap_id": 114,
+      "region": "Broken Stair",
+      "kind": "chest"
+    },
+    {
+      "name": "Broken Stair Currency Chest SE Down Stairs",
+      "ap_id": 115,
+      "region": "Broken Stair",
+      "kind": "chest"
+    },
+    {
+      "name": "Broken Stair Currency Chest SW 2nd Floor",
+      "ap_id": 116,
+      "region": "Broken Stair",
+      "kind": "chest"
+    },
+    {
+      "name": "Broken Stair Currency Chest after Geysers",
+      "ap_id": 117,
+      "region": "Broken Stair",
+      "kind": "chest"
+    },
+    {
+      "name": "Broken Stair Life Chest East Submerged Tunnel",
+      "ap_id": 118,
+      "region": "Broken Stair",
+      "kind": "chest"
+    },
+    {
+      "name": "Broken Stair Life Chest after Geysers",
+      "ap_id": 119,
+      "region": "Broken Stair",
+      "kind": "chest"
+    },
+    {
+      "name": "Broken Stair Access Tunnel Currency Chest",
+      "ap_id": 113,
+      "region": "Broken Stair Access Tunnel",
+      "kind": "chest"
+    },
+    {
+      "name": "Choking Grounds Soldier Artifact North of Vulgrim",
+      "ap_id": 31,
+      "region": "Choking Grounds",
+      "kind": "artifact"
+    },
+    {
+      "name": "Choking Grounds Soldier Artifact South in Sarcophagus",
+      "ap_id": 32,
+      "region": "Choking Grounds",
+      "kind": "artifact"
+    },
+    {
+      "name": "Choking Grounds Currency Chest North of Cemetery",
+      "ap_id": 120,
+      "region": "Choking Grounds",
+      "kind": "chest"
+    },
+    {
+      "name": "Choking Grounds Currency Chest NE South of the ramp",
+      "ap_id": 121,
+      "region": "Choking Grounds",
+      "kind": "chest"
+    },
+    {
+      "name": "Choking Grounds Currency Chest 1st Floor Left of Tormented Gate",
+      "ap_id": 122,
+      "region": "Choking Grounds",
+      "kind": "chest"
+    },
+    {
+      "name": "Choking Grounds Life Chest in NE Building",
+      "ap_id": 123,
+      "region": "Choking Grounds",
+      "kind": "chest"
+    },
+    {
+      "name": "Choking Grounds Life Chest North of Cemetery",
+      "ap_id": 124,
+      "region": "Choking Grounds",
+      "kind": "chest"
+    },
+    {
+      "name": "Choking Grounds Wrath Chest 2nd Floor Left of Tormented Gate",
+      "ap_id": 125,
+      "region": "Choking Grounds",
+      "kind": "chest"
+    },
+    {
+      "name": "Choking Grounds Secret Chest Destroy Gravestones with Crosses",
+      "ap_id": 126,
+      "region": "Choking Grounds",
+      "kind": "chest"
+    },
+    {
+      "name": "Choking Grounds Access Cave Currency Chest in Lava Pool",
+      "ap_id": 127,
+      "region": "Choking Grounds Access Cave",
+      "kind": "chest"
+    },
+    {
+      "name": "Crossroads Soldier Artifact in Subway Station",
+      "ap_id": 33,
+      "region": "Crossroads",
+      "kind": "artifact"
+    },
+    {
+      "name": "Crossroads Currency Chest Down Stairs",
+      "ap_id": 128,
+      "region": "Crossroads",
+      "kind": "chest"
+    },
+    {
+      "name": "Crossroads Currency Chest South Crater",
+      "ap_id": 129,
+      "region": "Crossroads",
+      "kind": "chest"
+    },
+    {
+      "name": "Crossroads Currency Chest in Subway Station",
+      "ap_id": 130,
+      "region": "Crossroads",
+      "kind": "chest"
+    },
+    {
+      "name": "Crossroads Life Chest Behind Gholen West",
+      "ap_id": 131,
+      "region": "Crossroads",
+      "kind": "chest"
+    },
+    {
+      "name": "Crossroads Life Chest Behind Gholen North",
+      "ap_id": 132,
+      "region": "Crossroads",
+      "kind": "chest"
+    },
+    {
+      "name": "Crossroads Life Chest NE Crater",
+      "ap_id": 133,
+      "region": "Crossroads",
+      "kind": "chest"
+    },
+    {
+      "name": "Crossroads Rare Chest Blocked by Ice",
+      "ap_id": 134,
+      "region": "Crossroads",
+      "kind": "chest"
+    },
+    {
+      "name": "Crossroads Secret Chest Destroy Fire Hydrants",
+      "ap_id": 135,
+      "region": "Crossroads",
+      "kind": "chest"
+    },
+    {
+      "name": "Drowned Pass Abyssal Armor Piece",
+      "ap_id": 1,
+      "region": "Drowned Pass",
+      "kind": "armor"
+    },
+    {
+      "name": "Drowned Pass Soldier Artifact Cave Under Waterfall",
+      "ap_id": 35,
+      "region": "Drowned Pass",
+      "kind": "artifact"
+    },
+    {
+      "name": "Drowned Pass Soldier Artifact Underwater Building",
+      "ap_id": 36,
+      "region": "Drowned Pass",
+      "kind": "artifact"
+    },
+    {
+      "name": "Drowned Pass Currency Chest after Submerged Cave",
+      "ap_id": 136,
+      "region": "Drowned Pass",
+      "kind": "chest"
+    },
+    {
+      "name": "Drowned Pass Currency Chest Building Semi Submerged",
+      "ap_id": 137,
+      "region": "Drowned Pass",
+      "kind": "chest"
+    },
+    {
+      "name": "Drowned Pass Life Chest after Crystal Switch Platform",
+      "ap_id": 138,
+      "region": "Drowned Pass",
+      "kind": "chest"
+    },
+    {
+      "name": "Drowned Pass Wrath Chest Blocked by Ice",
+      "ap_id": 139,
+      "region": "Drowned Pass",
+      "kind": "chest"
+    },
+    {
+      "name": "Drowned Pass Access Tunnel Champion Artifact",
+      "ap_id": 34,
+      "region": "Drowned Pass Access Tunnel",
+      "kind": "artifact"
+    },
+    {
+      "name": "Drowned Pass Access Tunnel Currency Chest East Nook",
+      "ap_id": 140,
+      "region": "Drowned Pass Access Tunnel",
+      "kind": "chest"
+    },
+    {
+      "name": "Dry Road Soldier Artifact",
+      "ap_id": 37,
+      "region": "Dry Road",
+      "kind": "artifact"
+    },
+    {
+      "name": "Dry Road Currency Chest South of Vulgrim",
+      "ap_id": 141,
+      "region": "Dry Road",
+      "kind": "chest"
+    },
+    {
+      "name": "Dry Road Life Chest East of Artifact",
+      "ap_id": 142,
+      "region": "Dry Road",
+      "kind": "artifact"
+    },
+    {
+      "name": "Dry Road Access Tunnel Soldier Artifact",
+      "ap_id": 38,
+      "region": "Dry Road Access Tunnel",
+      "kind": "artifact"
+    },
+    {
+      "name": "Dry Road Access Tunnel Currency Chest North of Chronosphere",
+      "ap_id": 143,
+      "region": "Dry Road Access Tunnel",
+      "kind": "chest"
+    },
+    {
+      "name": "Dry Road Access Tunnel Currency Chest South of Entrance",
+      "ap_id": 144,
+      "region": "Dry Road Access Tunnel",
+      "kind": "chest"
+    },
+    {
+      "name": "Dry Road Access Tunnel Currency Chest Up the Stairs",
+      "ap_id": 145,
+      "region": "Dry Road Access Tunnel",
+      "kind": "chest"
+    },
+    {
+      "name": "Hollows Abyssal Armor Piece",
+      "ap_id": 2,
+      "region": "Hollows",
+      "kind": "armor"
+    },
+    {
+      "name": "Library Currency Chest South of Fleshburners",
+      "ap_id": 174,
+      "region": "Library",
+      "kind": "chest"
+    },
+    {
+      "name": "Library Life Chest Entrance",
+      "ap_id": 175,
+      "region": "Library",
+      "kind": "chest"
+    },
+    {
+      "name": "Library Life Chest Submarine Cave",
+      "ap_id": 176,
+      "region": "Library",
+      "kind": "chest"
+    },
+    {
+      "name": "Library Life Chest North",
+      "ap_id": 177,
+      "region": "Library",
+      "kind": "chest"
+    },
+    {
+      "name": "Scalding Gallow Abyssal Armor Piece Near Entrance",
+      "ap_id": 3,
+      "region": "Scalding Gallow",
+      "kind": "armor"
+    },
+    {
+      "name": "Scalding Gallow Abyssal Armor Piece Under Central Platform",
+      "ap_id": 4,
+      "region": "Scalding Gallow",
+      "kind": "armor"
+    },
+    {
+      "name": "Scalding Gallow Currency Chest 2nd Floor",
+      "ap_id": 178,
+      "region": "Scalding Gallow",
+      "kind": "chest"
+    },
+    {
+      "name": "Scalding Gallow Currency Chest West Near Vulgrim",
+      "ap_id": 179,
+      "region": "Scalding Gallow",
+      "kind": "chest"
+    },
+    {
+      "name": "Scalding Gallow Wrath Chest Above Vulgrim",
+      "ap_id": 180,
+      "region": "Scalding Gallow",
+      "kind": "chest"
+    },
+    {
+      "name": "Serpent Hole to Anvil's Ford Chest",
+      "ap_id": 181,
+      "region": "Serpent Hole to Anvil's Ford",
+      "kind": "chest"
+    },
+    {
+      "name": "Serpent Hole to Dry Road Chest",
+      "ap_id": 182,
+      "region": "Serpent Hole to Dry Road",
+      "kind": "chest"
+    },
+    {
+      "name": "Serpent Hole to Twilight Cathedral Chest",
+      "ap_id": 183,
+      "region": "Serpent Hole to Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "The Ashlands Currency Chest up the Ramp",
+      "ap_id": 109,
+      "region": "The Ashlands",
+      "kind": "chest"
+    },
+    {
+      "name": "The Ashlands Access Tunnel Currency Chest by Three Goremaws",
+      "ap_id": 110,
+      "region": "The Ashlands Access Tunnel",
+      "kind": "chest"
+    },
+    {
+      "name": "The Ashlands Access Tunnel Life Blocked by Ice",
+      "ap_id": 111,
+      "region": "The Ashlands Access Tunnel",
+      "kind": "location"
+    },
+    {
+      "name": "The Ashlands Access Tunnel Rare Chest by Goremaw",
+      "ap_id": 112,
+      "region": "The Ashlands Access Tunnel",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Champion Artifact in Pipe Leading North",
+      "ap_id": 39,
+      "region": "The Hollows",
+      "kind": "artifact"
+    },
+    {
+      "name": "The Hollows Soldier Artifact Underwater",
+      "ap_id": 40,
+      "region": "The Hollows",
+      "kind": "artifact"
+    },
+    {
+      "name": "The Hollows Soldier Artifact South of Platforms",
+      "ap_id": 41,
+      "region": "The Hollows",
+      "kind": "artifact"
+    },
+    {
+      "name": "The Hollows Chained Cube",
+      "ap_id": 90,
+      "region": "The Hollows",
+      "kind": "cube"
+    },
+    {
+      "name": "The Hollows Beholder Key Chest after Chained Cube",
+      "ap_id": 146,
+      "region": "The Hollows",
+      "kind": "cube"
+    },
+    {
+      "name": "The Hollows Beholder Key Chest in Current",
+      "ap_id": 147,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Beholder Key Chest inside Floor Hole",
+      "ap_id": 148,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Currency Chest after Submerged Passage",
+      "ap_id": 149,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Currency Chest between Ice Blocks",
+      "ap_id": 150,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Currency Chest SE of Locust Room",
+      "ap_id": 151,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Currency Chest South of Clocktower",
+      "ap_id": 152,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Currency Chest SW of Gas",
+      "ap_id": 153,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Currency Chest Top Balcony",
+      "ap_id": 154,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Currency Chest Top of Stairwell",
+      "ap_id": 155,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Currency Chest under Goremaw",
+      "ap_id": 156,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Hoardseeker Chest SW of Grappleclaws Room",
+      "ap_id": 157,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Life Chest after Chained Cube",
+      "ap_id": 158,
+      "region": "The Hollows",
+      "kind": "cube"
+    },
+    {
+      "name": "The Hollows Life Chest after Water-Filled Hallway",
+      "ap_id": 159,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Life Chest before Boss Room",
+      "ap_id": 160,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Life Chest behind Train Cars",
+      "ap_id": 161,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Life Chest in Griever Tunnel",
+      "ap_id": 162,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Life Chest North of Locust Room",
+      "ap_id": 163,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Life Chest South Wall Nook",
+      "ap_id": 164,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Life Chest West Corridor",
+      "ap_id": 165,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Life Chest West of Grappleclaws Room",
+      "ap_id": 166,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Map Chest at Surface of Flooded Room",
+      "ap_id": 167,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Rare Chest over Submerged Passage",
+      "ap_id": 168,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Wrath Chest after Submerged Passage",
+      "ap_id": 169,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Wrath Chest after Water-Filled Hallway",
+      "ap_id": 170,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Wrath Chest over Flooded Room",
+      "ap_id": 171,
+      "region": "The Hollows",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Access Tunnel Currency Chest Dead End",
+      "ap_id": 172,
+      "region": "The Hollows Access Tunnel",
+      "kind": "chest"
+    },
+    {
+      "name": "The Hollows Access Tunnel Currency Chest Stream Walkthrough",
+      "ap_id": 173,
+      "region": "The Hollows Access Tunnel",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Abyssal Armor Piece",
+      "ap_id": 5,
+      "region": "Twilight Cathedral",
+      "kind": "armor"
+    },
+    {
+      "name": "Twilight Cathedral Champion Artifact North Wing",
+      "ap_id": 42,
+      "region": "Twilight Cathedral",
+      "kind": "artifact"
+    },
+    {
+      "name": "Twilight Cathedral Soldier Artifact South Wing",
+      "ap_id": 43,
+      "region": "Twilight Cathedral",
+      "kind": "artifact"
+    },
+    {
+      "name": "Twilight Cathedral Soldier Artifact Bridge Room",
+      "ap_id": 44,
+      "region": "Twilight Cathedral",
+      "kind": "artifact"
+    },
+    {
+      "name": "Twilight Cathedral Chained Cube",
+      "ap_id": 91,
+      "region": "Twilight Cathedral",
+      "kind": "cube"
+    },
+    {
+      "name": "Twilight Cathedral Beholder Key Chest South Wing",
+      "ap_id": 184,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Beholder Key Chest Three Blades East Path",
+      "ap_id": 185,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Currency Chest Below Abyssal Armor Chest",
+      "ap_id": 186,
+      "region": "Twilight Cathedral",
+      "kind": "armor"
+    },
+    {
+      "name": "Twilight Cathedral Currency Chest East of Elevated Platforms",
+      "ap_id": 187,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Currency Chest Exterior Blocked by Ice",
+      "ap_id": 188,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Currency Chest NE of Exterior",
+      "ap_id": 189,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Currency Chest North after Lava Fall",
+      "ap_id": 190,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Currency Chest Rot Mauler Room",
+      "ap_id": 191,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Currency Chest South after Lava Fall",
+      "ap_id": 192,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Currency Chest South of Exterior",
+      "ap_id": 193,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Currency Chest South Wing Main Gallery",
+      "ap_id": 194,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Currency Chest South Wing Conscript Room",
+      "ap_id": 195,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Hoardseeker Chest South Wing",
+      "ap_id": 196,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Life Chest after The Jailer",
+      "ap_id": 197,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Life Chest before Platform Room",
+      "ap_id": 198,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Life Chest North of Three Statues",
+      "ap_id": 199,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Life Chest North Wing Basement",
+      "ap_id": 200,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Life Chest South Wing Conscript Room",
+      "ap_id": 201,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Life Chest South Wing First Room",
+      "ap_id": 202,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Life Chest North Wing Under Crystal",
+      "ap_id": 203,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Map Chest South Wing",
+      "ap_id": 204,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Rare Chest South Wing",
+      "ap_id": 205,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Secret Chest Light 8 Torches",
+      "ap_id": 206,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Wrath Chest before Platform Room",
+      "ap_id": 207,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    },
+    {
+      "name": "Twilight Cathedral Wrath Chest Below Abyssal Armor Chest",
+      "ap_id": 208,
+      "region": "Twilight Cathedral",
+      "kind": "armor"
+    },
+    {
+      "name": "Twilight Cathedral Wrath Chest Three Blades East Path",
+      "ap_id": 209,
+      "region": "Twilight Cathedral",
+      "kind": "chest"
+    }
+  ]
+}

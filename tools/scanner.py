@@ -1,7 +1,7 @@
-"""Exact / differential value scanner (PyMemoryEditor).
+"""Exact-value scanner for *known* HUD numbers (souls, etc.).
 
-Finds a live value, resolves an ASLR-safe module offset or pointer chain,
-optionally upserts targets.json (--auto-save).
+Chests and unknown flags: use ``python -m tools capture`` (snapshot/diff).
+Typing 0 into this scanner is the wrong tool — it matches every zero byte.
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 from ds_client.models import PROCESS_NAME, TARGETS_FILE, TYPE_SPECS
+from ds_client.watcher import find_process
 
 # JSON type name -> Python type for PyMemoryEditor scans
 _PYTYPE: dict[str, type] = {
@@ -71,6 +72,7 @@ def build_target_entry(
     offsets: Sequence[int],
     notes: str,
     enabled: bool = True,
+    region: str = "",
 ) -> dict:
     event_type = "LOCATION_CHECK" if category == "location_flag" else "MEMORY_STATE"
     return {
@@ -79,7 +81,7 @@ def build_target_entry(
         "event_type": event_type,
         "category": category,
         "label": label,
-        "region": "",
+        "region": region,
         "offsets": [f"0x{o:X}" for o in offsets],
         "type": dtype,
         "module": module,
@@ -123,13 +125,35 @@ def upsert_target(new_target: dict, targets_path: Path = TARGETS_FILE) -> str:
     return action
 
 
+def _sync_sqlite_from_targets(targets_path: Path) -> None:
+    """Push enabled targets into darksiders_debug.db memory_map (no manual SQL)."""
+    from ds_client.models import load_targets
+    from ds_client.sinks import DB_FILE, init_db, sync_memory_map_from_targets
+
+    _, targets = load_targets(targets_path)
+    conn = init_db()
+    try:
+        n = sync_memory_map_from_targets(conn, targets)
+        print(f"[+] Synced {n} enabled target(s) into {DB_FILE}")
+    finally:
+        conn.close()
+
+
 def _emit_result(entry: dict, *, auto_save: bool, targets_path: Path) -> None:
     pretty = json.dumps(entry, indent=2)
     if auto_save:
         action = upsert_target(entry, targets_path)
         print(f"[+] {action.capitalize()} target id={entry['id']!r} in {targets_path}")
         print(pretty)
-        print("\nNext: python -m ds_client  (confirm live deltas)")
+        try:
+            _sync_sqlite_from_targets(targets_path)
+        except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+            print(f"[WARN] SQLite sync-map failed: {exc}")
+        print(
+            "\nNext: python -m ds_client  (hot-reloads targets.json)\n"
+            "      python -m tools dashboard  (live telemetry)\n"
+            "      python -m tools export-docs  (only when locked in / Obsidian)"
+        )
         return
     print("\n--- targets.json entry (pass --auto-save to write) ---\n")
     print(pretty)
@@ -211,7 +235,7 @@ def _finish_entry(
 def run_value_scan(
     *,
     process_name: str = PROCESS_NAME,
-    dtype: str = "uint32",
+    dtype: str = "float",
     writeable_only: bool = False,
     target_id: str = "soul_count",
     label: str = "Soul_Count",
@@ -229,12 +253,23 @@ def run_value_scan(
     width, _fmt = TYPE_SPECS[dtype]
     pytype = _PYTYPE[dtype]
 
+    if target_id == "soul_count" and dtype == "uint32":
+        print("[WARN] Keen Souls is float. This uint32 scan will miss 172.0. Use --type float.")
     print(f"[*] NumPy acceleration: {numpy_ok}")
     print(f"[*] Attaching to {process_name} ({dtype}, {width} bytes)...")
 
+    pid = find_process(process_name)
+    if pid is None:
+        print(
+            f"[ERROR] Process {process_name!r} is not running.\n"
+            "        Launch Darksiders Warmastered (Steam x64), get in-game, then retry."
+        )
+        return 1
+
     try:
-        with OpenProcess(name=process_name) as process:
-            if not process.is_64bit():
+        with OpenProcess(pid=pid) as process:
+            print(f"[*] Attached PID {pid}")
+            if not process.is_64bit:
                 print("[WARN] Process does not look 64-bit — Warmastered should be x64.")
 
             mod = _find_module(process, process_name)
@@ -247,7 +282,12 @@ def run_value_scan(
             )
 
             regions = process.snapshot_memory_regions()
-            raw = input("Enter current value to scan (or 'q' to quit): ").strip()
+            print(
+                "\nExact-value scan — for a known HUD number (souls).\n"
+                "Chests / unknown flags: Ctrl+C, then python -m tools capture\n"
+                "Look at the HUD and type that number. Live logging is python -m ds_client.\n"
+            )
+            raw = input("HUD value right now (or 'q' to quit): ").strip()
             if raw.lower() == "q":
                 return 0
 
@@ -267,10 +307,10 @@ def run_value_scan(
                 return 1
 
             while len(candidates) > 1:
-                print(f"\n[?] Candidates remaining: {len(candidates)}")
+                print(f"\n[?] {len(candidates)} addresses still match.")
+                print("    In-game: kill something or spend souls so the HUD number changes.")
                 action = input(
-                    "Change the value in-game, then enter the *new* value "
-                    "(or 'q' to stop with current list): "
+                    "New HUD value (or 'q' to stop): "
                 ).strip()
                 if action.lower() == "q":
                     break
@@ -376,9 +416,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--type",
         dest="dtype",
-        default="uint32",
+        default="float",
         choices=sorted(TYPE_SPECS),
-        help="Souls: uint32; chest flags: uint8/bool",
+        help="Default float matches Keen Souls. Chest flags: uint8/bool. Health: int32.",
     )
     p.add_argument("--id", dest="target_id", default="soul_count")
     p.add_argument("--label", default="Soul_Count")

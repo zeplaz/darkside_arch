@@ -1,63 +1,51 @@
-# ds_client — runtime client (watcher)
+# ds_client
 
-Final client path: attach to `darksiders1.exe`, read `targets.json`, emit change events.
+Runtime watcher. Attaches to `darksiders1.exe`, reads `targets.json`, logs changes. Not the scanner — that is [tools](../tools/README.md).
 
-Not the address scanner — that is [`../tools/`](../tools/README.md).
+| Step | What happens |
+|------|----------------|
+| 1 | Wait for `darksiders1.exe` |
+| 2 | Resolve module base (ASLR) |
+| 3 | Poll **enabled** `targets.json` rows (hot-reload each tick) |
+| 4 | On change → stdout + `darksiders_debug.db` |
+| 5 | Upsert into SQLite `memory_map` (dashboard reads this) |
 
-## Behavior
+No CLI flags. `Ctrl+C` detaches. Game exit → wait and reattach.
 
-1. Wait for `darksiders1.exe`
-2. Resolve module base (ASLR-safe)
-3. Poll enabled watches from repo-root `targets.json`
-4. On change → stdout + `darksiders_debug.db` (auto-created, gitignored)
-5. Upsert verified deltas into SQLite `memory_map`
-
-Future Archipelago WebSocket sink belongs **here**, not under `tools/`.
-
-## Setup
-
-- Windows 10/11, Python 3.11+, Steam x64 Warmastered
-- Enabled rows in `targets.json`
-
-```bash
-python -m venv .venv
-.\.venv\Scripts\activate
+```powershell
 pip install -r requirements.txt
 python -m ds_client
 ```
 
-No `requirements-dev.txt` / PyMemoryEditor needed for runtime.
-
-## Run notes
-
-- No CLI flags (`python -m tools` for scan/tag/export)
-- Ctrl+C detaches; game exit → wait and reattach
+Runtime needs `psutil` only. Mapping needs `requirements-dev.txt`.
 
 ```
 [INIT] Loaded N watch target(s) from targets.json
 [WAITING] Searching for darksiders1.exe...
 [FOUND] Attached to PID …
-[EVENT] MEMORY_STATE | Address: 0x… | Val: 50 -> 75 | Soul_Count
+[EVENT] MEMORY_STATE | Address: 0x… | Val: 50.0 -> 75.0 | Soul_Count
 ```
 
-## `targets.json` schema
+## `targets.json`
 
 | Field | Meaning |
 |-------|---------|
-| `offsets` | Module-relative; one = `base+offset`; many = pointer chain |
+| `offsets` | Module-relative. One = `base+offset`; many = pointer chain |
 | `type` | `bool`, `uint8/16/32/64`, `int8/16/32/64`, `float`, `double` |
-| `bitmask` | Optional masked bits |
-| `label` / `region` / `category` | Docs + tagging (`location_flag` \| `inventory` \| `stat` \| `misc`) |
-| `enabled` | `false` skips without deleting |
+| `bitmask` | Optional; not valid on float/double |
+| `label` | Docs + AP name. Location labels must match [WORLD.md](../docs/WORLD.md) |
+| `region` | Area string |
+| `category` | `location_flag` \| `inventory` \| `stat` \| `misc` |
+| `enabled` | `false` skips the row |
 
-Offsets from `python -m tools scan … --auto-save` only. Never store absolute VAs. Location `label`s must match [docs/WORLD.md](../docs/WORLD.md).
-
-## Package files
+Offsets come from `tools capture` / `tools scan --auto-save` only. Never store absolute VAs.
 
 | File | Role |
 |------|------|
 | `win32.py` | OpenProcess / RPM / module base |
 | `models.py` | WatchTarget, Event, loader |
 | `sinks.py` | Terminal + SQLite |
-| `watcher.py` | Lifecycle |
+| `watcher.py` | Attach / poll / hot-reload |
 | `__main__.py` | `python -m ds_client` |
+
+Future Archipelago WebSocket sink belongs **here**, not in `tools/`.
