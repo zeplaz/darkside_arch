@@ -8,37 +8,89 @@ pip install -r requirements-dev.txt
 
 ## What to run
 
-| Job | Command | Writes |
-|-----|---------|--------|
-| Chest / artifact / flag | `python -m tools capture --region Crossroads` | `targets.json` if one `0→1` |
-| HUD souls | `python -m tools scan --auto-save` | `targets.json` (opt-in) |
-| Live page | `python -m tools dashboard` | nothing (reads SQLite) |
-| List AP checks | `python -m tools locations --region Crossroads --unmapped` | stdout |
-| Refresh names from world clone | `python -m tools sync-world` | `docs/world_locations.json` |
-| Push `targets.json` → DB | `python -m tools sync-map` | `darksiders_debug.db` |
-| Lock-in Markdown | `python -m tools export-docs` | `docs/memory_map.md` |
-| Tag last live delta | `python -m tools tag "Exact Location Name"` | SQLite |
-| One PE dump | `python -m tools snapshot --name NAME` | `snapshots/NAME/` |
-| Diff two dumps | `python -m tools diff A B` | stdout |
-| Keen JSON summary | `python -m tools save-brief PATH.json` | stdout |
-| Keen JSON delta | `python -m tools save-diff --before A.json --after B.json` | stdout |
+| Job | UI | CLI |
+|-----|----|-----|
+| Chest / artifact / flag | Pick → Baseline → After → Save | `python -m tools capture --region Crossroads` |
+| HUD souls | — | `python -m tools scan --auto-save` |
+| Live catalog + watches | `python -m tools dashboard` | — |
+| List AP checks | left pane | `python -m tools locations --region Crossroads --unmapped` |
+| Refresh world names | — | `python -m tools sync-world` |
+| Push targets → DB | Save / Refresh | `python -m tools sync-map` |
+| Lock-in Markdown | **Write docs/memory_map.md** | `python -m tools export-docs` |
+| Tag last live delta | — | `python -m tools tag "Exact Location Name"` |
+| Raw PE dump / diff | — | `snapshot --name X` / `diff A B` |
+| Keen JSON | — | `save-brief` / `save-diff` |
 
 Location **labels** must match Sacha’s `Locations.py` byte-for-byte ([docs/WORLD.md](../docs/WORLD.md)). Pick from the catalog; do not invent names.
 
-## Mapping loop
+## Dashboard vs CLI
 
-1. Game running, stand at a still-closed check.
-2. `python -m tools dashboard` (leave open).
-3. `python -m tools capture --region Crossroads` → pick row → Enter → open → Enter.
-4. Souls only: `python -m tools scan --auto-save`.
-5. When verified: `python -m tools export-docs`.
+Both paths log the same way: dump writable `.data` / `.bss`, keep a single `0→1`, write a `uint8` row into `targets.json`. Do **not** click Save in the UI and also run `capture` for the same chest.
 
-| Live | Locked-in |
-|------|-----------|
-| `dashboard` + SQLite | `export-docs` → `docs/memory_map.md` |
-| Every probe | Only after verify |
+| | Dashboard (UI) | Terminal (manual) |
+|--|----------------|-------------------|
+| Start | `python -m tools dashboard` | same install; no extra server |
+| URL | http://127.0.0.1:8765/ (opens a tab) | — |
+| Pick a check | Area dropdown + Open/Mapped + Chests/Artifacts | `--region` / `--location` / `--next` or a number menu |
+| Baseline | **Capture baseline** (stand still, check closed) | Enter on `capture` |
+| After the action | Open in-game, then **Capture after** | Open in-game, then Enter |
+| Write offset | **Save to targets.json** (needs exactly one `0→1`) | auto-save on (or `--no-auto-save`) |
+| Watch live values | Right pane **Watches** / **Delta log** | `python -m ds_client` in another terminal |
+| Lock-in Markdown | **Write docs/memory_map.md** | `python -m tools export-docs` |
+| Souls / HUD number | not in the UI | `python -m tools scan --auto-save` |
 
-Heap-only flags will not show in capture. That is a pointer-path problem, not a HUD scan.
+Heap-only flags will not show. That is a pointer-path problem, not a HUD scan.
+
+### Run the UI
+
+```powershell
+pip install -r requirements-dev.txt
+python -m tools dashboard
+```
+
+Game must be running for Baseline / After. Leave the dashboard terminal open. `Ctrl+C` stops it.
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `--host` | `127.0.0.1` | Bind address |
+| `--port` | `8765` | |
+| `--db` | `darksiders_debug.db` | |
+| `--no-browser` | off | Print the URL only |
+
+### UI click path (location check)
+
+1. Launch Warmastered, stand at a **still-closed** check.
+2. Left: **Area** = map cell (e.g. Crossroads). **Open** + **Chests** (or Artifacts / Other).
+3. Click the location row (AP name). The tool cannot see which chest you face.
+4. **Capture baseline** — two idle dumps.
+5. Open / trigger it in-game.
+6. **Capture after** — pane lists changed bytes (`0→1`).
+7. **Save to targets.json** if exactly one candidate. Same file the CLI writes.
+8. After you trust it: **Write docs/memory_map.md** (or `export-docs`). Do not spam this every probe.
+
+Middle toggle: `targets.json` vs on-disk `docs/memory_map.md`. Right: last verified watches vs `ds_client` delta log.
+
+### CLI path (same job)
+
+```powershell
+python -m tools capture --region Crossroads
+```
+
+Number picker (or `--location "Down Stairs"` / `--next`). Enter = baseline, do the action, Enter = after. Auto-save is on.
+
+```powershell
+python -m tools scan --auto-save
+```
+
+Souls only (default `--type float`). There is no dashboard equivalent.
+
+```powershell
+python -m tools snapshot --name before
+python -m tools snapshot --name after
+python -m tools diff before after --zero-to-one
+```
+
+Lowest-level dumps if you do not want `capture` or the UI.
 
 ## `capture` — location checks
 
@@ -78,17 +130,6 @@ Type the HUD value, change it in-game, refine. **Not** for chests. Default is so
 ```powershell
 python -m tools scan --auto-save
 ```
-
-## `dashboard`
-
-http://127.0.0.1:8765/ — real catalog and snapshot buttons, not a mock. You still pick the row.
-
-| Option | Default | Meaning |
-|--------|---------|---------|
-| `--host` | `127.0.0.1` | |
-| `--port` | `8765` | |
-| `--db` | `darksiders_debug.db` | |
-| `--no-browser` | off | Do not open a tab |
 
 ## `locations` / `sync-world` / `sync-map` / `export-docs` / `tag`
 

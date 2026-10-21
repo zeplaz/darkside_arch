@@ -10,12 +10,12 @@ Out-of-process memory client for **Darksiders Warmastered** (`darksiders1.exe`, 
 | I want to… | Command |
 |------------|---------|
 | Watch enabled `targets.json` rows | `python -m ds_client` |
-| Map a chest / artifact / flag | `python -m tools capture --region Crossroads` |
+| Map with the web UI | `python -m tools dashboard` → http://127.0.0.1:8765/ |
+| Map from the terminal | `python -m tools capture --region Crossroads` |
 | Map HUD souls | `python -m tools scan --auto-save` |
-| Live catalog + telemetry | `python -m tools dashboard` |
 | Lock offsets into Markdown | `python -m tools export-docs` |
 
-Details: [ds_client/README.md](ds_client/README.md) · [tools/README.md](tools/README.md)
+Dashboard (buttons) and CLI (`capture` / `scan`) write the same `targets.json`. Use one or the other per check — not both at once. Full click-by-click vs command table: [tools/README.md](tools/README.md).
 
 | Doc | What it is |
 |-----|------------|

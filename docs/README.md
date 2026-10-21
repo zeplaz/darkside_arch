@@ -8,12 +8,12 @@
 | [world_locations.json](world_locations.json) | yes | Catalog cache from `Locations.py` |
 | `README.md` | yes | This index |
 
-| When | Command |
-|------|---------|
-| Mapping session | `python -m tools dashboard` |
-| Chest / flag | `python -m tools capture --region Crossroads` |
-| Souls | `python -m tools scan --auto-save` |
-| After verify | `python -m tools export-docs` |
-| World clone updated | `python -m tools sync-world` then bump [WORLD.md](WORLD.md) |
+| When | UI | CLI |
+|------|----|-----|
+| Mapping session | `python -m tools dashboard` → http://127.0.0.1:8765/ | — |
+| Chest / flag | Pick row → Baseline → After → Save | `python -m tools capture --region Crossroads` |
+| Souls | — | `python -m tools scan --auto-save` |
+| After verify | **Write docs/memory_map.md** | `python -m tools export-docs` |
+| World clone updated | — | `python -m tools sync-world` then bump [WORLD.md](WORLD.md) |
 
 Do not run `export-docs` on every probe. Labels must match [WORLD.md](WORLD.md) byte-for-byte.
