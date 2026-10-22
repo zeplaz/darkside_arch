@@ -1,0 +1,11 @@
+{
+  "host": "localhost",
+  "port": 38281,
+  "slot": "",
+  "password": "",
+  "game": "Darksiders",
+  "use_wss": false,
+  "tags": ["Darksiders"],
+  "request_goal": false,
+  "uuid": ""
+}

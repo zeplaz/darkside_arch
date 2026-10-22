@@ -19,6 +19,7 @@ venv/
 env/
 .env
 .env.*
+ap_config.json
 *.egg-info/
 .eggs/
 dist/

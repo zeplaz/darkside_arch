@@ -141,7 +141,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     print_brief(brief_save(args.path))
     print(
         "\nInstall the .sav into the game save folder, load it, then:\n"
-        "  python -m tools scan --auto-save\n"
+        "  python -m tools scan\n"
         "  (Souls is float; that is the scan default)"
     )
     return 0

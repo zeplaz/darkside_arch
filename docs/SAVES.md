@@ -1,55 +1,38 @@
 # Keen saves
 
-Same slot, two files. JSON is a **schema dump**. It is not a memory map.
+Same slot, two files. JSON is a schema dump, not a memory map. Gitignored under `saves/`.
 
-| File | Role |
-|------|------|
-| `keen_savegame_0_0.sav` | Install and **Load** in-game |
-| `keen_savegame_0_0.json` | Inspect / diff only |
+| File | Use |
+|------|-----|
+| `*.sav` | Load in-game |
+| `*.json` | `save-brief` / `save-diff` / `save-install` only |
 
-Gitignored under `saves/`. Do not commit them.
+Steam saves: `<Steam>\userdata\<id>\462780\remote\` (`save-install --install` finds the Steam folder from the registry).
 
-## Use / do not use
+## Mapping bag (`keen_savegame_0_0`) — late game
 
-| Need | Use the save? |
-|------|----------------|
-| Scan types (`Souls` float, `Health` int, flags `uint8`) | Yes |
-| Inventory classnames (`sword/warsword`, …) | Later watch **ids** only — not AP names |
-| AP location names / chest keymap | No |
-| Module offsets | No — `capture` / `scan` |
-| Search RAM for `ObjectID` 88 | No — IDs are per-region; 88 is a map tile **and** a destroyable |
-
-Chests persist as unnamed `World + RegionID + LayerID + ObjectID` plus `Destroyed` / `Triggered` / `Open`. `Open` on this slot is linked doors. `MapTileData.Visited` is fog-of-war. `NumberOfChestsOpened` is a counter.
-
-## This slot (`keen_savegame_0_0`)
-
-| Field | Value |
-|-------|--------|
+| | |
+|--|--|
 | Spawn | `overworld` / `CI_02` @ `Start_04` |
-| Souls | `172.0` (`float`) |
-| Health / Wrath / Chaos | `1100` (`int`) / `500.0` / `250.0` (`float`) |
-| Chests opened | 5 |
-| Artifacts | 20 pawn + 6 general + 1 master |
-| Gear | Late loadout (L6 warsword, gauntlets, scythe, Crossblade, …) |
+| Types | Souls `float`, Health `int` |
+| Gear | L6 warsword, Armageddon already in inventory |
+| Chests | 5 opened — **not** a fresh Crossroads start |
 
-`CI_01` ≈ first city (Crossroads-class). `CI_02` is the next cell. This bag vs 5 chests is **not** a fresh Crossroads start. For unused Crossroads checks, use a new game.
+Use it to scan types. Do **not** use it as an AP skip-intro template. For unused Crossroads checks, start a new game.
 
-## Install `.sav`
+Keen chests are `World + RegionID + LayerID + ObjectID`, not AP names. `ObjectID` 88 is per-region — do not scan RAM for it.
 
-Backup first. Typical Steam path (id varies):
-
-```
-%STEAM%\userdata\<id>\462780\remote\
+```powershell
+python -m tools save-brief PATH.json
+python -m tools save-diff BEFORE.json AFTER.json
 ```
 
-Copy `keen_savegame_0_0.sav` next to the other `keen_savegame_*` files → Load that slot.
+## AP skip-intro — not captured yet
 
-## Commands
+Need a **new** slot: new game → Crossroads after Vulgrim (`overworld` / `CI_01`). Export JSON. Then:
 
-| Command | Options | Meaning |
-|---------|---------|---------|
-| `python -m tools save-brief PATH.json` | `PATH` | Print spawn, types, inventory, flags |
-| `python -m tools save-diff` | `--before` `--after` | Field delta between two **JSON** exports |
-| `python -m tools save-diff` | `--include-tiles` | Also print minimap fog |
+```powershell
+python -m tools save-install --json PATH.json --sav PATH.sav --userid YOUR_STEAM_ID --install
+```
 
-The game writes `.sav`. `save-diff` needs two JSON exports (Sacha’s exporter). After load: stand at a still-closed check → `capture`.
+Rewrites `GameInfo.UserId` in the JSON and every matching `u32le` dword in the `.sav`. Every file it overwrites gets a `.bak` copy first. Refuses (unless `--force`, mapping only) a save that is not `overworld` / `CI_01`, carries Armageddon Blade or shards, or has more than 8 chests opened. `--install` needs `--sav`.

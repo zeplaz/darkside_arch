@@ -1,0 +1,290 @@
+{
+  "game": "Darksiders",
+  "items": [
+    {
+      "name": "Abyssal Armor Piece",
+      "ap_id": 1,
+      "kind": "abyssal_armor_pieces"
+    },
+    {
+      "name": "Soldier Artifact",
+      "ap_id": 20,
+      "kind": "artifacts"
+    },
+    {
+      "name": "Champion Artifact",
+      "ap_id": 21,
+      "kind": "artifacts"
+    },
+    {
+      "name": "Overlord Artifact",
+      "ap_id": 22,
+      "kind": "artifacts"
+    },
+    {
+      "name": "Empty Container",
+      "ap_id": 50,
+      "kind": "consumables"
+    },
+    {
+      "name": "Life Essence",
+      "ap_id": 51,
+      "kind": "consumables"
+    },
+    {
+      "name": "Greater Life Essence",
+      "ap_id": 52,
+      "kind": "consumables"
+    },
+    {
+      "name": "Possession",
+      "ap_id": 53,
+      "kind": "consumables"
+    },
+    {
+      "name": "Rage Essence",
+      "ap_id": 54,
+      "kind": "consumables"
+    },
+    {
+      "name": "Greater Rage Essence",
+      "ap_id": 55,
+      "kind": "consumables"
+    },
+    {
+      "name": "Undying",
+      "ap_id": 56,
+      "kind": "consumables"
+    },
+    {
+      "name": "Beholder Key",
+      "ap_id": 59,
+      "kind": "keys"
+    },
+    {
+      "name": "Bane",
+      "ap_id": 60,
+      "kind": "enhancements"
+    },
+    {
+      "name": "Bloodthirst",
+      "ap_id": 61,
+      "kind": "enhancements"
+    },
+    {
+      "name": "Carnage",
+      "ap_id": 62,
+      "kind": "enhancements"
+    },
+    {
+      "name": "Combat Lore",
+      "ap_id": 63,
+      "kind": "enhancements"
+    },
+    {
+      "name": "Death Blessing",
+      "ap_id": 64,
+      "kind": "enhancements"
+    },
+    {
+      "name": "Fury Embrace",
+      "ap_id": 65,
+      "kind": "enhancements"
+    },
+    {
+      "name": "Hellfire",
+      "ap_id": 66,
+      "kind": "enhancements"
+    },
+    {
+      "name": "Ravager",
+      "ap_id": 67,
+      "kind": "enhancements"
+    },
+    {
+      "name": "Reaper",
+      "ap_id": 68,
+      "kind": "enhancements"
+    },
+    {
+      "name": "Strife Offering",
+      "ap_id": 69,
+      "kind": "enhancements"
+    },
+    {
+      "name": "Weapon Master",
+      "ap_id": 70,
+      "kind": "enhancements"
+    },
+    {
+      "name": "Wars Glory",
+      "ap_id": 75,
+      "kind": "legendary_enhancements"
+    },
+    {
+      "name": "Strifes Offering",
+      "ap_id": 76,
+      "kind": "legendary_enhancements"
+    },
+    {
+      "name": "Furys Embrace",
+      "ap_id": 77,
+      "kind": "legendary_enhancements"
+    },
+    {
+      "name": "Deaths Blessing",
+      "ap_id": 78,
+      "kind": "legendary_enhancements"
+    },
+    {
+      "name": "Abyssal Chain",
+      "ap_id": 80,
+      "kind": "gear_and_equipments"
+    },
+    {
+      "name": "Crossblade",
+      "ap_id": 81,
+      "kind": "gear_and_equipments"
+    },
+    {
+      "name": "Earthcaller",
+      "ap_id": 82,
+      "kind": "gear_and_equipments"
+    },
+    {
+      "name": "Mask of Shadows",
+      "ap_id": 83,
+      "kind": "gear_and_equipments"
+    },
+    {
+      "name": "Mercy",
+      "ap_id": 84,
+      "kind": "gear_and_equipments"
+    },
+    {
+      "name": "Voidwalker",
+      "ap_id": 85,
+      "kind": "gear_and_equipments"
+    },
+    {
+      "name": "Heart of the Chosen",
+      "ap_id": 87,
+      "kind": "hearts_of_the_chosen"
+    },
+    {
+      "name": "Lifestone",
+      "ap_id": 90,
+      "kind": "lifestones"
+    },
+    {
+      "name": "Lifestone Shard",
+      "ap_id": 100,
+      "kind": "lifestone_shards"
+    },
+    {
+      "name": "Block Counter",
+      "ap_id": 120,
+      "kind": "passive_abilities"
+    },
+    {
+      "name": "Chaos Form",
+      "ap_id": 121,
+      "kind": "passive_abilities"
+    },
+    {
+      "name": "Chronomancer",
+      "ap_id": 122,
+      "kind": "passive_abilities"
+    },
+    {
+      "name": "Ruin",
+      "ap_id": 123,
+      "kind": "passive_abilities"
+    },
+    {
+      "name": "Serpent Holes",
+      "ap_id": 124,
+      "kind": "passive_abilities"
+    },
+    {
+      "name": "Shadowflight",
+      "ap_id": 125,
+      "kind": "passive_abilities"
+    },
+    {
+      "name": "Soul Bridge",
+      "ap_id": 126,
+      "kind": "passive_abilities"
+    },
+    {
+      "name": "Progressive Chaoseater",
+      "ap_id": 130,
+      "kind": "primary_weapons"
+    },
+    {
+      "name": "Armageddon Blade",
+      "ap_id": 132,
+      "kind": "primary_weapons"
+    },
+    {
+      "name": "Armageddon Blade Shards",
+      "ap_id": 133,
+      "kind": "primary_weapons"
+    },
+    {
+      "name": "Progressive Scythe",
+      "ap_id": 140,
+      "kind": "secondary_weapons"
+    },
+    {
+      "name": "Progressive Gauntlet",
+      "ap_id": 143,
+      "kind": "secondary_weapons"
+    },
+    {
+      "name": "Currency",
+      "ap_id": 150,
+      "kind": "souls_chests"
+    },
+    {
+      "name": "Health",
+      "ap_id": 151,
+      "kind": "souls_chests"
+    },
+    {
+      "name": "Wrath",
+      "ap_id": 152,
+      "kind": "souls_chests"
+    },
+    {
+      "name": "Affliction",
+      "ap_id": 160,
+      "kind": "wrath_abilities"
+    },
+    {
+      "name": "Blade Geyser",
+      "ap_id": 161,
+      "kind": "wrath_abilities"
+    },
+    {
+      "name": "Immolation",
+      "ap_id": 162,
+      "kind": "wrath_abilities"
+    },
+    {
+      "name": "Stoneskin",
+      "ap_id": 163,
+      "kind": "wrath_abilities"
+    },
+    {
+      "name": "Wrath Core",
+      "ap_id": 170,
+      "kind": "wrath_cores"
+    },
+    {
+      "name": "Wrath Shard",
+      "ap_id": 180,
+      "kind": "wrath_shards"
+    }
+  ]
+}

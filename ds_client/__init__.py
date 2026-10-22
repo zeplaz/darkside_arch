@@ -1,4 +1,4 @@
-"""Runtime Darksiders Warmastered client watcher.
+"""Runtime Darksiders Warmastered client: RAM watcher + AP 0.6.7 sink.
 
-End-user / Archipelago client path. Developer scanners live in ``tools``.
+Mapping scanners live in ``tools``.
 """

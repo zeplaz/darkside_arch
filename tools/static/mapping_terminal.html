@@ -1,781 +1,1177 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-[#0d0e15]">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>darkside_arch — mapping terminal</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
-            sans: ['Segoe UI', 'system-ui', 'sans-serif'],
-          },
-          colors: {
-            dark: { 900: '#0b0c10', 800: '#12131c', 700: '#1a1b28', 600: '#232538', 500: '#2e314a' },
-            accent: { indigo: '#6366f1', emerald: '#10b981', amber: '#f59e0b', rose: '#f43f5e', cyan: '#06b6d4' }
-          }
-        }
-      }
-    }
-  </script>
+  <meta name="color-scheme" content="dark">
+  <title>darkside_arch mapping</title>
   <style>
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #12131c; }
-    ::-webkit-scrollbar-thumb { background: #2e314a; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #6366f1; }
-    .pulse-indigo { box-shadow: 0 0 12px rgba(99, 102, 241, 0.35); }
-    [data-tip] { position: relative; }
-    [data-tip]:hover::after,
-    [data-tip]:focus-visible::after {
-      content: attr(data-tip);
-      position: absolute;
-      z-index: 40;
-      left: 0;
-      top: calc(100% + 6px);
-      min-width: 12rem;
-      max-width: 20rem;
-      padding: 0.45rem 0.55rem;
-      border-radius: 0.35rem;
-      background: #0b0c10;
-      border: 1px solid #2e314a;
-      color: #cbd5e1;
-      font-size: 11px;
-      font-family: Inter, sans-serif;
-      font-weight: 400;
-      letter-spacing: 0;
-      text-transform: none;
-      line-height: 1.35;
-      white-space: pre-wrap;
-      pointer-events: none;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    :root {
+      --bg: #070809;
+      --panel: #0c0e10;
+      --panel2: #101317;
+      --line: #1e2624;
+      --line2: #2a3431;
+      --fg: #c5d4c8;
+      --dim: #7d8c82;
+      --mute: #4f5b53;
+      --ok: #7dff9a;
+      --ok-bg: #0d1a12;
+      --warn: #e6b84d;
+      --warn-bg: #1a1508;
+      --bad: #ff6b6b;
+      --bad-bg: #1d0c0c;
+      --key: #8ec8ff;
+      --key-bg: #0b1520;
+      --hi: #d4ffe4;
+      --fs: clamp(11px, 0.28vw + 10px, 13px);
     }
-    [data-tip-left]:hover::after,
-    [data-tip-left]:focus-visible::after { left: auto; right: 0; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; height: 100%; height: 100dvh;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      background: var(--bg); color: var(--fg);
+      font: var(--fs)/1.4 ui-monospace, "Cascadia Mono", Consolas, monospace;
+    }
+    button, select, input {
+      font: inherit; color: inherit; background: var(--bg);
+      border: 1px solid var(--line2); border-radius: 0;
+    }
+    button { cursor: pointer; padding: 0.3em 0.6em; letter-spacing: 0.03em; }
+    button:hover:not(:disabled) { border-color: var(--key); color: var(--hi); }
+    button:disabled { opacity: 0.35; cursor: not-allowed; }
+    button.on { border-color: var(--ok); color: var(--ok); background: var(--ok-bg); }
+    button.primary { border-color: var(--key); color: var(--key); background: var(--key-bg); }
+    button.go { border-color: var(--ok); color: var(--ok); background: var(--ok-bg); }
+    button.ghost { border-color: var(--line); color: var(--dim); }
+    input, select { width: 100%; min-width: 0; padding: 0.35em 0.5em; outline: none; }
+    input:focus, select:focus, button:focus-visible { border-color: var(--key); outline: none; }
+    code { color: var(--ok); }
+    [hidden] { display: none !important; }
+
+    /* header */
+    .strip {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.9rem;
+      flex: 0 0 auto; padding: 0.4rem 0.7rem;
+      border-bottom: 1px solid var(--line); background: var(--panel);
+    }
+    .brand { white-space: nowrap; }
+    .brand b { color: var(--hi); letter-spacing: 0.12em; }
+    .brand span { color: var(--mute); margin-left: 0.5rem; }
+    .pills { display: flex; flex-wrap: wrap; gap: 0.35rem; flex: 1 1 auto; min-width: 0; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.15rem 0.55rem; border: 1px solid var(--line);
+      white-space: nowrap; color: var(--dim); cursor: help;
+    }
+    .pill b { font-weight: 400; color: var(--fg); }
+    .dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--mute); flex: 0 0 auto; }
+    .pill.ok { border-color: #1f4a2c; } .pill.ok .dot { background: var(--ok); } .pill.ok b { color: var(--ok); }
+    .pill.warn { border-color: #4a3d1a; } .pill.warn .dot { background: var(--warn); } .pill.warn b { color: var(--warn); }
+    .pill.bad { border-color: #4a1f1f; } .pill.bad .dot { background: var(--bad); } .pill.bad b { color: var(--bad); }
+    .pill.pulse .dot { animation: pulse 1.2s ease-out 2; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(125,255,154,.7); } 100% { box-shadow: 0 0 0 0.6rem rgba(125,255,154,0); } }
+    .bar { display: inline-block; width: 3.5rem; height: 0.35rem; background: var(--line); position: relative; }
+    .bar i { position: absolute; inset: 0 auto 0 0; background: var(--ok); }
+    .acts { display: flex; gap: 0.35rem; margin-left: auto; }
+
+    /* board */
+    .board {
+      display: grid;
+      grid-template-columns: minmax(15rem, 0.9fr) minmax(20rem, 1.4fr) minmax(15rem, 0.9fr);
+      flex: 1 1 auto; min-height: 0;
+    }
+    .col {
+      display: flex; flex-direction: column; min-width: 0; min-height: 0;
+      border-right: 1px solid var(--line); background: var(--panel);
+    }
+    .col:last-child { border-right: 0; }
+    .col.center { background: var(--bg); }
+    .hd {
+      display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
+      padding: 0.35rem 0.6rem; border-bottom: 1px solid var(--line);
+      background: var(--panel2); color: var(--dim);
+      font-size: 0.85em; letter-spacing: 0.1em; min-width: 0; flex: 0 0 auto;
+    }
+    .hd strong { color: var(--fg); font-weight: 600; white-space: nowrap; }
+    .hd .sub { color: var(--mute); letter-spacing: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pad { padding: 0.5rem 0.6rem; display: flex; flex-direction: column; gap: 0.45rem; flex: 0 0 auto; }
+    .row { display: flex; gap: 0.3rem; flex-wrap: wrap; align-items: center; }
+    .seg { display: flex; }
+    .seg button { flex: 1 1 auto; margin-left: -1px; }
+    .seg button:first-child { margin-left: 0; }
+    .seg button .n { color: var(--mute); margin-left: 0.3em; }
+    .seg button.on .n { color: var(--ok); }
+    .lbl { font-size: 0.78em; color: var(--mute); letter-spacing: 0.12em; }
+    .scroll { flex: 1 1 auto; overflow: auto; min-height: 0; padding: 0.4rem 0.6rem; }
+    .note { color: var(--dim); margin: 0; }
+    .empty { color: var(--mute); padding: 0.6rem 0.2rem; }
+
+    /* location list */
+    .grp { font-size: 0.78em; color: var(--mute); letter-spacing: 0.12em; padding: 0.5rem 0.1rem 0.25rem; }
+    .fact {
+      display: block; width: 100%; text-align: left; padding: 0.4rem 0.5rem;
+      margin: 0 0 0.25rem; background: var(--bg); border-color: var(--line);
+    }
+    .fact.sel { border-color: var(--key); background: var(--key-bg); color: var(--hi); }
+    .fact.capturing { border-left: 3px solid var(--warn); }
+    .fact .line { display: flex; justify-content: space-between; gap: 0.45rem; align-items: baseline; }
+    .fact .name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .fact .meta { color: var(--mute); font-size: 0.9em; display: flex; justify-content: space-between; gap: 0.5rem; margin-top: 0.1rem; }
+    .tag { flex: 0 0 auto; font-size: 0.85em; letter-spacing: 0.06em; color: var(--warn); }
+    .tag.ok { color: var(--ok); } .tag.dim { color: var(--mute); } .tag.key { color: var(--key); }
+
+    /* center */
+    .body { flex: 1 1 auto; overflow: auto; min-height: 0; padding: 0.7rem; }
+    .body-inner { max-width: 50rem; margin: 0 auto; display: flex; flex-direction: column; gap: 0.6rem; }
+    .next {
+      border: 1px solid var(--line2); border-left-width: 4px; padding: 0.6rem 0.75rem;
+      background: var(--panel); display: flex; flex-direction: column; gap: 0.25rem;
+    }
+    .next .t { color: var(--hi); font-size: 1.08em; }
+    .next .d { color: var(--dim); }
+    .next .row { margin-top: 0.3rem; }
+    .next.action { border-color: var(--key); background: var(--key-bg); } .next.action .t { color: var(--key); }
+    .next.ok { border-color: var(--ok); background: var(--ok-bg); } .next.ok .t { color: var(--ok); }
+    .next.warn { border-color: var(--warn); background: var(--warn-bg); } .next.warn .t { color: var(--warn); }
+    .next.bad { border-color: var(--bad); background: var(--bad-bg); } .next.bad .t { color: var(--bad); }
+    .next.busy .t::after { content: ""; animation: dots 1s steps(4) infinite; }
+    @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+    .card { border: 1px solid var(--line); background: var(--panel); padding: 0.55rem 0.65rem; }
+    .loc-title { color: var(--hi); font-size: 1.05em; }
+    .loc-meta { color: var(--dim); margin-top: 0.15rem; display: flex; gap: 0.8rem; flex-wrap: wrap; }
+    .steps { display: flex; flex-direction: column; gap: 0.35rem; }
+    .step {
+      display: grid; grid-template-columns: 1.7rem minmax(0, 1fr) auto; gap: 0.2rem 0.6rem;
+      align-items: center; border: 1px solid var(--line); background: var(--panel); padding: 0.5rem 0.6rem;
+    }
+    .step .num {
+      width: 1.5rem; height: 1.5rem; display: grid; place-items: center;
+      border: 1px solid var(--line2); color: var(--mute);
+    }
+    .step .what { color: var(--fg); }
+    .step .why { color: var(--mute); font-size: 0.92em; grid-column: 2 / 3; }
+    .step .msg { grid-column: 2 / -1; font-size: 0.92em; }
+    .step .msg.err { color: var(--bad); }
+    .step .msg.ok { color: var(--ok); }
+    .step .msg.warn { color: var(--warn); }
+    .step.now { border-color: var(--key); }
+    .step.now .num { border-color: var(--key); color: var(--key); }
+    .step.done .num { border-color: var(--ok); color: var(--ok); background: var(--ok-bg); }
+    .step.locked .what { color: var(--mute); }
+    .step .btns { grid-row: 1 / 3; grid-column: 3; display: flex; gap: 0.3rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95em; }
+    th, td { text-align: left; padding: 0.25rem 0.45rem; border-top: 1px solid var(--line); }
+    th { color: var(--mute); font-weight: 400; letter-spacing: 0.08em; }
+    tr.cand { cursor: pointer; }
+    tr.cand:hover td { background: var(--panel2); }
+    tr.cand.pick td { background: var(--key-bg); color: var(--hi); }
+    pre {
+      margin: 0; padding: 0.5rem; max-height: 16rem; overflow: auto;
+      background: var(--bg); color: var(--key); white-space: pre-wrap; border: 1px solid var(--line);
+    }
+    details > summary { cursor: pointer; color: var(--dim); padding: 0.2rem 0; }
+    details > summary:hover { color: var(--hi); }
+    .cmd { display: flex; gap: 0.3rem; align-items: stretch; }
+    .cmd code { flex: 1 1 auto; padding: 0.3rem 0.5rem; background: var(--bg); border: 1px solid var(--line); overflow-x: auto; white-space: nowrap; }
+
+    /* right */
+    .split { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+    .split + .split { border-top: 1px solid var(--line); }
+    .watch {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 0.5rem;
+      padding: 0.35rem 0.45rem; border: 1px solid var(--line); margin-bottom: 0.25rem; background: var(--bg);
+    }
+    .watch .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .watch .val { color: var(--key); text-align: right; font-variant-numeric: tabular-nums; }
+    .watch .val.stale { color: var(--mute); }
+    .watch .meta { grid-column: 1 / -1; color: var(--mute); font-size: 0.88em; display: flex; justify-content: space-between; gap: 0.5rem; }
+    .watch.sel { border-color: var(--key); }
+    .watch.flash { animation: flash 1.6s ease-out; }
+    @keyframes flash { 0% { background: #1e3d27; border-color: var(--ok); } 100% { background: var(--bg); } }
+    .log-line { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 0.5rem; padding: 0.1rem 0; }
+    .log-line .t { color: var(--mute); }
+    .log-line.hist { opacity: 0.55; }
+    .log-line .m { overflow-wrap: anywhere; }
+    .g-ERR { color: var(--bad); }
+    .g-OK, .g-SAVE { color: var(--ok); }
+    .g-GAME { color: var(--warn); }
+    .g-STEP, .g-LINK { color: var(--key); }
+    .g-INFO, .g-FILE { color: var(--dim); }
+    .foot { padding: 0.5rem 0.6rem; border-top: 1px solid var(--line); flex: 0 0 auto; display: flex; flex-direction: column; gap: 0.3rem; }
+
+    /* tooltip + help */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: var(--line2); }
+    #tip {
+      position: fixed; z-index: 30; display: none;
+      max-width: min(24rem, calc(100vw - 16px));
+      padding: 0.45rem 0.55rem;
+      background: #0a0c0e; border: 1px solid var(--key); color: var(--fg);
+      font-size: 0.92em; line-height: 1.4; white-space: pre-wrap; pointer-events: none;
+    }
+    .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 40; }
+    .help {
+      position: fixed; z-index: 50; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: min(56rem, calc(100vw - 1.2rem)); max-height: calc(100dvh - 1.2rem); overflow: auto;
+      background: var(--panel); border: 1px solid var(--key); padding: 0 1rem 1rem;
+    }
+    .help-bar {
+      display: flex; justify-content: space-between; align-items: center; gap: 0.6rem;
+      position: sticky; top: 0; background: var(--panel); padding: 0.7rem 0 0.5rem;
+      border-bottom: 1px solid var(--line); margin-bottom: 0.6rem;
+    }
+    .help h2 { margin: 0; font-size: 0.95em; letter-spacing: 0.12em; color: var(--hi); }
+    .help h3 { margin: 0.6rem 0 0.25rem; font-size: 0.82em; letter-spacing: 0.1em; color: var(--key); }
+    .help p, .help li { margin: 0 0 0.3rem; }
+    .help ul, .help ol { margin: 0; padding-left: 1.2rem; }
+    .help-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.5rem; }
+    kbd { border: 1px solid var(--line2); padding: 0 0.3em; color: var(--hi); }
+
+    @media (max-width: 1100px) {
+      .board {
+        grid-template-columns: minmax(14rem, 1fr) minmax(18rem, 1.4fr);
+        grid-template-rows: minmax(0, 1fr) minmax(12rem, 32dvh);
+      }
+      .col.live { grid-column: 1 / -1; border-top: 1px solid var(--line); flex-direction: row; }
+      .col.live .split + .split { border-top: 0; border-left: 1px solid var(--line); }
+      .col.live .foot { display: none; }
+    }
+    @media (max-width: 780px) {
+      html, body { overflow: auto; height: auto; }
+      .board { display: flex; flex-direction: column; }
+      .col { border-right: 0; border-bottom: 1px solid var(--line); }
+      .col.facts .scroll { max-height: 45dvh; }
+      .col.live { flex-direction: column; }
+      .col.live .split { min-height: 14rem; }
+      .col.live .split + .split { border-left: 0; border-top: 1px solid var(--line); }
+      .col.live .foot { display: flex; }
+      .help-grid { grid-template-columns: 1fr; }
+      .step { grid-template-columns: 1.7rem minmax(0, 1fr); }
+      .step .btns { grid-row: auto; grid-column: 2; }
+      .hd .sub { display: none; }
+    }
   </style>
 </head>
-<body class="h-full font-sans text-slate-300 antialiased flex flex-col overflow-hidden">
-
-  <header class="h-12 bg-dark-800 border-b border-dark-600 px-4 flex items-center justify-between font-mono text-xs shrink-0">
-    <div class="flex items-center gap-3 min-w-0">
-      <span class="font-bold text-accent-indigo tracking-wider">darkside_arch</span>
-      <span class="text-slate-600 hidden sm:inline">mapping terminal</span>
-      <span id="game-chip" tabindex="0"
-        class="px-2 py-0.5 rounded border border-dark-500 text-slate-500"
-        data-tip="Needs darksiders1.exe running. Capture dumps that process. This page does not attach a watcher — use python -m ds_client for live values.">game: —</span>
+<body>
+  <header class="strip">
+    <div class="brand"><b>DARKSIDE_ARCH</b><span>mapping</span></div>
+    <div class="pills">
+      <span class="pill" id="pill-game" data-tip=""><span class="dot"></span>GAME <b>…</b></span>
+      <span class="pill" id="pill-link" data-tip="Connection to this dashboard's Python server (python -m tools dashboard)."><span class="dot"></span>SERVER <b>…</b></span>
+      <span class="pill" id="pill-checks" data-tip="Catalog locations with a real offset in targets.json. LocationChecks only fire for these."><span class="dot"></span>CHECKS <b>0/0</b> <span class="bar"><i style="width:0"></i></span></span>
+      <span class="pill" id="pill-items" data-tip="Inventory / goal rows with a real offset. Items received for an unmapped row wait in ap_state.db and apply once it is mapped."><span class="dot"></span>ITEMS <b>0/0</b></span>
+      <span class="pill" id="pill-ap" data-tip="Read from ap_config.json. This page never connects to the AP server — python -m ds_client does."><span class="dot"></span>AP <b>…</b></span>
     </div>
-    <div class="flex items-center gap-2">
-      <div tabindex="0" class="flex items-center gap-1.5 bg-dark-700 px-2.5 py-1 rounded-md border border-dark-600"
-        data-tip-left data-tip="Process id of darksiders1.exe. Empty until the game is launched.">
-        <span id="pid-dot" class="inline-flex rounded-full h-2 w-2 bg-slate-500"></span>
-        <span class="text-slate-500">PID</span>
-        <span id="pid-display" class="font-semibold text-slate-400">—</span>
-      </div>
-      <div tabindex="0" class="hidden md:flex items-center gap-1.5 bg-dark-700 px-2.5 py-1 rounded-md border border-dark-600"
-        data-tip-left data-tip="ASLR module base this session. targets.json stores relative offsets only — never this address.">
-        <span class="text-slate-500">base</span>
-        <span id="base-display" class="text-accent-cyan">—</span>
-      </div>
-      <div tabindex="0" class="hidden lg:flex items-center gap-1.5 bg-dark-700 px-2.5 py-1 rounded-md border border-dark-600"
-        data-tip-left data-tip="Location checks in the world catalog that already have a real offset in targets.json.">
-        <span class="text-slate-500">mapped</span>
-        <span id="header-mapped" class="text-emerald-400">0 / 0</span>
-      </div>
-      <button type="button" id="refresh-btn"
-        class="bg-dark-600 hover:bg-dark-500 text-slate-300 px-2.5 py-1 rounded border border-dark-500"
-        data-tip-left data-tip="Reload catalog, targets.json, and the locked-in Markdown preview.">Refresh</button>
+    <div class="acts">
+      <button type="button" id="help-btn" data-tip="How mapping works. Shortcut: ?">? HELP</button>
+      <button type="button" id="refresh-btn" data-tip="Re-read the world catalog, targets.json and memory_map.md.">RELOAD</button>
     </div>
   </header>
 
-  <div class="flex-1 flex overflow-hidden">
-    <aside class="w-[22rem] bg-dark-800 border-r border-dark-600 flex flex-col shrink-0">
-      <div class="p-3 bg-dark-700/50 border-b border-dark-600 space-y-2">
-        <div class="flex justify-between items-center">
-          <span class="font-mono text-xs font-semibold uppercase tracking-wider">Location checks</span>
-          <span id="global-progress-badge" tabindex="0"
-            class="text-[10px] font-mono text-accent-emerald bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded"
-            data-tip-left data-tip="Mapped / total AP checks. Mapped = real offset in targets.json. Open = not captured yet.">—</span>
-        </div>
-        <label class="block">
-          <span class="text-[10px] font-mono uppercase tracking-wider text-slate-500">Area (world map)</span>
-          <select id="region-select"
-            class="mt-1 w-full bg-dark-900 border border-dark-600 rounded px-2 py-1.5 text-xs font-mono text-slate-200 outline-none focus:border-accent-indigo"
-            data-tip data-tip="Map cell / region. This is not a location check — pick a chest or artifact in the list below."></select>
-        </label>
-        <input id="catalog-search" type="search" placeholder="Search a check name or AP id…"
-          class="w-full bg-dark-900 border border-dark-600 rounded px-2 py-1.5 text-xs font-mono text-slate-200 placeholder:text-slate-600 outline-none focus:border-accent-indigo">
-        <div>
-          <div class="text-[10px] font-mono uppercase tracking-wider text-slate-500 mb-1">Status</div>
-          <div class="flex gap-1">
-            <button type="button" data-filter="todo" class="filter-btn px-2 py-0.5 rounded border text-[10px] font-mono bg-accent-indigo/20 text-accent-indigo border-accent-indigo/40" data-tip data-tip="Still need a capture.">Open</button>
-            <button type="button" data-filter="mapped" class="filter-btn px-2 py-0.5 rounded border text-[10px] font-mono text-slate-400 border-dark-500" data-tip data-tip="Already have an offset.">Mapped</button>
-            <button type="button" data-filter="all" class="filter-btn px-2 py-0.5 rounded border text-[10px] font-mono text-slate-400 border-dark-500">Both</button>
-          </div>
-        </div>
-        <div>
-          <div class="text-[10px] font-mono uppercase tracking-wider text-slate-500 mb-1">Type</div>
-          <div class="flex flex-wrap gap-1">
-            <button type="button" data-kind="chest" class="kind-btn px-2 py-0.5 rounded border text-[10px] font-mono bg-accent-indigo/20 text-accent-indigo border-accent-indigo/40">Chests</button>
-            <button type="button" data-kind="artifact" class="kind-btn px-2 py-0.5 rounded border text-[10px] font-mono text-slate-400 border-dark-500">Artifacts</button>
-            <button type="button" data-kind="other" class="kind-btn px-2 py-0.5 rounded border text-[10px] font-mono text-slate-400 border-dark-500" data-tip data-tip="Armor, cubes, and anything that is not a chest or artifact.">Other</button>
-            <button type="button" data-kind="all" class="kind-btn px-2 py-0.5 rounded border text-[10px] font-mono text-slate-400 border-dark-500">All types</button>
-          </div>
+  <div class="board">
+    <!-- LEFT: what to map -->
+    <section class="col facts">
+      <div class="hd">
+        <div class="seg" role="tablist">
+          <button type="button" class="on" id="pane-checks" data-tip="Chests, artifacts, armor, cubes. Captured here with a memory diff.">LOCATIONS</button>
+          <button type="button" id="pane-items" data-tip="Inventory rows ds_client writes when items arrive. Mapped with the scan CLI, not here.">ITEM WRITES</button>
         </div>
       </div>
-      <div class="px-3 py-1.5 border-b border-dark-600 text-[10px] font-mono uppercase tracking-wider text-slate-500" id="list-heading">Locations</div>
-      <div class="flex-1 overflow-y-auto p-2 space-y-1 text-xs" id="location-checklist"></div>
-    </aside>
-
-    <main class="flex-1 bg-dark-900 flex flex-col border-r border-dark-600 overflow-hidden min-w-0">
-      <div class="p-3 bg-dark-800/80 border-b border-dark-600 flex justify-between items-center gap-3 font-mono text-xs">
-        <div class="min-w-0">
-          <div class="text-slate-500 text-[10px] uppercase tracking-wider">Selected check</div>
-          <div class="text-slate-100 font-semibold truncate" id="active-location-title">Pick a location</div>
+      <div class="pad" id="check-filters">
+        <select id="region-select" aria-label="Region" data-tip="Region from Locations.py. Start with Crossroads."></select>
+        <input id="catalog-search" type="search" placeholder="Search name or AP id   ( / )" aria-label="Search">
+        <div class="seg" id="status-seg">
+          <button type="button" data-filter="todo" class="on" data-tip="No offset yet — needs a capture.">OPEN<span class="n"></span></button>
+          <button type="button" data-filter="mapped" data-tip="Already has an offset in targets.json.">MAPPED<span class="n"></span></button>
+          <button type="button" data-filter="all">ALL<span class="n"></span></button>
         </div>
-        <span id="active-status-tag" tabindex="0"
-          class="shrink-0 bg-dark-700 border border-dark-600 text-slate-400 px-2 py-0.5 rounded uppercase tracking-wider text-[10px]"
-          data-tip-left data-tip="Unmapped = still need a capture. Mapped = offset already saved.">—</span>
+        <div class="seg" id="kind-seg">
+          <button type="button" data-kind="all" class="on">ANY<span class="n"></span></button>
+          <button type="button" data-kind="chest">CHEST<span class="n"></span></button>
+          <button type="button" data-kind="artifact">ARTIFACT<span class="n"></span></button>
+          <button type="button" data-kind="other" data-tip="Armor pieces, chained cubes and anything else.">OTHER<span class="n"></span></button>
+        </div>
       </div>
+      <div class="scroll" id="location-list"></div>
+    </section>
 
-      <div class="flex-1 p-5 overflow-y-auto">
-        <div class="max-w-3xl mx-auto w-full space-y-3">
-          <p class="text-xs text-slate-400">
-            You pick the AP name. The dump finds the byte. The tool cannot see which chest you are facing.
-          </p>
+    <!-- CENTER: what to do -->
+    <section class="col center">
+      <div class="hd">
+        <strong id="center-title">CAPTURE</strong>
+        <span class="sub" id="center-sub">baseline → open in-game → diff → save</span>
+      </div>
+      <div class="body">
+        <div class="body-inner" id="capture-panel">
+          <div class="next" id="next">
+            <div class="t" id="next-t">Loading…</div>
+            <div class="d" id="next-d"></div>
+            <div class="row" id="next-acts"></div>
+          </div>
 
-          <div class="p-3 rounded-lg bg-dark-800 border border-dark-600" id="step-card-1">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex items-start gap-3 min-w-0">
-                <span class="w-6 h-6 rounded-full bg-accent-indigo/20 text-accent-indigo border border-accent-indigo/40 flex items-center justify-center font-mono font-bold text-[11px] shrink-0">1</span>
-                <div class="min-w-0">
-                  <h4 class="text-sm font-medium text-slate-200">Pick from the catalog</h4>
-                  <p class="text-xs text-slate-400 font-mono truncate" id="wizard-target-name">Click a row on the left.</p>
-                  <p class="text-[11px] font-mono text-slate-500 mt-1" id="wizard-meta"></p>
-                </div>
+          <div class="card" id="loc-card" hidden>
+            <div class="loc-title" id="loc-title"></div>
+            <div class="loc-meta" id="loc-meta"></div>
+          </div>
+
+          <div class="steps">
+            <div class="step" id="step-1">
+              <div class="num">1</div>
+              <div class="what">Pick the location you are standing at</div>
+              <div class="btns"></div>
+              <div class="why">The dump cannot tell which chest you face — the name you pick is what gets saved.</div>
+              <div class="msg" id="msg-1"></div>
+            </div>
+            <div class="step" id="step-2">
+              <div class="num">2</div>
+              <div class="what">Baseline while it is still closed</div>
+              <div class="btns"><button type="button" class="primary" id="btn-baseline" data-tip="Two dumps of .data/.bss 0.4 s apart. Bytes that change between them (timers, HUD) are ignored later. Stand still. Shortcut: B">BASELINE</button></div>
+              <div class="why">Stand still near it. Takes about a second.</div>
+              <div class="msg" id="msg-2"></div>
+            </div>
+            <div class="step" id="step-3">
+              <div class="num">3</div>
+              <div class="what">Open it in-game, then diff</div>
+              <div class="btns"><button type="button" class="primary" id="btn-diff" data-tip="Third dump; keeps only bytes that went 0→1 and were steady during the baseline. Shortcut: D">DIFF</button></div>
+              <div class="why">Diff again from the same baseline to drop bytes that flicked back.</div>
+              <div class="msg" id="msg-3"></div>
+            </div>
+            <div class="card" id="cand-box" hidden>
+              <div class="row" style="justify-content:space-between">
+                <span class="lbl" id="cand-head">CANDIDATES</span>
+                <span class="note" id="cand-note"></span>
               </div>
-              <span class="text-emerald-400 font-mono text-xs shrink-0" id="step1-ready">…</span>
+              <table>
+                <thead><tr><th></th><th>OFFSET</th><th>CHANGE</th><th>SECTION</th></tr></thead>
+                <tbody id="cand-rows"></tbody>
+              </table>
+            </div>
+            <div class="step" id="step-4">
+              <div class="num">4</div>
+              <div class="what">Save the flag to targets.json</div>
+              <div class="btns"><button type="button" class="go" id="btn-save" data-tip="Writes a uint8 location_flag onto this location's row (the 0x0 template) and enables it. Saving again overwrites. ds_client and this page hot-reload it.">SAVE</button></div>
+              <div class="why">Needs exactly one candidate — or click the right row below.</div>
+              <div class="msg" id="msg-4"></div>
             </div>
           </div>
 
-          <div class="p-3 rounded-lg bg-dark-800 border border-dark-600 flex items-center justify-between gap-3 opacity-50" id="step-card-2">
-            <div class="flex items-center gap-3 min-w-0">
-              <span class="w-6 h-6 rounded-full bg-dark-600 text-slate-400 flex items-center justify-center font-mono font-bold text-[11px] shrink-0" id="step-num-2">2</span>
-              <div>
-                <h4 class="text-sm font-medium text-slate-200">Baseline</h4>
-                <p class="text-xs text-slate-400">Stand still at the <strong class="font-medium text-slate-300">closed</strong> check. Two idle dumps drop ticking bytes.</p>
-              </div>
-            </div>
-            <button type="button" id="btn-snap-a"
-              class="shrink-0 px-3 py-2 bg-accent-indigo hover:bg-indigo-500 text-white font-mono text-xs font-semibold rounded disabled:opacity-40"
-              data-tip-left data-tip="Dumps writable .data / .bss twice, ~0.4s apart. Game must be running.">Capture baseline</button>
+          <div class="row">
+            <button type="button" class="ghost" id="btn-reset" data-tip="Forget the baseline/diff and start this location again.">START OVER</button>
           </div>
 
-          <div class="p-3 rounded-lg bg-dark-800 border border-dark-600 flex items-center justify-between gap-3 opacity-50" id="step-card-3">
-            <div class="flex items-center gap-3 min-w-0">
-              <span class="w-6 h-6 rounded-full bg-dark-600 text-slate-400 flex items-center justify-center font-mono font-bold text-[11px] shrink-0" id="step-num-3">3</span>
-              <div>
-                <h4 class="text-sm font-medium text-slate-200">Action, then after</h4>
-                <p class="text-xs text-slate-400">Open / trigger it in-game, then dump again. No simulate — the process must change.</p>
-              </div>
-            </div>
-            <button type="button" id="btn-snap-b" disabled
-              class="shrink-0 px-3 py-2 bg-dark-600 text-slate-400 font-mono text-xs font-semibold rounded"
-              data-tip-left data-tip="Diffs the after dump against the idle pair. Keeps 0→1 bytes by default.">Capture after</button>
-          </div>
+          <details class="card" id="row-box">
+            <summary>targets.json row for this location</summary>
+            <pre id="row-json"></pre>
+          </details>
 
-          <div class="p-3 rounded-lg bg-dark-800 border border-dark-600 opacity-50" id="step-card-4">
-            <div class="flex items-center justify-between gap-3 mb-2">
-              <div class="flex items-center gap-3 min-w-0">
-                <span class="w-6 h-6 rounded-full bg-dark-600 text-slate-400 flex items-center justify-center font-mono font-bold text-[11px] shrink-0" id="step-num-4">4</span>
-                <div>
-                  <h4 class="text-sm font-medium text-slate-200">Save offset</h4>
-                  <p class="text-xs text-slate-400" id="save-hint">Writes <span class="font-mono">uint8</span> into targets.json only if exactly one 0→1 remains.</p>
-                </div>
+          <details class="card" id="files-box">
+            <summary>Files: targets.json · memory_map.md</summary>
+            <div class="row" style="margin:0.4rem 0">
+              <div class="seg">
+                <button type="button" class="on" id="tab-json">targets.json</button>
+                <button type="button" id="tab-md">memory_map.md</button>
               </div>
-              <button type="button" id="btn-auto-save" disabled
-                class="shrink-0 px-3 py-2 bg-accent-emerald hover:bg-emerald-500 text-dark-900 font-mono text-xs font-bold rounded disabled:opacity-40"
-                data-tip-left data-tip="Updates targets.json and SQLite. ds_client hot-reloads the new row.">Save to targets.json</button>
             </div>
-            <div class="bg-dark-900 rounded border border-dark-600 hidden overflow-hidden" id="diff-preview-box"></div>
-          </div>
+            <pre id="preview-json"></pre>
+            <pre id="preview-md" hidden></pre>
+          </details>
+        </div>
 
-          <div class="bg-dark-800 rounded-lg border border-dark-600 overflow-hidden">
-            <div class="bg-dark-700/60 px-3 py-1.5 border-b border-dark-600 flex justify-between items-center font-mono text-xs">
-              <div class="flex gap-1">
-                <button type="button" id="tab-btn-json" class="px-2 py-1 rounded bg-dark-900 text-accent-indigo font-bold border border-dark-600">targets.json</button>
-                <button type="button" id="tab-btn-md" class="px-2 py-1 rounded text-slate-400 hover:text-slate-200">memory_map.md</button>
-              </div>
-              <span id="preview-file-label" class="text-slate-500 text-[10px]">showing targets.json</span>
-            </div>
-            <div class="font-mono text-[11px] overflow-auto h-40 bg-dark-900 text-slate-300">
-              <pre id="preview-json" class="p-3 text-accent-cyan whitespace-pre-wrap"></pre>
-              <pre id="preview-md" class="p-3 text-emerald-300 whitespace-pre-wrap hidden"></pre>
-            </div>
+        <div class="body-inner" id="items-panel" hidden>
+          <div class="next">
+            <div class="t">Item writes are mapped from the command line</div>
+            <div class="d">These are the RAM sites ds_client writes when ReceivedItems arrive. A memory diff cannot find them reliably, so this page only shows their status. Items received for an unmapped row (offset 0x0) wait and are written once the row is mapped.</div>
+          </div>
+          <div class="card" id="item-card">
+            <div class="loc-title" id="item-title">Pick an item on the left</div>
+            <div class="loc-meta" id="item-meta"></div>
+          </div>
+          <div class="card">
+            <div class="lbl">HUD numbers (souls, counts)</div>
+            <div class="cmd"><code>python -m tools scan --item "Beholder Key"</code><button type="button" class="copy">COPY</button></div>
+            <p class="note" style="margin-top:0.4rem"><code>--item</code> is the row's label; the scan saves onto that row and enables it. Heap addresses become a pointer chain automatically. New item: copy a template row in targets.json with the exact Items.py name as <code>label</code>. Remove: <code>"enabled": false</code> or delete the row.</p>
+          </div>
+          <div class="card">
+            <div class="lbl">Rules already in ds_client</div>
+            <ul class="note" style="margin:0.3rem 0 0;padding-left:1.1rem">
+              <li>Each ReceivedItems index is applied once — reconnects cannot duplicate.</li>
+              <li>An item with no mapped row waits; it never blocks other items.</li>
+              <li>Flag items already at 1: extra copies do nothing.</li>
+              <li>Count / level items: RAM is set to the received total (Chaoseater / Scythe / Gauntlet cap 4 / 4 / 5).</li>
+              <li>7 Armageddon Blade Shards grant the Armageddon Blade once.</li>
+              <li>GOAL watch 0→1, or <code>python -m ds_client --send-goal</code>, sends CLIENT_GOAL.</li>
+            </ul>
           </div>
         </div>
       </div>
-    </main>
+    </section>
 
-    <aside class="w-[22rem] bg-dark-800 flex flex-col shrink-0">
-      <div class="p-3 bg-dark-700/50 border-b border-dark-600">
-        <div class="flex justify-between items-center">
-          <span class="font-mono text-xs font-semibold uppercase tracking-wider">Live data</span>
-          <span class="text-[10px] font-mono text-slate-500" tabindex="0"
-            data-tip-left data-tip="Watches come from SQLite memory_map (last saved / verified). The log fills when python -m ds_client is running.">SQLite</span>
+    <!-- RIGHT: what the game is doing -->
+    <section class="col live">
+      <div class="split">
+        <div class="hd">
+          <strong>LIVE VALUES</strong>
+          <span class="sub" id="live-sub">game down · last values from ds_client</span>
         </div>
-        <div class="flex gap-1 mt-2">
-          <button type="button" id="live-tab-watches" class="live-tab px-2 py-0.5 rounded border text-[10px] font-mono bg-accent-indigo/20 text-accent-indigo border-accent-indigo/40">Watches</button>
-          <button type="button" id="live-tab-log" class="live-tab px-2 py-0.5 rounded border text-[10px] font-mono text-slate-400 border-dark-500">Delta log</button>
+        <div class="scroll" id="watch-list"></div>
+      </div>
+      <div class="split">
+        <div class="hd">
+          <strong>ACTIVITY</strong>
+          <button type="button" class="ghost" id="log-clear" style="font-size:0.95em;padding:0 0.4em">CLEAR</button>
         </div>
+        <div class="scroll" id="log"></div>
       </div>
-      <div class="flex-1 overflow-hidden relative">
-        <div id="watch-panel" class="absolute inset-0 overflow-y-auto p-2 space-y-1.5 text-[11px] font-mono"></div>
-        <div id="telemetry-log" class="absolute inset-0 overflow-y-auto p-2 space-y-1.5 text-[11px] font-mono hidden"></div>
+      <div class="foot">
+        <button type="button" id="btn-export" data-tip="Writes docs/memory_map.md from the SQLite map. Do it once a mapping is trusted, not after every probe.">EXPORT memory_map.md</button>
       </div>
-      <div class="p-3 bg-dark-700/40 border-t border-dark-600">
-        <button type="button" id="btn-export"
-          class="w-full py-1.5 bg-dark-600 hover:bg-dark-500 border border-dark-500 rounded text-slate-300 font-mono text-xs"
-          data-tip data-tip="Writes docs/memory_map.md from SQLite. Use after a mapping is verified — not on every probe.">Write docs/memory_map.md</button>
-      </div>
-    </aside>
+    </section>
   </div>
 
+  <div id="tip" role="tooltip"></div>
+  <div id="help-scrim" class="scrim" hidden></div>
+  <aside id="help-panel" class="help" hidden role="dialog" aria-labelledby="help-h">
+    <div class="help-bar">
+      <h2 id="help-h">HOW THIS WORKS</h2>
+      <button type="button" id="help-close">CLOSE (Esc)</button>
+    </div>
+    <p>This page finds the RAM byte behind each Archipelago location and saves it to <code>targets.json</code>. It reads the game but never writes to it, and it never connects to the AP server — the runtime is <code>python -m ds_client --connect HOST:PORT --slot NAME</code>.</p>
+    <div class="help-grid">
+      <div>
+        <h3>CAPTURE A CHEST</h3>
+        <ol>
+          <li>Launch Darksiders Warmastered. <b>GAME</b> turns green within a second.</li>
+          <li>Walk to a chest that is still <b>closed</b>. Pick its exact name on the left.</li>
+          <li><b>Baseline</b> — stand still.</li>
+          <li>Open the chest in-game, then <b>Diff</b>.</li>
+          <li>One candidate → <b>Save</b>. Several → click the right row, or <b>Diff</b> again. None → the flag is probably on the heap.</li>
+        </ol>
+        <p style="margin-top:0.4rem">After saving, the location appears under LIVE VALUES and its value updates as you play — that is your check that the offset is right.</p>
+        <h3>STATUS BAR</h3>
+        <ul>
+          <li><b>GAME</b> — attached, pid, module base (ASLR; never stored).</li>
+          <li><b>SERVER</b> — this page's backend. Red = restart <code>python -m tools dashboard</code>.</li>
+          <li><b>CHECKS</b> — locations with a real offset. 0 means a seed cannot report anything yet.</li>
+          <li><b>ITEMS</b> — inventory / goal rows with a real offset.</li>
+          <li><b>AP</b> — slot@uri from <code>ap_config.json</code>.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>FIX OR REMOVE A ROW</h3>
+        <ul>
+          <li>Wrong offset: capture the same location again — Save overwrites it.</li>
+          <li>Skip it: set <code>"enabled": false</code> in <code>targets.json</code>.</li>
+          <li>Drop it: delete the object. Don't keep offsets you no longer trust.</li>
+          <li>Labels must match <code>Locations.py</code> exactly. Refresh the list with <code>python -m tools sync-world</code>.</li>
+        </ul>
+        <h3>CLI EQUIVALENTS</h3>
+        <ul>
+          <li><code>python -m tools capture --region Crossroads</code> — same flow in a terminal; both save to the same row.</li>
+          <li><code>python -m tools scan --item NAME</code> — HUD numbers / item counts (default: souls).</li>
+          <li><code>python -m ds_client --no-ap</code> — log changes to SQLite; they show in ACTIVITY.</li>
+        </ul>
+        <h3>KEYS</h3>
+        <ul>
+          <li><kbd>/</kbd> search · <kbd>B</kbd> baseline · <kbd>D</kbd> diff · <kbd>?</kbd> help · <kbd>Esc</kbd> close</li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+
 <script>
-const POLL_MS = 800;
-let catalog = { regions: {}, mapped: 0, total: 0 };
-let status = { attached: false, pid: null, module_base: null };
-let watches = [];
-let activeRegion = "";
-let activeLocation = null;
-let snapA = false;
-let lastDeltas = [];
-let previewTab = "json";
-let lastEventId = 0;
-let listFilter = "todo";
-let kindFilter = "chest";
+const POLL_MS = 500;
+const POLL_TIMEOUT_MS = 1200;  // Windows retries a refused localhost connect for ~2 s
+const LINK_LOST_AFTER = 2;
+
+let catalog = { regions: {}, mapped: 0, total: 0, inventory: [], inventory_mapped: 0, gate: "NO_OFFSETS", ap: {}, targets_rev: 0 };
+let st = null;            // last /api/state payload
+let link = { ok: null, fails: 0 };
+let lastEventId = null;   // null = first poll asks for history
+let lastEpoch = null;
+let lastTargetsRev = null;
+let pending = "";         // action in flight from this tab
+let stepMsg = {};         // step -> { cls, text }
+let pickRva = null;
+
+const ui = loadPrefs({ region: "", status: "todo", kind: "all", pane: "checks", sel: "", item: "" });
 let searchQ = "";
-let busy = "";
-let liveTab = "watches";
+
+const $ = id => document.getElementById(id);
+// The poll re-renders every 500 ms; only touch the DOM when markup really changes,
+// otherwise buttons are rebuilt under the cursor and clicks get lost.
+function setHTML(el, html) {
+  if (el._html === html) return false;
+  el._html = html;
+  el.innerHTML = html;
+  return true;
+}
 
 function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, c => ({
     "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
   }[c]));
 }
+function hex(n) { return "0x" + Number(n).toString(16).toUpperCase(); }
+function loadPrefs(def) {
+  try { return Object.assign(def, JSON.parse(localStorage.getItem("ds_map_ui") || "{}")); }
+  catch { return def; }
+}
+function savePrefs() {
+  try { localStorage.setItem("ds_map_ui", JSON.stringify(ui)); } catch {}
+}
 
 async function api(path, opts) {
   const res = await fetch(path, opts);
-  const data = await res.json().catch(() => ({ error: res.statusText }));
+  const data = await res.json().catch(() => ({ error: res.status + " " + res.statusText }));
   if (!res.ok) throw new Error(data.error || res.statusText);
   return data;
 }
-
-function setLiveTab(name) {
-  liveTab = name;
-  document.getElementById("watch-panel").classList.toggle("hidden", name !== "watches");
-  document.getElementById("telemetry-log").classList.toggle("hidden", name !== "log");
-  for (const [id, on] of [["live-tab-watches", name === "watches"], ["live-tab-log", name === "log"]]) {
-    document.getElementById(id).className = on
-      ? "live-tab px-2 py-0.5 rounded border text-[10px] font-mono bg-accent-indigo/20 text-accent-indigo border-accent-indigo/40"
-      : "live-tab px-2 py-0.5 rounded border text-[10px] font-mono text-slate-400 border-dark-500";
-  }
-}
-
-function logTelemetry(tag, msg) {
-  const log = document.getElementById("telemetry-log");
-  const empty = log.querySelector("[data-empty]");
-  if (empty) empty.remove();
-  const time = new Date().toLocaleTimeString([], { hour12: false });
-  const colors = {
-    GAME: "text-amber-400", DIFF: "text-emerald-400 font-bold",
-    TARGETS: "text-accent-indigo font-bold", DB: "text-accent-cyan",
-    ERR: "text-rose-400", DOCS: "text-slate-200", SYSTEM: "text-slate-400"
-  };
-  const div = document.createElement("div");
-  div.className = "flex gap-2 leading-snug";
-  div.innerHTML = `<span class="text-slate-600 shrink-0">[${time}]</span>
-    <span class="${colors[tag] || "text-slate-400"} shrink-0">[${tag}]</span>
-    <span class="text-slate-300 break-all">${esc(msg)}</span>`;
-  log.appendChild(div);
-  log.scrollTop = log.scrollHeight;
-  if (tag === "ERR" || tag === "DIFF" || tag === "TARGETS") setLiveTab("log");
-}
-
-function ensureLogEmpty() {
-  const log = document.getElementById("telemetry-log");
-  if (log.children.length) return;
-  log.innerHTML = `<p data-empty class="text-slate-500 leading-relaxed">No watcher deltas yet.<br><br>Leave <span class="text-slate-300">python -m ds_client</span> running to stream HUD / flag changes here.</p>`;
-}
-
-function isRealOffset(raw) {
-  const offs = raw.offsets_json;
-  if (!offs) return false;
-  try {
-    const arr = typeof offs === "string" ? JSON.parse(offs) : offs;
-    if (!arr.length) return false;
-    return !(arr.length === 1 && ["0x0", "0", 0].includes(arr[0]));
-  } catch {
-    return String(offs).indexOf("0x0") === -1;
-  }
-}
-
-function renderWatches() {
-  const box = document.getElementById("watch-panel");
-  const enabled = watches.filter(w => (w.label || w.target_id) && isRealOffset(w));
-  if (!enabled.length) {
-    box.innerHTML = `<p class="text-slate-500 leading-relaxed p-1">No saved watches.<br><br>Capture a check and Save, or <span class="text-slate-300">scan --auto-save</span>. Last verified values show here after <span class="text-slate-300">ds_client</span> sees a change.</p>`;
-    return;
-  }
-  box.innerHTML = enabled.map(w => {
-    const name = w.label || w.target_id;
-    const val = w.verified_value != null && w.verified_value !== "" ? w.verified_value : "—";
-    const off = w.offsets_json || "";
-    const cat = w.category || "misc";
-    return `<div class="p-2 rounded border border-dark-600 bg-dark-900/70" title="${esc(w.notes || "")}">
-      <div class="flex justify-between gap-2">
-        <span class="text-slate-200 truncate">${esc(name)}</span>
-        <span class="text-accent-cyan shrink-0">${esc(val)}</span>
-      </div>
-      <div class="flex justify-between gap-2 text-slate-500 mt-0.5">
-        <span>${esc(cat)}${w.region ? " · " + esc(w.region) : ""}</span>
-        <span class="truncate">${esc(w.data_type || "")} ${esc(off)}</span>
-      </div>
-    </div>`;
-  }).join("");
-}
-
-function updateStatusBar() {
-  const attached = !!status.attached;
-  const chip = document.getElementById("game-chip");
-  chip.textContent = attached ? "game: attached" : "game: not running";
-  chip.className = attached
-    ? "px-2 py-0.5 rounded border border-emerald-800/70 bg-emerald-950/40 text-emerald-400"
-    : "px-2 py-0.5 rounded border border-amber-800/70 bg-amber-950/40 text-amber-400";
-  document.getElementById("pid-display").textContent = attached ? String(status.pid) : "—";
-  document.getElementById("pid-display").className = attached
-    ? "font-semibold text-emerald-400" : "font-semibold text-slate-500";
-  document.getElementById("pid-dot").className = attached
-    ? "inline-flex rounded-full h-2 w-2 bg-emerald-500"
-    : "inline-flex rounded-full h-2 w-2 bg-slate-500";
-  document.getElementById("base-display").textContent = status.module_base || "—";
-  document.getElementById("header-mapped").textContent = `${catalog.mapped || 0} / ${catalog.total || 0}`;
-}
-
-const KIND_GROUPS = [
-  { id: "chest", label: "Chests", kinds: ["chest"] },
-  { id: "artifact", label: "Artifacts", kinds: ["artifact"] },
-  { id: "other", label: "Other (armor / cubes / misc)", kinds: ["armor", "cube", "location"] },
-];
-
-function kindBucket(kind) {
-  if (kind === "chest") return "chest";
-  if (kind === "artifact") return "artifact";
-  return "other";
-}
-
-function visibleItems(region) {
-  const q = searchQ.trim().toLowerCase();
-  return (catalog.regions[region] || []).filter(item => {
-    if (listFilter === "todo" && item.mapped) return false;
-    if (listFilter === "mapped" && !item.mapped) return false;
-    if (kindFilter !== "all" && kindBucket(item.kind) !== kindFilter) return false;
-    if (!q) return true;
-    return item.label.toLowerCase().includes(q) || String(item.ap_id).includes(q) || item.id.includes(q);
+function post(path, body) {
+  return api(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body || {})
   });
 }
 
-function regionNames() {
-  return Object.keys(catalog.regions).sort((a, b) => a.localeCompare(b));
+/* ---------- tooltips + help ---------- */
+const tipEl = $("tip");
+function placeTip(el) {
+  const text = el.getAttribute("data-tip");
+  if (!text) { hideTip(); return; }
+  tipEl.textContent = text;
+  tipEl.style.display = "block";
+  const r = el.getBoundingClientRect();
+  const tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
+  let x = r.left > window.innerWidth * 0.45 ? r.right - tw : r.left;
+  let y = r.bottom + 6;
+  if (x + tw > window.innerWidth - 8) x = window.innerWidth - tw - 8;
+  if (x < 8) x = 8;
+  if (y + th > window.innerHeight - 8) y = r.top - th - 6;
+  if (y < 8) y = 8;
+  tipEl.style.left = x + "px";
+  tipEl.style.top = y + "px";
 }
+function hideTip() { tipEl.style.display = "none"; }
+function helpOpen() { return !$("help-panel").hidden; }
+document.addEventListener("mouseover", e => {
+  if (helpOpen()) return hideTip();
+  const el = e.target.closest("[data-tip]");
+  if (el) placeTip(el); else hideTip();
+});
+document.addEventListener("focusout", hideTip);
+window.addEventListener("scroll", hideTip, true);
+
+function setHelp(on) {
+  $("help-panel").hidden = !on;
+  $("help-scrim").hidden = !on;
+  $("help-btn").classList.toggle("on", on);
+  hideTip();
+}
+$("help-btn").onclick = () => setHelp(!helpOpen());
+$("help-close").onclick = () => setHelp(false);
+$("help-scrim").onclick = () => setHelp(false);
+
+document.addEventListener("keydown", e => {
+  const typing = e.target.matches("input,select,textarea");
+  if (e.key === "Escape") {
+    if (helpOpen()) return setHelp(false);
+    if (typing) { e.target.blur(); return; }
+  }
+  if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === "?") { e.preventDefault(); setHelp(!helpOpen()); }
+  else if (e.key === "/") { e.preventDefault(); setPane("checks"); $("catalog-search").focus(); }
+  else if ((e.key === "b" || e.key === "B") && !$("btn-baseline").disabled && ui.pane === "checks") $("btn-baseline").click();
+  else if ((e.key === "d" || e.key === "D") && !$("btn-diff").disabled && ui.pane === "checks") $("btn-diff").click();
+});
+
+/* ---------- activity log ---------- */
+function log(tag, msg, opts = {}) {
+  const box = $("log");
+  box.querySelector(".empty")?.remove();
+  const stick = box.scrollHeight - box.scrollTop - box.clientHeight < 24;
+  const time = (opts.at || new Date()).toLocaleTimeString([], { hour12: false });
+  const div = document.createElement("div");
+  div.className = "log-line" + (opts.hist ? " hist" : "");
+  div.innerHTML = `<span class="t">${time}</span><span class="g-${tag}">${tag}</span><span class="m">${esc(msg)}</span>`;
+  box.appendChild(div);
+  while (box.children.length > 300) box.firstChild.remove();
+  if (stick || !opts.hist) box.scrollTop = box.scrollHeight;
+}
+function logEmpty() {
+  $("log").innerHTML = `<div class="empty">Nothing yet. Your actions, game attach/detach and ds_client changes appear here.</div>`;
+}
+$("log-clear").onclick = logEmpty;
+
+/* ---------- header pills ---------- */
+function setPill(id, cls, value, tip) {
+  const el = $(id);
+  el.className = "pill" + (cls ? " " + cls : "") + (el.classList.contains("pulse") ? " pulse" : "");
+  el.querySelector("b").textContent = value;
+  if (tip !== undefined) el.dataset.tip = tip;
+}
+function renderPills() {
+  const s = st?.status;
+  if (link.ok === false) {
+    setPill("pill-link", "bad", "LOST", "No answer from the dashboard server. Restart: python -m tools dashboard");
+  } else {
+    setPill("pill-link", link.ok ? "ok" : "", link.ok ? "OK" : "…");
+  }
+  if (!s || link.ok === false) {
+    setPill("pill-game", "", "?", "Unknown — no server.");
+  } else if (s.attached) {
+    setPill("pill-game", "ok", "UP · pid " + s.pid,
+      "darksiders1.exe attached (read-only).\npid " + s.pid + " · base " + s.module_base
+      + "\nBase changes every launch (ASLR); targets.json stores offsets relative to it.");
+  } else if (s.error) {
+    setPill("pill-game", "bad", "ERROR", s.error);
+  } else {
+    setPill("pill-game", "warn", "DOWN", "darksiders1.exe is not running. Launch Warmastered — this turns green within about a second.");
+  }
+  const pct = catalog.total ? Math.round(100 * (catalog.mapped || 0) / catalog.total) : 0;
+  setPill("pill-checks", catalog.mapped ? (catalog.gate === "COMPLETE" ? "ok" : "warn") : "bad",
+    (catalog.mapped || 0) + "/" + (catalog.total || 0));
+  $("pill-checks").querySelector(".bar i").style.width = pct + "%";
+  const invN = (catalog.inventory || []).length;
+  setPill("pill-items", catalog.inventory_mapped ? "ok" : "warn", (catalog.inventory_mapped || 0) + "/" + invN);
+  const ap = catalog.ap || {};
+  if (ap.slot) setPill("pill-ap", "ok", ap.slot + "@" + ap.uri + (ap.seed ? " · " + ap.seed : ""));
+  else if (ap.config_present) setPill("pill-ap", "warn", "NO SLOT");
+  else setPill("pill-ap", "", "NOT SET",
+    "No ap_config.json. Copy ap_config.example.json and set slot. Only ds_client uses it; mapping works without it.");
+}
+function pulse(id) {
+  const el = $(id);
+  el.classList.remove("pulse"); void el.offsetWidth; el.classList.add("pulse");
+  setTimeout(() => el.classList.remove("pulse"), 2600);
+}
+
+/* ---------- catalog / list ---------- */
+const KIND_ORDER = ["chest", "artifact", "other"];
+function kindBucket(kind) { return kind === "chest" || kind === "artifact" ? kind : "other"; }
+function regionNames() { return Object.keys(catalog.regions).sort((a, b) => a.localeCompare(b)); }
+function findLoc(id) {
+  for (const r of Object.values(catalog.regions)) {
+    const hit = r.find(i => i.id === id);
+    if (hit) return hit;
+  }
+  return null;
+}
+function selected() { return ui.sel ? findLoc(ui.sel) : null; }
+function matches(item, { status = ui.status, kind = ui.kind } = {}) {
+  if (status === "todo" && item.mapped) return false;
+  if (status === "mapped" && !item.mapped) return false;
+  if (kind !== "all" && kindBucket(item.kind) !== kind) return false;
+  const q = searchQ.trim().toLowerCase();
+  if (!q) return true;
+  return item.label.toLowerCase().includes(q) || String(item.ap_id).includes(q) || item.id.includes(q);
+}
+function regionItems() { return catalog.regions[ui.region] || []; }
 
 function renderRegions() {
-  const sel = document.getElementById("region-select");
-  const names = regionNames();
-  sel.innerHTML = names.map(r => {
+  const sel = $("region-select");
+  sel.innerHTML = regionNames().map(r => {
     const items = catalog.regions[r] || [];
     const open = items.filter(i => !i.mapped).length;
-    const vis = visibleItems(r);
-    if ((searchQ || kindFilter !== "all") && !vis.length) {
-      if (r !== activeRegion) return "";
-    }
-    return `<option value="${esc(r)}">${esc(r)}  —  ${open} open / ${items.length}</option>`;
+    return `<option value="${esc(r)}">${esc(r)} — ${open} open / ${items.length}</option>`;
   }).join("");
-  if (activeRegion && names.includes(activeRegion)) sel.value = activeRegion;
-  document.getElementById("global-progress-badge").textContent =
-    `${catalog.mapped} / ${catalog.total} mapped`;
-  const heading = document.getElementById("list-heading");
-  const vis = visibleItems(activeRegion);
-  heading.textContent = activeRegion
-    ? `${vis.length} location${vis.length === 1 ? "" : "s"} in ${activeRegion}`
-    : "Locations";
+  sel.value = ui.region;
 }
 
-function renderChecklist() {
-  const box = document.getElementById("location-checklist");
-  const items = visibleItems(activeRegion);
+function renderFilterCounts() {
+  const items = regionItems();
+  document.querySelectorAll("#status-seg button").forEach(b => {
+    b.classList.toggle("on", b.dataset.filter === ui.status);
+    b.querySelector(".n").textContent = items.filter(i => matches(i, { status: b.dataset.filter })).length;
+  });
+  document.querySelectorAll("#kind-seg button").forEach(b => {
+    b.classList.toggle("on", b.dataset.kind === ui.kind);
+    b.querySelector(".n").textContent = items.filter(i => matches(i, { kind: b.dataset.kind })).length;
+  });
+}
+
+function renderList() {
+  if (ui.pane === "items") return renderItemList();
+  renderFilterCounts();
+  const box = $("location-list");
+  const items = regionItems().filter(i => matches(i));
   if (!items.length) {
-    box.innerHTML = `<p class="text-slate-500 px-2 py-3 leading-relaxed">No location checks in this area / filter. Change type (Chests / Artifacts / Other) or status (Open / Mapped).</p>`;
+    const hint = ui.status === "todo" && regionItems().length ? "Everything here is mapped — try MAPPED or ALL." : "Nothing matches. Clear the search or pick ANY / ALL.";
+    box.innerHTML = `<div class="empty">${hint}</div>`;
     return;
   }
-  const groups = KIND_GROUPS
-    .map(g => ({ ...g, rows: items.filter(i => g.kinds.includes(i.kind)) }))
-    .filter(g => g.rows.length);
+  const cap = st?.capture;
+  const groups = KIND_ORDER.map(k => ({ k, rows: items.filter(i => kindBucket(i.kind) === k) })).filter(g => g.rows.length);
   box.innerHTML = groups.map(g => {
-    const showHead = groups.length > 1;
-    const rows = g.rows.map(item => {
-      const sel = activeLocation && activeLocation.id === item.id;
-      const short = item.label.startsWith(activeRegion)
-        ? item.label.slice(activeRegion.length).replace(/^[\s-]+/, "")
-        : item.label;
-      const mark = item.mapped ? "●" : "○";
-      const markClass = item.mapped ? "text-emerald-400" : "text-amber-400";
-      const status = item.mapped
-        ? `<span class="text-emerald-400" title="Offset saved">mapped</span>`
-        : `<span class="text-amber-400" title="Needs capture">open</span>`;
-      return `<button type="button" data-id="${esc(item.id)}" class="w-full text-left p-2 rounded border ${
-        sel ? "bg-dark-700 border-accent-indigo" : "bg-dark-900/50 border-dark-600 hover:border-dark-500"} ${
-        item.mapped ? "opacity-80" : ""}"
-        title="${esc(item.label)}">
-        <div class="flex items-start gap-2">
-          <span class="${markClass} font-mono shrink-0" aria-hidden="true">${mark}</span>
-          <div class="min-w-0 flex-1">
-            <div class="flex justify-between gap-2">
-              <span class="font-medium text-slate-200 leading-tight">${esc(short)}</span>
-              ${status}
-            </div>
-            <div class="flex justify-between text-[10px] font-mono text-slate-500 mt-0.5">
-              <span>AP ${item.ap_id}</span>
-              <span>${item.mapped ? esc(item.offset) : "no offset yet"}</span>
-            </div>
-          </div>
-        </div>
+    const head = groups.length > 1 ? `<div class="grp">${g.k.toUpperCase()} · ${g.rows.length}</div>` : "";
+    return head + g.rows.map(item => {
+      const sel = item.id === ui.sel;
+      const capturing = cap && cap.stage !== "idle" && cap.id === item.id;
+      const short = item.label.startsWith(ui.region) ? item.label.slice(ui.region.length).replace(/^[\s-]+/, "") : item.label;
+      let tag = `<span class="tag">OPEN</span>`;
+      if (capturing) tag = `<span class="tag key">${cap.stage === "baseline" ? "BASELINE" : "DIFFED"}</span>`;
+      else if (item.mapped && !item.enabled) tag = `<span class="tag dim">DISABLED</span>`;
+      else if (item.mapped) tag = `<span class="tag ok">MAPPED</span>`;
+      return `<button type="button" data-id="${esc(item.id)}" class="fact${sel ? " sel" : ""}${capturing ? " capturing" : ""}" title="${esc(item.label)}">
+        <div class="line"><span class="name">${esc(short)}</span>${tag}</div>
+        <div class="meta"><span>AP ${item.ap_id}</span><span>${item.mapped ? esc(item.offset.split(" + ").pop()) : ""}</span></div>
       </button>`;
     }).join("");
-    return `${showHead ? `<div class="pt-1 pb-0.5 px-1 text-[10px] font-mono uppercase tracking-wider text-slate-500">${esc(g.label)}</div>` : ""}${rows}`;
   }).join("");
-  box.querySelectorAll("[data-id]").forEach(el => {
-    el.onclick = () => {
-      activeLocation = (catalog.regions[activeRegion] || []).find(i => i.id === el.dataset.id);
-      snapA = false;
-      lastDeltas = [];
-      renderChecklist();
-      updateWizard();
-    };
-  });
 }
 
-function selectDefault() {
-  const items = visibleItems(activeRegion);
-  if (activeLocation && items.some(i => i.id === activeLocation.id)) {
-    activeLocation = items.find(i => i.id === activeLocation.id);
-  } else {
-    activeLocation = items.find(i => !i.mapped) || items[0] || null;
+$("location-list").addEventListener("click", e => {
+  const el = e.target.closest("[data-id]");
+  if (el) selectLoc(el.dataset.id);
+  const inv = e.target.closest("[data-inv]");
+  if (inv) { ui.item = inv.dataset.inv; savePrefs(); renderItemList(); renderItemCard(); }
+});
+
+function selectLoc(id) {
+  if (pending) return;
+  if (ui.sel !== id) { stepMsg = {}; pickRva = null; }
+  ui.sel = id;
+  savePrefs();
+  renderList();
+  renderCapture();
+}
+
+function renderItemList() {
+  const box = $("location-list");
+  const rows = catalog.inventory || [];
+  if (!rows.length) {
+    box.innerHTML = `<div class="empty">No inventory / goal rows in targets.json.</div>`;
+    return;
   }
-  snapA = false;
-  lastDeltas = [];
-  renderRegions();
-  renderChecklist();
-  updateWizard();
+  box.innerHTML = rows.map(item => {
+    const tag = item.mapped ? (item.enabled ? `<span class="tag ok">MAPPED</span>` : `<span class="tag dim">DISABLED</span>`) : `<span class="tag">0x0</span>`;
+    return `<button type="button" data-inv="${esc(item.id)}" class="fact${item.id === ui.item ? " sel" : ""}">
+      <div class="line"><span class="name">${esc(item.label)}</span>${tag}</div>
+      <div class="meta"><span>${esc(item.category)} · ${esc(item.event_type || "MEMORY_STATE")}</span><span>${item.mapped ? esc(item.offset.split(" + ").pop()) : "not mapped"}</span></div>
+    </button>`;
+  }).join("");
 }
 
-function updateWizard() {
-  const loc = activeLocation;
-  document.getElementById("active-location-title").textContent = loc ? loc.label : "Pick a location";
-  document.getElementById("wizard-target-name").textContent = loc
-    ? loc.label : "Click a row on the left.";
-  document.getElementById("wizard-meta").textContent = loc
-    ? `${loc.region} · ${loc.kind} · AP ${loc.ap_id}${loc.mapped && loc.offset ? " · " + loc.offset : ""}`
+function renderItemCard() {
+  const item = (catalog.inventory || []).find(i => i.id === ui.item);
+  $("item-title").textContent = item ? item.label : "Pick an item on the left";
+  $("item-meta").innerHTML = item
+    ? `<span>${esc(item.category)}</span><span>${item.mapped ? "offset " + esc(item.offset) : "unmapped (0x0) — ds_client skips the write"}</span><span>row ${item.enabled ? "enabled" : "disabled"}</span><span>id ${esc(item.id)}</span>`
     : "";
-  document.getElementById("step1-ready").textContent = loc ? "ready" : "…";
-  const tag = document.getElementById("active-status-tag");
-  if (loc && loc.mapped) {
-    tag.className = "shrink-0 bg-emerald-950/60 border border-emerald-800/60 text-emerald-400 px-2 py-0.5 rounded uppercase tracking-wider text-[10px]";
-    tag.textContent = "Mapped";
-  } else {
-    tag.className = "shrink-0 bg-amber-950/60 border border-amber-800/60 text-amber-400 px-2 py-0.5 rounded uppercase tracking-wider text-[10px]";
-    tag.textContent = loc ? "Unmapped" : "—";
-  }
+}
 
-  const card2 = document.getElementById("step-card-2");
-  const btnA = document.getElementById("btn-snap-a");
-  const num2 = document.getElementById("step-num-2");
-  card2.classList.toggle("opacity-50", !loc);
-  btnA.disabled = !loc || snapA || busy === "before";
-  btnA.textContent = busy === "before" ? "Dumping…" : (snapA ? "Baseline saved" : "Capture baseline");
-  if (snapA) {
-    num2.textContent = "✓";
-    num2.className = "w-6 h-6 rounded-full bg-emerald-500 text-dark-900 flex items-center justify-center font-mono font-bold text-[11px] shrink-0";
-    btnA.className = "shrink-0 px-3 py-2 bg-dark-600 text-emerald-400 font-mono text-xs font-semibold rounded border border-emerald-500/40 disabled:opacity-40";
-  } else {
-    num2.textContent = "2";
-    num2.className = "w-6 h-6 rounded-full bg-accent-indigo/20 text-accent-indigo border border-accent-indigo/40 flex items-center justify-center font-mono font-bold text-[11px] shrink-0";
-    btnA.className = "shrink-0 px-3 py-2 bg-accent-indigo hover:bg-indigo-500 text-white font-mono text-xs font-semibold rounded disabled:opacity-40";
-  }
+function setPane(name) {
+  ui.pane = name;
+  savePrefs();
+  $("pane-checks").classList.toggle("on", name === "checks");
+  $("pane-items").classList.toggle("on", name === "items");
+  $("check-filters").hidden = name !== "checks";
+  $("capture-panel").hidden = name !== "checks";
+  $("items-panel").hidden = name !== "items";
+  $("center-title").textContent = name === "checks" ? "CAPTURE" : "ITEM WRITES";
+  $("center-sub").textContent = name === "checks" ? "baseline → open in-game → diff → save" : "mapped with the scan CLI";
+  renderList();
+  if (name === "items") renderItemCard(); else renderCapture();
+}
 
-  const card3 = document.getElementById("step-card-3");
-  const btnB = document.getElementById("btn-snap-b");
-  card3.classList.toggle("opacity-50", !snapA);
-  btnB.disabled = !snapA || busy === "after";
-  btnB.textContent = busy === "after" ? "Dumping…" : "Capture after";
-  btnB.className = snapA
-    ? "shrink-0 px-3 py-2 bg-accent-indigo hover:bg-indigo-500 text-white font-mono text-xs font-semibold rounded pulse-indigo disabled:opacity-40"
-    : "shrink-0 px-3 py-2 bg-dark-600 text-slate-400 font-mono text-xs font-semibold rounded";
-
-  const card4 = document.getElementById("step-card-4");
-  const btnS = document.getElementById("btn-auto-save");
-  const box = document.getElementById("diff-preview-box");
-  const hint = document.getElementById("save-hint");
-  const z2o = lastDeltas.filter(d => d.old === 0 && d.new === 1);
-  const canSave = (z2o.length === 1 || lastDeltas.length === 1) && !busy;
-  card4.classList.toggle("opacity-50", lastDeltas.length === 0);
-  btnS.disabled = !canSave;
-  btnS.textContent = busy === "save" ? "Writing…" : "Save to targets.json";
-  if (!lastDeltas.length) {
-    hint.textContent = "Writes uint8 into targets.json only if exactly one 0→1 remains.";
-  } else if (canSave) {
-    hint.textContent = "One candidate — safe to save as this location.";
-  } else {
-    hint.textContent = `${z2o.length} of ${lastDeltas.length} are 0→1. Stand still and recapture, or the flag may be on the heap.`;
-  }
-  if (lastDeltas.length) {
-    box.classList.remove("hidden");
-    box.innerHTML = `<table class="w-full text-[11px] font-mono">
-      <thead class="text-slate-500"><tr>
-        <th class="text-left px-2 py-1">RVA</th>
-        <th class="text-left px-2 py-1">change</th>
-        <th class="text-left px-2 py-1">section</th>
-      </tr></thead>
-      <tbody>${lastDeltas.slice(0, 12).map(d =>
-        `<tr class="border-t border-dark-600">
-          <td class="px-2 py-1 text-accent-cyan">+ 0x${d.rva.toString(16).toUpperCase()}</td>
-          <td class="px-2 py-1 text-emerald-400">${d.old} → ${d.new}</td>
-          <td class="px-2 py-1 text-slate-400">${esc(d.section)}</td>
-        </tr>`
-      ).join("")}</tbody></table>
-      ${lastDeltas.length > 12 ? `<div class="px-2 py-1 text-slate-500">${lastDeltas.length - 12} more</div>` : ""}
-      <div class="px-2 py-1 text-slate-500 border-t border-dark-600">${z2o.length} of ${lastDeltas.length} are 0→1</div>`;
-  } else {
-    box.classList.add("hidden");
-    box.innerHTML = "";
+/* ---------- capture panel ---------- */
+function setNext(tone, title, detail, actions = []) {
+  const key = [tone, title, detail, ...actions.map(a => a.label)].join("|");
+  const box = $("next-acts");
+  if (box._key === key) return;
+  box._key = key;
+  $("next").className = "next " + tone;
+  $("next-t").textContent = title;
+  $("next-d").innerHTML = detail || "";
+  box.innerHTML = "";
+  for (const a of actions) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = a.cls || "";
+    b.textContent = a.label;
+    b.onclick = a.run;
+    box.appendChild(b);
   }
 }
 
+function stepState(n, state) {
+  const el = $("step-" + n);
+  el.classList.toggle("done", state === "done");
+  el.classList.toggle("now", state === "now");
+  el.classList.toggle("locked", state === "locked");
+  el.querySelector(".num").textContent = state === "done" ? "✓" : String(n);
+}
+function setMsg(n, cls, text) {
+  if (text) stepMsg[n] = { cls, text }; else delete stepMsg[n];
+}
+function renderMsgs(hint) {
+  for (const n of [1, 2, 3, 4]) {
+    const m = stepMsg[n] || hint[n];
+    const el = $("msg-" + n);
+    el.className = "msg" + (m ? " " + m.cls : "");
+    el.textContent = m ? m.text : "";
+  }
+}
+
+function candidates(cap) {
+  const z = cap.deltas.filter(d => d.old === 0 && d.new === 1);
+  return z.length ? z : cap.deltas;
+}
+
+function renderCapture() {
+  if (ui.pane !== "checks") return;
+  const loc = selected();
+  const s = st?.status || {};
+  const up = !!s.attached && link.ok !== false;
+  const cap = st?.capture || { stage: "idle", deltas: [] };
+  const busy = pending || cap.busy || "";
+  const mine = loc && cap.stage !== "idle" && cap.id === loc.id;
+  const other = cap.stage !== "idle" && (!loc || cap.id !== loc.id);
+  const stage = mine ? cap.stage : "idle";
+  const cands = mine && stage === "diffed" ? candidates(cap) : [];
+  if (pickRva != null && !cands.some(d => d.rva === pickRva)) pickRva = null;
+  const saveRva = cands.length === 1 ? cands[0].rva : pickRva;
+
+  // location card
+  $("loc-card").hidden = !loc;
+  if (!loc) $("row-json").textContent = "Pick a location first.";
+  if (loc) {
+    $("loc-title").textContent = loc.label;
+    setHTML($("loc-meta"), [
+      esc(loc.region), esc(loc.kind), "AP " + loc.ap_id,
+      loc.mapped ? `<span style="color:var(--ok)">mapped ${esc(loc.offset)}${loc.enabled ? "" : " (disabled)"}</span>` : `<span style="color:var(--warn)">no offset yet</span>`
+    ].map(x => `<span>${x}</span>`).join(""));
+    $("row-json").textContent = loc.target ? JSON.stringify(loc.target, null, 2) : "No row yet. SAVE appends one with id \"" + loc.id + "\".";
+  }
+
+  // steps
+  stepState(1, loc ? "done" : "now");
+  stepState(2, !loc ? "locked" : stage === "idle" ? "now" : "done");
+  stepState(3, stage === "idle" ? "locked" : stage === "baseline" ? "now" : (cands.length ? "done" : "now"));
+  stepState(4, stage === "diffed" && cands.length ? "now" : "locked");
+
+  const bB = $("btn-baseline"), bD = $("btn-diff"), bS = $("btn-save");
+  bB.disabled = !loc || !up || !!busy;
+  bB.textContent = busy === "baseline" ? "DUMPING…" : stage === "idle" ? "BASELINE" : "RETAKE";
+  bD.disabled = stage === "idle" || !up || !!busy;
+  bD.textContent = busy === "diff" ? "DIFFING…" : stage === "diffed" ? "DIFF AGAIN" : "DIFF";
+  bS.disabled = saveRva == null || !!busy;
+  bS.textContent = busy === "save" ? "SAVING…" : saveRva != null ? "SAVE " + hex(saveRva) : "SAVE";
+  $("btn-reset").disabled = cap.stage === "idle" || !!busy;
+
+  const hint = {};
+  if (loc && !up && stage !== "diffed") hint[2] = { cls: "warn", text: "Needs the game running." };
+  if (stage === "baseline") hint[3] = { cls: "", text: "Baseline taken " + Math.round(cap.age_s) + " s ago." };
+  if (stage === "diffed" && cands.length > 1 && saveRva == null) hint[4] = { cls: "warn", text: "Pick one row below first." };
+  renderMsgs(hint);
+
+  // candidates
+  const box = $("cand-box");
+  box.hidden = !(mine && stage === "diffed");
+  if (!box.hidden) {
+    $("cand-head").textContent = cands.length + " CANDIDATE" + (cands.length === 1 ? "" : "S");
+    $("cand-note").textContent = cap.delta_count > cap.deltas.length ? "showing " + cap.deltas.length + " of " + cap.delta_count : (cands.length > 1 ? "click a row to choose" : "");
+    setHTML($("cand-rows"), cands.length
+      ? cands.map(d => `<tr class="cand${d.rva === saveRva ? " pick" : ""}" data-rva="${d.rva}">
+          <td>${d.rva === saveRva ? "●" : "○"}</td><td>+${hex(d.rva)}</td><td>${d.old}→${d.new}</td><td>${esc(d.section)}</td></tr>`).join("")
+      : `<tr><td colspan="4" class="empty">No byte went 0→1.</td></tr>`);
+  }
+
+  // next-step banner
+  const jump = { label: "GO TO " + (cap.label || "IT"), cls: "primary", run: () => { const l = findLoc(cap.id); if (l) { ui.region = l.region; ui.status = "all"; renderRegions(); } selectLoc(cap.id); } };
+  const over = { label: "START OVER", cls: "ghost", run: resetCapture };
+  if (link.ok === false) {
+    setNext("bad", "Lost the dashboard server", "Restart it with <code>python -m tools dashboard</code>. This page reconnects by itself.");
+  } else if (busy) {
+    const what = { baseline: "Taking baseline — stand still", diff: "Diffing memory", save: "Writing targets.json" }[busy] || "Working";
+    setNext("busy action", what, "About a second.");
+  } else if (other) {
+    setNext("warn", "A capture is open for another location",
+      esc(cap.label) + " has a " + (cap.stage === "baseline" ? "baseline" : "diff") + ". Go back to it, or start over to capture this one.",
+      [jump, over]);
+  } else if (!loc) {
+    setNext(up ? "action" : "warn", "Pick the location you are standing at",
+      up ? "Choose it from the list on the left. Use the exact name — that is what the AP server checks."
+         : "Pick it on the left, and launch Darksiders Warmastered — dumps need the running game.");
+  } else if (stage === "diffed") {
+    if (!cands.length) {
+      setNext("warn", "No 0→1 byte found",
+        "Did it actually open? If yes, <b>Diff again</b>. If it never shows, the flag lives on the heap — this diff only sees the game module's own data, so it needs a pointer path.",
+        [over]);
+    } else if (saveRva != null) {
+      setNext("ok", cands.length === 1 ? "One candidate — save it" : "Save the chosen offset",
+        esc(loc.label) + " → <code>darksiders1.exe + " + hex(saveRva) + "</code> as uint8.",
+        [{ label: "SAVE " + hex(saveRva), cls: "go", run: () => $("btn-save").click() }]);
+    } else {
+      setNext("warn", cands.length + " candidates",
+        "Wait a few seconds and <b>Diff again</b> to drop bytes that flicked back, or click the row you trust.");
+    }
+  } else if (stage === "baseline") {
+    if (!up) {
+      setNext("bad", "Game closed after the baseline", "Relaunch, walk back to it (still closed) and start over.", [over]);
+    } else {
+      setNext("action", "Now open it in-game, then press DIFF",
+        "Open <b>" + esc(loc.label) + "</b>, wait for the animation to finish, then Diff. Shortcut <kbd>D</kbd>.");
+    }
+  } else if (!up) {
+    setNext("warn", "Launch Darksiders Warmastered",
+      s.error ? esc(s.error) : "GAME turns green within about a second of launch. Then walk to <b>" + esc(loc.label) + "</b>.");
+  } else if (loc.mapped) {
+    setNext("ok", "Already mapped",
+      "Its live value is under LIVE VALUES. Recapture only if it does not flip when you open it — Save overwrites the row.");
+  } else {
+    setNext("action", "Stand still at the closed chest, then BASELINE",
+      "Make sure <b>" + esc(loc.label) + "</b> is still closed. Shortcut <kbd>B</kbd>.");
+  }
+}
+
+$("cand-rows").addEventListener("click", e => {
+  const tr = e.target.closest("tr[data-rva]");
+  if (!tr) return;
+  pickRva = Number(tr.dataset.rva);
+  renderCapture();
+});
+
+async function runStep(n, kind, fn) {
+  if (pending) return;
+  pending = kind;
+  setMsg(n, "", "");
+  renderCapture();
+  try {
+    await fn();
+  } catch (e) {
+    setMsg(n, "err", e.message);
+    log("ERR", e.message);
+  } finally {
+    pending = "";
+    renderList();
+    renderCapture();
+  }
+}
+
+$("btn-baseline").onclick = () => {
+  const loc = selected();
+  if (!loc) return;
+  runStep(2, "baseline", async () => {
+    const data = await post("/api/capture/before", { id: loc.id });
+    st.capture = data.capture;
+    pickRva = null;
+    setMsg(3, "", "");
+    setMsg(4, "", "");
+    setMsg(2, "ok", "Baseline stored.");
+    log("STEP", "baseline · " + loc.label);
+  });
+};
+
+$("btn-diff").onclick = () => {
+  const loc = selected();
+  if (!loc) return;
+  runStep(3, "diff", async () => {
+    const data = await post("/api/capture/after", { id: loc.id, zero_to_one: true });
+    st.capture = data.capture;
+    const n = candidates(data.capture).length;
+    setMsg(3, n === 1 ? "ok" : "warn", n === 0 ? "No 0→1 bytes." : n + " candidate" + (n === 1 ? "" : "s") + ".");
+    log("STEP", "diff · " + n + " candidate" + (n === 1 ? "" : "s") + " · " + loc.label);
+  });
+};
+
+$("btn-save").onclick = () => {
+  const loc = selected();
+  const cap = st?.capture;
+  if (!loc || !cap) return;
+  const cands = candidates(cap);
+  const rva = cands.length === 1 ? cands[0].rva : pickRva;
+  runStep(4, "save", async () => {
+    const data = await post("/api/capture/save", { id: loc.id, rva });
+    st.capture = data.capture;
+    pickRva = null;
+    stepMsg = {};
+    log("SAVE", data.action + " " + data.entry.id + " @ " + data.entry.offsets.join(" -> "));
+    await loadCatalog();
+    setMsg(4, "ok", "Saved " + data.entry.offsets[0] + ". Watch it under LIVE VALUES.");
+  });
+};
+
+async function resetCapture() {
+  if (pending) return;
+  try {
+    const data = await post("/api/capture/reset");
+    st.capture = data.capture;
+    stepMsg = {};
+    pickRva = null;
+    log("STEP", "capture cleared");
+  } catch (e) {
+    log("ERR", e.message);
+  }
+  renderList();
+  renderCapture();
+}
+$("btn-reset").onclick = resetCapture;
+
+/* ---------- live values ---------- */
+function renderWatches() {
+  const box = $("watch-list");
+  const s = st?.status || {};
+  const ws = st?.watches || [];
+  $("live-sub").textContent = s.attached
+    ? "reading " + ws.length + " every " + s.interval_ms + " ms"
+    : "game down · last values from ds_client";
+  if (!ws.length) {
+    setHTML(box, `<div class="empty">No mapped rows yet. Saved locations and scanned items show here with their live value.</div>`);
+    return;
+  }
+  const now = Date.now() / 1000;
+  setHTML(box, ws.map(w => {
+    const live = s.attached && w.readable;
+    const val = live ? w.value : (w.verified ?? "—");
+    const fresh = live && w.changed_at && now - w.changed_at < 1.6;
+    const meta = live
+      ? (w.prev != null ? "was " + w.prev : "steady")
+      : s.attached ? "unreadable — bad offset or pointer?" : (w.verified != null ? "last seen" : "no value yet");
+    return `<div class="watch${w.id === ui.sel ? " sel" : ""}${fresh ? " flash" : ""}" data-tip="${esc(w.label)}\n${esc(w.category)} · ${esc(w.dtype)} · ${esc(w.offset)}">
+      <span class="name">${esc(w.label)}</span><span class="val${live ? "" : " stale"}">${esc(val)}</span>
+      <div class="meta"><span>${esc(w.category)}${w.region ? " · " + esc(w.region) : ""}</span><span>${esc(meta)}</span></div>
+    </div>`;
+  }).join(""));
+}
+
+/* ---------- polling ---------- */
+async function poll() {
+  try {
+    const q = lastEventId == null ? "" : "?since=" + lastEventId;
+    const data = await api("/api/state" + q, { signal: AbortSignal.timeout(POLL_TIMEOUT_MS) });
+    if (link.ok === false) log("LINK", "server back");
+    link = { ok: true, fails: 0 };
+    const prev = st;
+    st = data;
+    // capture may have moved in another tab / after reload
+    const capKey = c => c ? [c.id, c.stage, c.busy, c.delta_count].join("|") : "";
+    if (prev && pending === "" && capKey(prev.capture) !== capKey(data.capture)) renderList();
+    onStatus(data.status);
+    onEvents(data.events || [], data.history);
+  } catch (e) {
+    link.fails += 1;
+    if (link.fails >= LINK_LOST_AFTER && link.ok !== false) {
+      link.ok = false;
+      log("ERR", "server not responding");
+    }
+  }
+  renderPills();
+  renderWatches();
+  renderCapture();
+  setTimeout(poll, POLL_MS);
+}
+
+function onStatus(s) {
+  if (lastEpoch !== null && s.epoch !== lastEpoch) {
+    if (s.attached) log("GAME", "attached · pid " + s.pid + " · base " + s.module_base);
+    else log("GAME", "detached" + (s.error ? " · " + s.error : ""));
+    pulse("pill-game");
+  } else if (lastEpoch === null) {
+    log("GAME", s.attached ? "attached · pid " + s.pid + " · base " + s.module_base : "not running — waiting for darksiders1.exe");
+  }
+  lastEpoch = s.epoch;
+  // Our own SAVE already reloaded the catalog; only react to edits from elsewhere (CLI, editor).
+  if (lastTargetsRev !== null && s.targets_rev !== lastTargetsRev
+      && s.targets_rev !== catalog.targets_rev && pending !== "save") {
+    log("FILE", "targets.json changed on disk — reloaded");
+    loadCatalog().catch(e => log("ERR", e.message));
+  }
+  lastTargetsRev = s.targets_rev;
+}
+
+function onEvents(events, history) {
+  for (const ev of events) {
+    lastEventId = Math.max(lastEventId ?? 0, ev.log_id);
+    const at = ev.timestamp ? new Date(ev.timestamp.replace(" ", "T") + "Z") : new Date();
+    const delta = ev.prev_value ? ev.prev_value + "→" + ev.value_raw : ev.value_raw;
+    log("GAME", "ds_client · " + (ev.label || ev.target_id || ev.event_type) + "  " + delta, { at, hist: history });
+  }
+  if (lastEventId == null) lastEventId = 0;
+}
+
+/* ---------- loading ---------- */
 async function loadCatalog() {
-  const data = await api("/api/catalog");
-  catalog = data;
-  status = data.status || status;
-  if (!activeRegion || !catalog.regions[activeRegion]) {
-    activeRegion = catalog.regions["Crossroads"]
-      ? "Crossroads"
-      : (regionNames().find(r => visibleItems(r).length) || regionNames()[0] || "");
-  }
-  if (activeLocation) {
-    const items = catalog.regions[activeRegion] || [];
-    activeLocation = items.find(i => i.id === activeLocation.id) || activeLocation;
-  } else {
-    const vis = visibleItems(activeRegion);
-    activeLocation = vis.find(i => !i.mapped) || vis[0] || null;
-  }
-  updateStatusBar();
+  catalog = await api("/api/catalog");
+  const names = regionNames();
+  if (!names.includes(ui.region)) ui.region = names.includes("Crossroads") ? "Crossroads" : (names[0] || "");
+  if (ui.sel && !findLoc(ui.sel)) ui.sel = "";
   renderRegions();
-  renderChecklist();
-  updateWizard();
+  renderPills();
+  renderList();
+  if (ui.pane === "items") renderItemCard(); else renderCapture();
+  if ($("files-box").open) loadPreview();
 }
 
+let previewTab = "json";
 function showPreviewTab(name) {
   previewTab = name;
-  const onJson = name === "json";
-  document.getElementById("preview-json").classList.toggle("hidden", !onJson);
-  document.getElementById("preview-md").classList.toggle("hidden", onJson);
-  document.getElementById("preview-file-label").textContent = onJson
-    ? "showing targets.json"
-    : "showing docs/memory_map.md";
-  document.getElementById("tab-btn-json").className = onJson
-    ? "px-2 py-1 rounded bg-dark-900 text-accent-indigo font-bold border border-dark-600"
-    : "px-2 py-1 rounded text-slate-400 hover:text-slate-200";
-  document.getElementById("tab-btn-md").className = onJson
-    ? "px-2 py-1 rounded text-slate-400 hover:text-slate-200"
-    : "px-2 py-1 rounded bg-dark-900 text-accent-indigo font-bold border border-dark-600";
+  $("preview-json").hidden = name !== "json";
+  $("preview-md").hidden = name !== "md";
+  $("tab-json").classList.toggle("on", name === "json");
+  $("tab-md").classList.toggle("on", name === "md");
 }
-
 async function loadPreview() {
-  const jsonBox = document.getElementById("preview-json");
-  const mdBox = document.getElementById("preview-md");
-  try {
-    const data = await api("/api/targets");
-    jsonBox.textContent = JSON.stringify(data, null, 2);
-  } catch (e) {
-    jsonBox.textContent = `Could not read targets.json\n${e.message}`;
-  }
-  try {
-    const data = await api("/api/memory-map-md");
-    mdBox.textContent = data.markdown || "(empty memory_map.md)";
-  } catch (e) {
-    mdBox.textContent = `Could not read memory_map.md\n${e.message}`;
-  }
+  try { $("preview-json").textContent = JSON.stringify(await api("/api/targets"), null, 2); }
+  catch (e) { $("preview-json").textContent = "targets.json: " + e.message; }
+  try { $("preview-md").textContent = (await api("/api/memory-map-md")).markdown || "(empty)"; }
+  catch (e) { $("preview-md").textContent = "memory_map.md: " + e.message; }
   showPreviewTab(previewTab);
 }
+$("files-box").addEventListener("toggle", () => { if ($("files-box").open) loadPreview(); });
+$("tab-json").onclick = () => showPreviewTab("json");
+$("tab-md").onclick = () => showPreviewTab("md");
 
-async function pollTelemetry() {
-  try {
-    const data = await api("/api/telemetry");
-    status = Object.assign(status, data.status || {});
-    watches = data.memory_map || [];
-    updateStatusBar();
-    renderWatches();
-    for (const ev of (data.events || []).slice().reverse()) {
-      if (ev.log_id <= lastEventId) continue;
-      lastEventId = ev.log_id;
-      const delta = ev.prev_value ? `${ev.prev_value} → ${ev.value_raw}` : ev.value_raw;
-      const name = ev.label || ev.target_id || ev.event_type;
-      logTelemetry("GAME", `${name}  ${delta}`);
-    }
-    if (!lastEventId) ensureLogEmpty();
-  } catch (e) {
-    /* server still up? */
-  }
-}
-
-function setChipGroup(selector, dataKey, value) {
-  document.querySelectorAll(selector).forEach(b => {
-    const on = b.dataset[dataKey] === value;
-    const kind = selector === ".kind-btn" ? "kind-btn" : "filter-btn";
-    b.className = on
-      ? `${kind} px-2 py-0.5 rounded border text-[10px] font-mono bg-accent-indigo/20 text-accent-indigo border-accent-indigo/40`
-      : `${kind} px-2 py-0.5 rounded border text-[10px] font-mono text-slate-400 border-dark-500`;
-  });
-}
-
-function applyListFilters() {
-  const vis = visibleItems(activeRegion);
-  if (!vis.length) {
-    activeRegion = regionNames().find(r => visibleItems(r).length) || activeRegion;
-  }
-  selectDefault();
-}
-
-document.querySelectorAll(".filter-btn").forEach(btn => {
-  btn.onclick = () => {
-    listFilter = btn.dataset.filter;
-    setChipGroup(".filter-btn", "filter", listFilter);
-    applyListFilters();
-  };
+/* ---------- controls ---------- */
+$("pane-checks").onclick = () => setPane("checks");
+$("pane-items").onclick = () => setPane("items");
+$("region-select").addEventListener("change", e => {
+  ui.region = e.target.value;
+  savePrefs();
+  renderList();
 });
-
-document.querySelectorAll(".kind-btn").forEach(btn => {
-  btn.onclick = () => {
-    kindFilter = btn.dataset.kind;
-    setChipGroup(".kind-btn", "kind", kindFilter);
-    applyListFilters();
-  };
-});
-
-document.getElementById("region-select").addEventListener("change", e => {
-  activeRegion = e.target.value;
-  selectDefault();
-});
-
-document.getElementById("catalog-search").addEventListener("input", e => {
+$("catalog-search").addEventListener("input", e => {
   searchQ = e.target.value || "";
-  renderRegions();
-  renderChecklist();
+  renderList();
 });
-
-document.getElementById("live-tab-watches").onclick = () => setLiveTab("watches");
-document.getElementById("live-tab-log").onclick = () => setLiveTab("log");
-document.getElementById("refresh-btn").onclick = () => loadCatalog().then(loadPreview);
-document.getElementById("tab-btn-json").onclick = () => showPreviewTab("json");
-document.getElementById("tab-btn-md").onclick = () => showPreviewTab("md");
-
-document.getElementById("btn-snap-a").onclick = async () => {
-  if (!activeLocation || busy) return;
-  busy = "before";
-  updateWizard();
+document.querySelectorAll("#status-seg button").forEach(b => b.onclick = () => {
+  ui.status = b.dataset.filter; savePrefs(); renderList();
+});
+document.querySelectorAll("#kind-seg button").forEach(b => b.onclick = () => {
+  ui.kind = b.dataset.kind; savePrefs(); renderList();
+});
+$("refresh-btn").onclick = async () => {
+  try { await loadCatalog(); log("FILE", "catalog + targets.json reloaded"); }
+  catch (e) { log("ERR", e.message); }
+};
+$("btn-export").onclick = async () => {
+  if (!confirm("Overwrite docs/memory_map.md from the SQLite map?")) return;
   try {
-    logTelemetry("SYSTEM", `Baseline for ${activeLocation.label}`);
-    await api("/api/capture/before", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: activeLocation.id })
-    });
-    snapA = true;
-    lastDeltas = [];
-    logTelemetry("DB", "Idle pair stored (writable .data / .bss)");
+    const data = await post("/api/export-docs");
+    log("SAVE", "wrote " + data.path);
+    if ($("files-box").open) loadPreview();
   } catch (e) {
-    logTelemetry("ERR", e.message);
-  } finally {
-    busy = "";
-    updateWizard();
+    log("ERR", e.message);
   }
 };
-
-document.getElementById("btn-snap-b").onclick = async () => {
-  if (!activeLocation || busy) return;
-  busy = "after";
-  updateWizard();
-  try {
-    const data = await api("/api/capture/after", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: activeLocation.id, zero_to_one: true })
-    });
-    lastDeltas = data.deltas || [];
-    logTelemetry("DIFF", `${lastDeltas.length} delta(s), ${data.zero_to_one} are 0→1`);
-  } catch (e) {
-    logTelemetry("ERR", e.message);
-  } finally {
-    busy = "";
-    updateWizard();
-  }
-};
-
-document.getElementById("btn-auto-save").onclick = async () => {
-  if (!activeLocation || busy) return;
-  busy = "save";
-  updateWizard();
-  try {
-    const data = await api("/api/capture/save", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: activeLocation.id })
-    });
-    logTelemetry("TARGETS", `${data.action} ${data.entry.id}`);
-    snapA = false;
-    lastDeltas = [];
-    await loadCatalog();
-    await loadPreview();
-    await pollTelemetry();
-  } catch (e) {
-    logTelemetry("ERR", e.message);
-  } finally {
-    busy = "";
-    updateWizard();
-  }
-};
-
-document.getElementById("btn-export").onclick = async () => {
-  try {
-    const data = await api("/api/export-docs", { method: "POST" });
-    logTelemetry("DOCS", `Wrote ${data.path}`);
-    await loadPreview();
-  } catch (e) {
-    logTelemetry("ERR", e.message);
-  }
-};
+document.querySelectorAll(".copy").forEach(b => b.onclick = async () => {
+  const text = b.previousElementSibling.textContent;
+  try { await navigator.clipboard.writeText(text); b.textContent = "COPIED"; }
+  catch { b.textContent = "SELECT + COPY"; }
+  setTimeout(() => b.textContent = "COPY", 1500);
+});
 
 (async () => {
+  logEmpty();
   try {
-    ensureLogEmpty();
     await loadCatalog();
-    await loadPreview();
-    logTelemetry("SYSTEM", "Live APIs — pick a TODO, then baseline → action → after → save.");
-    await pollTelemetry();
-    setInterval(pollTelemetry, POLL_MS);
   } catch (e) {
-    logTelemetry("ERR", e.message);
+    log("ERR", "catalog: " + e.message);
   }
+  setPane(ui.pane === "items" ? "items" : "checks");
+  poll();
 })();
 </script>
 </body>

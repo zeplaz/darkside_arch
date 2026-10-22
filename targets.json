@@ -12,7 +12,193 @@
       "offsets": ["0x0"],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — replace offsets via: python -m tools scan --auto-save"
+      "notes": "TEMPLATE — replace offsets via: python -m tools capture --region Crossroads"
+    },
+    {
+      "id": "chest_crossroads_currency_south_crater",
+      "enabled": false,
+      "event_type": "LOCATION_CHECK",
+      "category": "location_flag",
+      "label": "Crossroads Currency Chest South Crater",
+      "region": "Crossroads",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "notes": "TEMPLATE — python -m tools capture --region Crossroads"
+    },
+    {
+      "id": "chest_crossroads_currency_subway",
+      "enabled": false,
+      "event_type": "LOCATION_CHECK",
+      "category": "location_flag",
+      "label": "Crossroads Currency Chest in Subway Station",
+      "region": "Crossroads",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "notes": "TEMPLATE — python -m tools capture --region Crossroads"
+    },
+    {
+      "id": "chest_crossroads_life_gholen_west",
+      "enabled": false,
+      "event_type": "LOCATION_CHECK",
+      "category": "location_flag",
+      "label": "Crossroads Life Chest Behind Gholen West",
+      "region": "Crossroads",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "notes": "TEMPLATE — python -m tools capture --region Crossroads"
+    },
+    {
+      "id": "chest_crossroads_life_gholen_north",
+      "enabled": false,
+      "event_type": "LOCATION_CHECK",
+      "category": "location_flag",
+      "label": "Crossroads Life Chest Behind Gholen North",
+      "region": "Crossroads",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "notes": "TEMPLATE — python -m tools capture --region Crossroads"
+    },
+    {
+      "id": "chest_crossroads_life_ne_crater",
+      "enabled": false,
+      "event_type": "LOCATION_CHECK",
+      "category": "location_flag",
+      "label": "Crossroads Life Chest NE Crater",
+      "region": "Crossroads",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "notes": "TEMPLATE — python -m tools capture --region Crossroads"
+    },
+    {
+      "id": "chest_crossroads_rare_ice",
+      "enabled": false,
+      "event_type": "LOCATION_CHECK",
+      "category": "location_flag",
+      "label": "Crossroads Rare Chest Blocked by Ice",
+      "region": "Crossroads",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "notes": "TEMPLATE — skip until ice tools"
+    },
+    {
+      "id": "chest_crossroads_secret_hydrants",
+      "enabled": false,
+      "event_type": "LOCATION_CHECK",
+      "category": "location_flag",
+      "label": "Crossroads Secret Chest Destroy Fire Hydrants",
+      "region": "Crossroads",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "notes": "TEMPLATE — python -m tools capture --region Crossroads"
+    },
+    {
+      "id": "artifact_crossroads_subway",
+      "enabled": false,
+      "event_type": "LOCATION_CHECK",
+      "category": "location_flag",
+      "label": "Crossroads Soldier Artifact in Subway Station",
+      "region": "Crossroads",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "notes": "TEMPLATE — python -m tools capture --region Crossroads"
+    },
+    {
+      "id": "goal_abaddon_defeated",
+      "enabled": false,
+      "event_type": "GOAL",
+      "category": "misc",
+      "label": "Abaddon The Destroyer defeated",
+      "region": "Leviathan's Drift",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "notes": "TEMPLATE — do not invent a boss flag. Capture only after a real 0→1."
+    },
+    {
+      "id": "item_armageddon_blade_shards",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "inventory",
+      "label": "Armageddon Blade Shards",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "uint32",
+      "notes": "TEMPLATE — count watch. AP apply sets this integer to received count."
+    },
+    {
+      "id": "item_armageddon_blade",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "inventory",
+      "label": "Armageddon Blade",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "notes": "TEMPLATE — Keen items/item_armageddonsword. Granted when AP shard count hits 7."
+    },
+    {
+      "id": "item_progressive_chaoseater",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "inventory",
+      "label": "Progressive Chaoseater",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "uint32",
+      "notes": "TEMPLATE — weapon Level integer. AP apply sets 1..4 from received count."
+    },
+    {
+      "id": "item_progressive_scythe",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "inventory",
+      "label": "Progressive Scythe",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "uint32",
+      "notes": "TEMPLATE — weapon Level integer. AP apply sets 1..4 from received count."
+    },
+    {
+      "id": "item_progressive_gauntlet",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "inventory",
+      "label": "Progressive Gauntlet",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "uint32",
+      "notes": "TEMPLATE — weapon Level integer. AP apply sets 1..5 from received count."
+    },
+    {
+      "id": "item_beholder_key",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "inventory",
+      "label": "Beholder Key",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "uint32",
+      "notes": "TEMPLATE — count watch. Do not virtualize slots until this offset is real."
+    },
+    {
+      "id": "item_heart_of_the_chosen",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "inventory",
+      "label": "Heart of the Chosen",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "uint32",
+      "notes": "TEMPLATE — count watch. Separate AP item from Beholder Key."
     },
     {
       "id": "soul_count",
@@ -23,7 +209,7 @@
       "region": "",
       "offsets": ["0x0"],
       "type": "float",
-      "notes": "Keen PlayerSaveData.Souls is float. Scan with --type float. TEMPLATE — replace offsets via: python -m tools scan --type float --auto-save"
+      "notes": "Keen PlayerSaveData.Souls is float. Scan with --type float. TEMPLATE — replace offsets via: python -m tools scan"
     }
   ]
 }

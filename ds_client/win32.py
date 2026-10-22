@@ -7,6 +7,8 @@ import ctypes.wintypes
 from typing import Optional, Sequence
 
 PROCESS_VM_READ = 0x0010
+PROCESS_VM_WRITE = 0x0020
+PROCESS_VM_OPERATION = 0x0008
 PROCESS_QUERY_INFORMATION = 0x0400
 STILL_ACTIVE = 259
 LIST_MODULES_DEFAULT = 0x03
@@ -28,6 +30,14 @@ kernel32.ReadProcessMemory.argtypes = (
     ctypes.POINTER(ctypes.c_size_t),
 )
 kernel32.ReadProcessMemory.restype = ctypes.wintypes.BOOL
+kernel32.WriteProcessMemory.argtypes = (
+    ctypes.wintypes.HANDLE,
+    ctypes.wintypes.LPVOID,
+    ctypes.wintypes.LPCVOID,
+    ctypes.c_size_t,
+    ctypes.POINTER(ctypes.c_size_t),
+)
+kernel32.WriteProcessMemory.restype = ctypes.wintypes.BOOL
 kernel32.CloseHandle.argtypes = (ctypes.wintypes.HANDLE,)
 kernel32.CloseHandle.restype = ctypes.wintypes.BOOL
 kernel32.GetExitCodeProcess.argtypes = (
@@ -55,9 +65,14 @@ psapi.GetModuleBaseNameW.restype = ctypes.wintypes.DWORD
 ProcessHandle = ctypes.wintypes.HANDLE
 
 
-def open_process(pid: int) -> ProcessHandle:
+def open_process(pid: int, *, write: bool = True) -> ProcessHandle:
     access = PROCESS_VM_READ | PROCESS_QUERY_INFORMATION
+    if write:
+        access |= PROCESS_VM_WRITE | PROCESS_VM_OPERATION
     handle = kernel32.OpenProcess(access, False, pid)
+    if not handle and write:
+        print("[WARN] OpenProcess write access denied; item apply disabled")
+        return open_process(pid, write=False)
     if not handle:
         err = ctypes.get_last_error()
         raise OSError(f"OpenProcess failed for pid={pid} (error {err})")
@@ -118,6 +133,21 @@ def read_memory(handle: ProcessHandle, address: int, size: int) -> Optional[byte
     if not ok or read.value != size:
         return None
     return bytes(buf)
+
+
+def write_memory(handle: ProcessHandle, address: int, data: bytes) -> bool:
+    if address <= 0 or not data:
+        return False
+    buf = (ctypes.c_ubyte * len(data)).from_buffer_copy(data)
+    written = ctypes.c_size_t(0)
+    ok = kernel32.WriteProcessMemory(
+        handle,
+        ctypes.c_void_p(address),
+        buf,
+        len(data),
+        ctypes.byref(written),
+    )
+    return bool(ok) and written.value == len(data)
 
 
 def resolve_address(
