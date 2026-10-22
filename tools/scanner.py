@@ -9,11 +9,13 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from pathlib import Path
 from typing import Optional, Sequence
 
-from ds_client.models import PROCESS_NAME, TARGETS_FILE, TYPE_SPECS
+from ds_client.models import PROCESS_NAME, TYPE_SPECS
 from ds_client.watcher import find_process
+from tools.targets import build_target_entry, find_row, raw_targets, save_target
+
+SOULS_LABEL = "Soul_Count"
 
 # JSON type name -> Python type for PyMemoryEditor scans
 _PYTYPE: dict[str, type] = {
@@ -62,102 +64,12 @@ def _module_relative(
     return preferred or fallback or (None, None)
 
 
-def build_target_entry(
-    *,
-    target_id: str,
-    label: str,
-    category: str,
-    dtype: str,
-    module: str,
-    offsets: Sequence[int],
-    notes: str,
-    enabled: bool = True,
-    region: str = "",
-) -> dict:
-    event_type = "LOCATION_CHECK" if category == "location_flag" else "MEMORY_STATE"
-    return {
-        "id": target_id,
-        "enabled": enabled,
-        "event_type": event_type,
-        "category": category,
-        "label": label,
-        "region": region,
-        "offsets": [f"0x{o:X}" for o in offsets],
-        "type": dtype,
-        "module": module,
-        "notes": notes,
-    }
-
-
-def upsert_target(new_target: dict, targets_path: Path = TARGETS_FILE) -> str:
-    """Insert or update by id in targets.json (observe_interval_ms / module / targets)."""
-    path = Path(targets_path)
-    if path.exists():
-        data = json.loads(path.read_text(encoding="utf-8"))
-        if not isinstance(data, dict):
-            raise ValueError(f"{path} root must be a JSON object")
-    else:
-        data = {"observe_interval_ms": 250, "module": PROCESS_NAME, "targets": []}
-
-    targets = data.setdefault("targets", [])
-    if not isinstance(targets, list):
-        raise ValueError(f"{path}: 'targets' must be a list")
-    data.setdefault("observe_interval_ms", 250)
-    data.setdefault("module", PROCESS_NAME)
-
-    target_id = str(new_target["id"])
-    action = "appended"
-    for i, item in enumerate(targets):
-        if not (isinstance(item, dict) and item.get("id") == target_id):
-            continue
-        merged = {**item, **new_target}
-        if not merged.get("region") and item.get("region"):
-            merged["region"] = item["region"]
-        if "bitmask" not in new_target and "bitmask" in item:
-            merged["bitmask"] = item["bitmask"]
-        targets[i] = merged
-        action = "updated"
-        break
-    else:
-        targets.append(new_target)
-
-    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-    return action
-
-
-def _sync_sqlite_from_targets(targets_path: Path) -> None:
-    """Push enabled targets into darksiders_debug.db memory_map (no manual SQL)."""
-    from ds_client.models import load_targets
-    from ds_client.sinks import DB_FILE, init_db, sync_memory_map_from_targets
-
-    _, targets = load_targets(targets_path)
-    conn = init_db()
-    try:
-        n = sync_memory_map_from_targets(conn, targets)
-        print(f"[+] Synced {n} enabled target(s) into {DB_FILE}")
-    finally:
-        conn.close()
-
-
-def _emit_result(entry: dict, *, auto_save: bool, targets_path: Path) -> None:
-    pretty = json.dumps(entry, indent=2)
-    if auto_save:
-        action = upsert_target(entry, targets_path)
-        print(f"[+] {action.capitalize()} target id={entry['id']!r} in {targets_path}")
-        print(pretty)
-        try:
-            _sync_sqlite_from_targets(targets_path)
-        except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
-            print(f"[WARN] SQLite sync-map failed: {exc}")
-        print(
-            "\nNext: python -m ds_client  (hot-reloads targets.json)\n"
-            "      python -m tools dashboard  (live telemetry)\n"
-            "      python -m tools export-docs  (only when locked in / Obsidian)"
-        )
+def _emit_result(entry: dict, *, dry_run: bool) -> None:
+    if dry_run:
+        print(json.dumps(entry, indent=2))
         return
-    print("\n--- targets.json entry (pass --auto-save to write) ---\n")
-    print(pretty)
-    print("\nNext: re-run with --auto-save, then: python -m ds_client")
+    action, entry = save_target(entry)
+    print(f"[OK] {action} {entry['id']} @ {' -> '.join(entry['offsets'])}  (ds_client hot-reloads it)")
 
 
 def _parse_value(raw: str, pytype: type):
@@ -208,42 +120,11 @@ def _read_live(process, pytype, width, addr, regions):
     return None
 
 
-def _finish_entry(
-    *,
-    module: str,
-    offsets: Sequence[int],
-    target_id: str,
-    label: str,
-    category: str,
-    dtype: str,
-    notes: str,
-    auto_save: bool,
-    targets_path: Path,
-) -> None:
-    entry = build_target_entry(
-        target_id=target_id,
-        label=label,
-        category=category,
-        dtype=dtype,
-        module=module,
-        offsets=offsets,
-        notes=notes,
-    )
-    _emit_result(entry, auto_save=auto_save, targets_path=targets_path)
-
-
-def run_value_scan(
-    *,
-    process_name: str = PROCESS_NAME,
-    dtype: str = "float",
-    writeable_only: bool = False,
-    target_id: str = "soul_count",
-    label: str = "Soul_Count",
-    category: str = "stat",
-    pointer_scan: bool = True,
-    auto_save: bool = False,
-    targets_path: Path = TARGETS_FILE,
-) -> int:
+def run_value_scan(row: dict, *, dry_run: bool = False) -> int:
+    """Narrow one HUD number down to an address, then save it onto ``row``
+    (a targets.json row: id / label / category / type)."""
+    process_name = PROCESS_NAME
+    dtype = str(row.get("type") or "float")
     numpy_ok = _require_pymemoryeditor()
     from PyMemoryEditor import OpenProcess
 
@@ -253,8 +134,7 @@ def run_value_scan(
     width, _fmt = TYPE_SPECS[dtype]
     pytype = _PYTYPE[dtype]
 
-    if target_id == "soul_count" and dtype == "uint32":
-        print("[WARN] Keen Souls is float. This uint32 scan will miss 172.0. Use --type float.")
+    print(f"[*] Scanning for {row['label']!r} ({row['category']})")
     print(f"[*] NumPy acceleration: {numpy_ok}")
     print(f"[*] Attaching to {process_name} ({dtype}, {width} bytes)...")
 
@@ -297,7 +177,7 @@ def run_value_scan(
                     pytype,
                     width,
                     value=_parse_value(raw, pytype),
-                    writeable_only=writeable_only,
+                    writeable_only=False,
                     memory_regions=regions,
                 )
             )
@@ -359,24 +239,8 @@ def run_value_scan(
                     f"[ASLR] Module-relative: {mod_name} + 0x{offset:X}\n"
                     "       Absolute VA is session-only; never store it."
                 )
-                _finish_entry(
-                    module=mod_name,
-                    offsets=[offset],
-                    target_id=target_id,
-                    label=label,
-                    category=category,
-                    dtype=dtype,
-                    notes=f"scanned absolute 0x{chosen:X} this run",
-                    auto_save=auto_save,
-                    targets_path=targets_path,
-                )
+                _emit_result(_entry(row, mod_name, [offset], f"scanned absolute 0x{chosen:X}"), dry_run=dry_run)
                 return 0
-
-            if not pointer_scan:
-                print(
-                    f"[-] 0x{chosen:X} is dynamic and --no-pointer-scan was set."
-                )
-                return 1
 
             print("[*] Heap address — scanning pointer paths...")
             paths = _pointer_paths(process, chosen, process_name)
@@ -390,16 +254,9 @@ def run_value_scan(
             path = paths[0]
             chain = [int(path.module_offset), *[int(o) for o in path.offsets]]
             print(f"[ASLR] Pointer chain ({len(paths)} found), best:\n       {path}")
-            _finish_entry(
-                module=path.module or process_name,
-                offsets=chain,
-                target_id=target_id,
-                label=label,
-                category=category,
-                dtype=dtype,
-                notes=f"pointer path to 0x{chosen:X}",
-                auto_save=auto_save,
-                targets_path=targets_path,
+            _emit_result(
+                _entry(row, path.module or process_name, chain, f"pointer path to 0x{chosen:X}"),
+                dry_run=dry_run,
             )
             return 0
     except Exception as exc:
@@ -407,61 +264,40 @@ def run_value_scan(
         return 1
 
 
-def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(
-        prog="python -m tools scan",
-        description="Exact + differential memory scanner (PyMemoryEditor)",
+def _entry(row: dict, module: str, offsets: Sequence[int], notes: str) -> dict:
+    return build_target_entry(
+        target_id=str(row["id"]),
+        label=str(row["label"]),
+        category=str(row["category"]),
+        dtype=str(row["type"]),
+        offsets=offsets,
+        notes=notes,
+        region=str(row.get("region") or ""),
+        module=module,
     )
-    p.add_argument("--process", default=PROCESS_NAME)
-    p.add_argument(
-        "--type",
-        dest="dtype",
-        default="float",
-        choices=sorted(TYPE_SPECS),
-        help="Default float matches Keen Souls. Chest flags: uint8/bool. Health: int32.",
-    )
-    p.add_argument("--id", dest="target_id", default="soul_count")
-    p.add_argument("--label", default="Soul_Count")
-    p.add_argument(
-        "--category",
-        default="stat",
-        choices=["location_flag", "inventory", "stat", "misc"],
-    )
-    p.add_argument(
-        "--writeable-only",
-        action="store_true",
-        help="Faster; may miss read-only statics",
-    )
-    p.add_argument(
-        "--no-pointer-scan",
-        action="store_true",
-        help="Skip pointer-path recovery for heap addresses",
-    )
-    p.add_argument(
-        "--auto-save",
-        action="store_true",
-        help=f"Upsert into {TARGETS_FILE} (enabled: true)",
-    )
-    p.add_argument("--targets", type=Path, default=TARGETS_FILE)
-    return p
 
 
 def main(argv: Optional[list[str]] = None) -> int:
+    p = argparse.ArgumentParser(
+        prog="python -m tools scan",
+        description="Find a HUD number (souls, item counts) by narrowing its value. Not for chests.",
+        epilog='python -m tools scan --item "Progressive Chaoseater"',
+    )
+    p.add_argument("--item", default=SOULS_LABEL, help=f"targets.json label to map (default {SOULS_LABEL!r})")
+    p.add_argument("--type", dest="dtype", choices=sorted(TYPE_SPECS), help="Override the row's type")
+    p.add_argument("--dry-run", action="store_true", help="Print the result; do not write targets.json")
+    args = p.parse_args(argv)
     if sys.platform != "win32":
         print("[ERROR] Scanner requires Windows.")
         return 1
-    args = build_parser().parse_args(argv)
-    return run_value_scan(
-        process_name=args.process,
-        dtype=args.dtype,
-        writeable_only=args.writeable_only,
-        target_id=args.target_id,
-        label=args.label,
-        category=args.category,
-        pointer_scan=not args.no_pointer_scan,
-        auto_save=args.auto_save,
-        targets_path=args.targets,
-    )
+    row = find_row(args.item)
+    if row is None:
+        labels = [t["label"] for t in raw_targets() if t.get("category") in {"inventory", "stat"}]
+        print(f"[ERROR] No targets.json row labelled {args.item!r}. Known: {', '.join(labels)}")
+        return 1
+    if args.dtype:
+        row = {**row, "type": args.dtype}
+    return run_value_scan(row, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 from tools.save_brief import _props, _val
 
@@ -119,8 +119,8 @@ def print_diff(rows: list[tuple[tuple[str, ...], str, str]], include_tiles: bool
 
 def main(argv: Optional[list[str]] = None) -> int:
     p = argparse.ArgumentParser(prog="python -m tools save-diff")
-    p.add_argument("--before", type=Path, required=True, help="Keen JSON before the action")
-    p.add_argument("--after", type=Path, required=True, help="Keen JSON after the action")
+    p.add_argument("before", type=Path, help="Keen JSON before the action")
+    p.add_argument("after", type=Path, help="Keen JSON after the action")
     p.add_argument(
         "--include-tiles",
         action="store_true",

@@ -59,6 +59,11 @@ class WatchTarget:
     def display_name(self) -> str:
         return self.label or self.id
 
+    @property
+    def is_template(self) -> bool:
+        """``offsets: ["0x0"]`` marks a row whose address is not mapped yet."""
+        return self.offsets == (0,)
+
     def decode(self, raw: bytes) -> str:
         value = self.unpacker.unpack_from(raw)[0]
         if self.bitmask is not None:
@@ -68,6 +73,13 @@ class WatchTarget:
         if isinstance(value, float):
             return repr(value)
         return str(value)
+
+    def encode(self, value: object) -> bytes:
+        if self.dtype in _FLOAT_TYPES:
+            return self.unpacker.pack(float(value))  # type: ignore[arg-type]
+        if self.dtype == "bool":
+            return self.unpacker.pack(bool(int(value)))  # type: ignore[arg-type]
+        return self.unpacker.pack(int(value))  # type: ignore[arg-type]
 
     def format_bitmask(self) -> str:
         return "None" if self.bitmask is None else f"0x{self.bitmask:X}"
@@ -100,6 +112,8 @@ def _build_target(raw: dict, default_module: str) -> Optional[WatchTarget]:
     if not bool(raw.get("enabled", True)):
         return None
 
+    if not isinstance(raw, dict) or not raw.get("id"):
+        raise ValueError(f"every target needs an 'id': {raw!r}")
     target_id = str(raw["id"])
     dtype = str(raw.get("type", "uint32"))
     if dtype not in TYPE_SPECS:
@@ -143,6 +157,7 @@ def _build_target(raw: dict, default_module: str) -> Optional[WatchTarget]:
 
 
 def load_targets(path: Path = TARGETS_FILE) -> tuple[int, tuple[WatchTarget, ...]]:
+    """Enabled, mapped targets. Disabled rows and 0x0 templates are skipped."""
     if not path.exists():
         print(f"[WARN] {path} missing; using empty target list.")
         return 250, ()
@@ -154,7 +169,7 @@ def load_targets(path: Path = TARGETS_FILE) -> tuple[int, tuple[WatchTarget, ...
 
     for raw in data.get("targets", []):
         target = _build_target(raw, default_module)
-        if target is not None:
+        if target is not None and not target.is_template:
             targets.append(target)
 
     return interval_ms, tuple(targets)

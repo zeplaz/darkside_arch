@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 import time
 from dataclasses import dataclass
@@ -18,7 +17,6 @@ from typing import Optional
 from ds_client import win32
 from ds_client.models import PROCESS_NAME
 from ds_client.watcher import find_process
-from tools.scanner import _emit_result, build_target_entry
 
 SNAPSHOT_DIR = Path("snapshots")
 CHUNK = 64 * 1024
@@ -175,9 +173,9 @@ def diff_snapshots(
 
 def _print_deltas(deltas: list[Delta], module: str = PROCESS_NAME) -> None:
     if not deltas:
-        print("[-] No deltas. Stand still, retake, or the flag may live on the heap.")
+        print("[-] No 0->1 bytes. Did it open? If it never shows, the flag lives on the heap (needs a pointer path).")
         return
-    print(f"[+] {len(deltas)} changed byte(s) in writable module data:\n")
+    print(f"[+] {len(deltas)} byte(s) went 0->1:\n")
     for i, d in enumerate(deltas[:80], start=1):
         print(
             f"  [{i:3}] {module} + 0x{d.rva:X}  "
@@ -187,230 +185,77 @@ def _print_deltas(deltas: list[Delta], module: str = PROCESS_NAME) -> None:
         print(f"  … {len(deltas) - 80} more")
 
 
-def _maybe_autosave(deltas: list[Delta], *, args) -> None:
-    if not args.auto_save:
-        return
-    z2o = [d for d in deltas if d.old == 0 and d.new == 1]
-    pick = z2o if len(z2o) == 1 else deltas
-    if len(pick) != 1:
-        print(
-            f"\n[--auto-save skipped] need exactly 1 candidate "
-            f"(have {len(pick)}; {len(z2o)} were 0->1). "
-            "Re-capture more still, or pass --all-deltas."
-        )
-        return
-    d = pick[0]
-    entry = build_target_entry(
-        target_id=args.id,
-        label=args.label,
-        category=args.category,
-        dtype="uint8",
-        module=PROCESS_NAME,
-        offsets=[d.rva],
-        notes=f"snapshot delta {d.old}->{d.new} in {d.section}",
-        region=getattr(args, "region", "") or "",
-    )
-    _emit_result(entry, auto_save=True, targets_path=args.targets)
+CAPTURE_SNAPSHOTS = ("_cap_a", "_cap_b", "_cap_c")
 
 
-def cmd_snapshot(name: str, process_name: str) -> int:
-    path = take_snapshot(name=name, process_name=process_name)
-    meta = json.loads((path / "meta.json").read_text(encoding="utf-8"))
-    print(
-        f"[OK] snapshot {name!r}  {meta['bytes']} bytes  "
-        f"{len(meta['sections'])} section(s) -> {path}"
-    )
-    for s in meta["sections"]:
-        print(f"     {s['name']:8} rva={s['rva']} size={s['size']}")
-    return 0
+def capture_deltas(wait_before, wait_after) -> list[Delta]:
+    """Idle pair (a, b) 0.4 s apart, then c after the in-game action.
 
-
-def cmd_diff(before: str, after: str, *, stable: Optional[str], only_z2o: bool) -> int:
-    deltas = diff_snapshots(before, after, stable=stable, only_zero_to_one=only_z2o)
-    _print_deltas(deltas)
-    z2o = sum(1 for d in deltas if d.old == 0 and d.new == 1)
-    if deltas:
-        print(f"\n    of those, {z2o} are 0->1 (typical chest/boss flags)")
-        print("    Next: python -m tools capture --region Crossroads")
-    return 0
-
-
-def _bind_world_location(args) -> bool:
-    """Fill id/label/region from the world catalog so capture is a pick, not a type-in."""
-    from tools.world_catalog import resolve_location
-
-    manual = args.target_id != "captured_flag" and not (
-        args.location or args.region or args.next
-    )
-    if manual:
-        return True
-    loc = resolve_location(
-        location=args.location,
-        region=args.region,
-        next_unmapped=args.next,
-    )
-    if loc is None:
-        return False
-    args.target_id = loc.slug
-    args.id = loc.slug
-    args.label = loc.name
-    args.category = "location_flag"
-    if not args.region:
-        args.region = loc.region
-    print(f"[*] Location check: {loc.name}  (AP {loc.ap_id}, {loc.region})")
-    return True
-
-
-def cmd_capture(args) -> int:
-    """Idle pair + after-action dump. Filters ticking bytes automatically."""
-    if not _bind_world_location(args):
-        return 1
-    print(
-        "CAPTURE — location check (no HUD numbers).\n"
-        f"    {args.label}\n"
-        "1) Stand still at that check.\n"
-        "2) Enter = BEFORE (two quiet samples).\n"
-        "3) Open / trigger it.\n"
-        "4) Enter = AFTER.\n"
-    )
-    input("BEFORE — press Enter… ")
-    cap = f"_cap_{os.getpid()}"
-    take_snapshot(name=f"{cap}_a", process_name=args.process)
+    Keeps only bytes that went 0 -> 1 between b and c and were steady a -> b.
+    Fixed snapshot names: each capture overwrites the last.
+    """
+    a, b, c = CAPTURE_SNAPSHOTS
+    wait_before()
+    take_snapshot(name=a)
     time.sleep(0.4)
-    take_snapshot(name=f"{cap}_b", process_name=args.process)
-    print("[*] Idle pair stored. Do the in-game action now.")
-    input("AFTER — press Enter… ")
-    take_snapshot(name=f"{cap}_c", process_name=args.process)
-
-    deltas = diff_snapshots(
-        f"{cap}_b",
-        f"{cap}_c",
-        stable=f"{cap}_a",
-        only_zero_to_one=args.zero_to_one,
-    )
-    _print_deltas(deltas)
-    z2o = [d for d in deltas if d.old == 0 and d.new == 1]
-    print(f"\n    {len(z2o)} of {len(deltas)} are 0->1")
-    _maybe_autosave(deltas, args=args)
-    return 0
-
-
-def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(
-        prog="python -m tools snapshot",
-        description="Dump writable module data (.data/.bss) for before/after diffs",
-    )
-    p.add_argument("--name", required=True, help="Snapshot folder name under snapshots/")
-    p.add_argument("--process", default=PROCESS_NAME)
-    return p
-
-
-def build_diff_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(
-        prog="python -m tools diff",
-        description="Diff two snapshots; optional third idle sample filters tickers",
-    )
-    p.add_argument("before")
-    p.add_argument("after")
-    p.add_argument(
-        "--stable",
-        default="",
-        help="Earlier idle snapshot; bytes that moved between stable and before are ignored",
-    )
-    p.add_argument(
-        "--zero-to-one",
-        action="store_true",
-        help="Only keep 0 -> 1 byte changes",
-    )
-    return p
-
-
-def build_capture_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(
-        prog="python -m tools capture",
-        description="Pick a world check, then before/after dump. Auto-save is on.",
-        epilog="python -m tools capture --region Crossroads",
-    )
-    p.add_argument("--process", default=PROCESS_NAME)
-    p.add_argument(
-        "--location",
-        default="",
-        help="World location name or unique substring",
-    )
-    p.add_argument(
-        "--region",
-        default="",
-        help="Filter the picker, e.g. Crossroads",
-    )
-    p.add_argument(
-        "--next",
-        action="store_true",
-        help="First unmapped check in --region (skip the menu)",
-    )
-    p.add_argument("--id", dest="target_id", default="captured_flag", help=argparse.SUPPRESS)
-    p.add_argument("--label", default="Captured_Flag", help=argparse.SUPPRESS)
-    p.add_argument(
-        "--category",
-        default="location_flag",
-        choices=["location_flag", "inventory", "stat", "misc"],
-        help=argparse.SUPPRESS,
-    )
-    p.add_argument("--auto-save", action="store_true", default=True, help=argparse.SUPPRESS)
-    p.add_argument(
-        "--no-auto-save",
-        action="store_false",
-        dest="auto_save",
-        help="Print the delta only; do not write targets.json",
-    )
-    p.add_argument("--targets", type=Path, default=None, help=argparse.SUPPRESS)
-    p.add_argument("--zero-to-one", action="store_true", default=True, help=argparse.SUPPRESS)
-    p.add_argument(
-        "--all-deltas",
-        action="store_false",
-        dest="zero_to_one",
-        help="Show every changed byte, not only 0->1",
-    )
-    return p
-
-
-def main_snapshot(argv: Optional[list[str]] = None) -> int:
-    if sys.platform != "win32":
-        print("[ERROR] Snapshots require Windows.")
-        return 1
-    args = build_parser().parse_args(argv)
-    try:
-        return cmd_snapshot(args.name, args.process)
-    except (OSError, RuntimeError, ValueError) as exc:
-        print(f"[-] {exc}")
-        return 1
-
-
-def main_diff(argv: Optional[list[str]] = None) -> int:
-    args = build_diff_parser().parse_args(argv)
-    try:
-        return cmd_diff(
-            args.before,
-            args.after,
-            stable=args.stable or None,
-            only_z2o=args.zero_to_one,
-        )
-    except (OSError, ValueError, FileNotFoundError) as exc:
-        print(f"[-] {exc}")
-        return 1
+    take_snapshot(name=b)
+    wait_after()
+    take_snapshot(name=c)
+    return diff_snapshots(b, c, stable=a, only_zero_to_one=True)
 
 
 def main_capture(argv: Optional[list[str]] = None) -> int:
+    from tools.targets import build_target_entry, save_target
+    from tools.world_catalog import resolve_location
+
+    p = argparse.ArgumentParser(
+        prog="python -m tools capture",
+        description="Pick a world location, dump before/after opening it, save the 0->1 flag.",
+        epilog="python -m tools capture --region Crossroads",
+    )
+    p.add_argument("--location", default="", help="Exact name or unique substring (also recaptures a mapped one)")
+    p.add_argument("--region", default="", help="Filter the picker, e.g. Crossroads")
+    p.add_argument("--next", action="store_true", help="First unmapped check in --region, no menu")
+    p.add_argument("--dry-run", action="store_true", help="Print the result; do not write targets.json")
+    args = p.parse_args(argv)
     if sys.platform != "win32":
         print("[ERROR] Capture requires Windows.")
         return 1
-    from ds_client.models import TARGETS_FILE
 
-    args = build_capture_parser().parse_args(argv)
-    if args.targets is None:
-        args.targets = TARGETS_FILE
-    args.id = args.target_id
+    loc = resolve_location(location=args.location, region=args.region, next_unmapped=args.next)
+    if loc is None:
+        return 1
+    print(
+        f"[*] {loc.name}  (AP {loc.ap_id}, {loc.region})\n"
+        "    1) Stand still next to it while it is still closed.\n"
+        "    2) Enter = baseline.  3) Open it in-game.  4) Enter = after.\n"
+    )
     try:
-        return cmd_capture(args)
+        deltas = capture_deltas(
+            lambda: input("Baseline — press Enter… "),
+            lambda: input("Opened it? Press Enter… "),
+        )
     except (OSError, RuntimeError, ValueError) as exc:
         print(f"[-] {exc}")
         return 1
+
+    _print_deltas(deltas)
+    if len(deltas) != 1:
+        print("\n[-] Not saved: need exactly one 0->1 byte. Retry, or use the dashboard to pick a row.")
+        return 1
+    d = deltas[0]
+    entry = build_target_entry(
+        target_id=loc.slug,
+        label=loc.name,
+        category="location_flag",
+        dtype="uint8",
+        offsets=[d.rva],
+        notes=f"capture delta {d.old}->{d.new} in {d.section}",
+        region=loc.region,
+    )
+    if args.dry_run:
+        print(json.dumps(entry, indent=2))
+        return 0
+    action, entry = save_target(entry)
+    print(f"[OK] {action} {entry['id']} @ {entry['offsets'][0]}  (ds_client hot-reloads it)")
+    return 0

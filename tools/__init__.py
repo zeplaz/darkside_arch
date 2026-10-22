@@ -1,4 +1,1 @@
-"""Developer tooling: value scanner, tagging, docs export.
-
-Not part of the end-user Archipelago client runtime. See tools/README.md.
-"""
+"""Mapper tooling: capture / scan / catalog / save-install. Not the player client."""

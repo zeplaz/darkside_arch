@@ -90,8 +90,12 @@ class EventBus:
         self._sinks = list(sinks)
 
     def publish(self, event: Event) -> None:
+        # One failing sink (AP state DB, socket queue) must not stop the RAM loop.
         for sink in self._sinks:
-            sink.emit(event)
+            try:
+                sink.emit(event)
+            except Exception as exc:  # noqa: BLE001
+                print(f"[WARN] {type(sink).__name__}: {exc}")
 
     def flush(self) -> None:
         for sink in self._sinks:
@@ -222,47 +226,16 @@ def upsert_memory_map_from_target(
 def sync_memory_map_from_targets(
     conn: sqlite3.Connection, targets: Sequence[WatchTarget]
 ) -> int:
+    """Mirror targets.json into memory_map; rows for removed targets are deleted."""
     for target in targets:
         upsert_memory_map_from_target(conn, target)
-    return len(targets)
-
-
-def tag_latest_event(
-    conn: sqlite3.Connection,
-    label: str,
-    *,
-    region: str = "",
-    category: str = "",
-) -> Optional[sqlite3.Row]:
-    """Tag the most recent non-SESSION delta event; return the updated row."""
-    row = conn.execute(
-        """
-        SELECT log_id FROM event_logs
-        WHERE event_type != 'SESSION'
-        ORDER BY log_id DESC
-        LIMIT 1
-        """
-    ).fetchone()
-    if row is None:
-        return None
-
-    log_id = int(row["log_id"])
+    ids = [t.id for t in targets]
     conn.execute(
-        """
-        UPDATE event_logs
-        SET label = ?,
-            region = CASE WHEN ? != '' THEN ? ELSE region END,
-            category = CASE WHEN ? != '' THEN ? ELSE category END,
-            tagged = 1,
-            notes = ?
-        WHERE log_id = ?
-        """,
-        (label, region, region, category, category, label, log_id),
+        f"DELETE FROM memory_map WHERE target_id NOT IN ({','.join('?' * len(ids))})",
+        ids,
     )
     conn.commit()
-    return conn.execute(
-        "SELECT * FROM event_logs WHERE log_id = ?", (log_id,)
-    ).fetchone()
+    return len(targets)
 
 
 def list_memory_map(conn: sqlite3.Connection) -> list[sqlite3.Row]:
@@ -281,32 +254,3 @@ def list_memory_map(conn: sqlite3.Connection) -> list[sqlite3.Row]:
             """
         )
     )
-
-
-def list_recent_events(
-    conn: sqlite3.Connection, *, limit: int = 40
-) -> list[sqlite3.Row]:
-    return list(
-        conn.execute(
-            """
-            SELECT log_id, timestamp, event_type, address_hex, value_raw,
-                   prev_value, target_id, label, region, category, notes, tagged
-            FROM event_logs
-            WHERE event_type != 'SESSION'
-            ORDER BY log_id DESC
-            LIMIT ?
-            """,
-            (max(1, limit),),
-        )
-    )
-
-
-def telemetry_snapshot(conn: sqlite3.Connection, *, event_limit: int = 40) -> dict:
-    """JSON-friendly snapshot for the live dashboard."""
-    maps = []
-    for row in list_memory_map(conn):
-        maps.append({k: row[k] for k in row.keys()})
-    events = []
-    for row in list_recent_events(conn, limit=event_limit):
-        events.append({k: row[k] for k in row.keys()})
-    return {"memory_map": maps, "events": events}

@@ -1,2 +1,3 @@
 # Runtime client dependencies (end-user / Archipelago client path)
 psutil>=5.9,<7
+websockets>=13.1,<15
