@@ -13,7 +13,7 @@ from unittest import mock
 from ds_client import ap_apply
 from ds_client.ap_catalog import ApCatalog, CatalogEntry
 from ds_client.ap_client import ApRuntime
-from ds_client.ap_config import load_config, parse_connect_target
+from ds_client.ap_config import load_config, parse_connect_target, read_config
 from ds_client.ap_protocol import NetworkItem
 from ds_client.ap_state import ApState
 from ds_client.models import WatchTarget, load_targets
@@ -93,6 +93,14 @@ class ConfigTests(unittest.TestCase):
             path.write_text(json.dumps({"host": "wss://h.gg:1234", "port": 1, "slot": "War", "uuid": "u"}))
             cfg = load_config(path)
             self.assertEqual(cfg.uri(), "wss://h.gg:1234")
+
+    def test_read_config_never_writes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "ap_config.json"
+            self.assertEqual(read_config(path).uri(), "ws://localhost:38281")
+            self.assertFalse(path.exists())
+            self.assertTrue(load_config(path).uuid)
+            self.assertTrue(path.exists())
 
 
 class TargetsTests(unittest.TestCase):

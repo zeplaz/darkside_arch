@@ -261,7 +261,7 @@
       <span class="pill" id="pill-game" data-tip=""><span class="dot"></span>GAME <b>…</b></span>
       <span class="pill" id="pill-link" data-tip="Connection to this dashboard's Python server (python -m tools dashboard)."><span class="dot"></span>SERVER <b>…</b></span>
       <span class="pill" id="pill-checks" data-tip="Catalog locations with a real offset in targets.json. LocationChecks only fire for these."><span class="dot"></span>CHECKS <b>0/0</b> <span class="bar"><i style="width:0"></i></span></span>
-      <span class="pill" id="pill-items" data-tip="Inventory / goal rows with a real offset. Unmapped rows are skipped when ds_client applies received items."><span class="dot"></span>ITEMS <b>0/0</b></span>
+      <span class="pill" id="pill-items" data-tip="Inventory / goal rows with a real offset. Items received for an unmapped row wait in ap_state.db and apply once it is mapped."><span class="dot"></span>ITEMS <b>0/0</b></span>
       <span class="pill" id="pill-ap" data-tip="Read from ap_config.json. This page never connects to the AP server — python -m ds_client does."><span class="dot"></span>AP <b>…</b></span>
     </div>
     <div class="acts">
@@ -351,7 +351,7 @@
             <div class="step" id="step-4">
               <div class="num">4</div>
               <div class="what">Save the flag to targets.json</div>
-              <div class="btns"><button type="button" class="go" id="btn-save" data-tip="Writes one uint8 location_flag row. Same id overwrites. ds_client and this page hot-reload it.">SAVE</button></div>
+              <div class="btns"><button type="button" class="go" id="btn-save" data-tip="Writes a uint8 location_flag onto this location's row (the 0x0 template) and enables it. Saving again overwrites. ds_client and this page hot-reload it.">SAVE</button></div>
               <div class="why">Needs exactly one candidate — or click the right row below.</div>
               <div class="msg" id="msg-4"></div>
             </div>
@@ -382,7 +382,7 @@
         <div class="body-inner" id="items-panel" hidden>
           <div class="next">
             <div class="t">Item writes are mapped from the command line</div>
-            <div class="d">These are the RAM sites ds_client writes when ReceivedItems arrive. A memory diff cannot find them reliably, so this page only shows their status. Unmapped rows (offset 0x0) are skipped, never written.</div>
+            <div class="d">These are the RAM sites ds_client writes when ReceivedItems arrive. A memory diff cannot find them reliably, so this page only shows their status. Items received for an unmapped row (offset 0x0) wait and are written once the row is mapped.</div>
           </div>
           <div class="card" id="item-card">
             <div class="loc-title" id="item-title">Pick an item on the left</div>
@@ -391,12 +391,13 @@
           <div class="card">
             <div class="lbl">HUD numbers (souls, counts)</div>
             <div class="cmd"><code>python -m tools scan --item "Beholder Key"</code><button type="button" class="copy">COPY</button></div>
-            <p class="note" style="margin-top:0.4rem">Add a row: copy an inventory template in targets.json, set <code>label</code> to the exact Items.py name. Remove: <code>"enabled": false</code> or delete the object. Heap values need a pointer path.</p>
+            <p class="note" style="margin-top:0.4rem"><code>--item</code> is the row's label; the scan saves onto that row and enables it. Heap addresses become a pointer chain automatically. New item: copy a template row in targets.json with the exact Items.py name as <code>label</code>. Remove: <code>"enabled": false</code> or delete the row.</p>
           </div>
           <div class="card">
             <div class="lbl">Rules already in ds_client</div>
             <ul class="note" style="margin:0.3rem 0 0;padding-left:1.1rem">
               <li>Each ReceivedItems index is applied once — reconnects cannot duplicate.</li>
+              <li>An item with no mapped row waits; it never blocks other items.</li>
               <li>Flag items already at 1: extra copies do nothing.</li>
               <li>Count / level items: RAM is set to the received total (Chaoseater / Scythe / Gauntlet cap 4 / 4 / 5).</li>
               <li>7 Armageddon Blade Shards grant the Armageddon Blade once.</li>
@@ -467,7 +468,7 @@
         </ul>
         <h3>CLI EQUIVALENTS</h3>
         <ul>
-          <li><code>python -m tools capture --region Crossroads</code> — same flow in a terminal. Don't run both for the same chest.</li>
+          <li><code>python -m tools capture --region Crossroads</code> — same flow in a terminal; both save to the same row.</li>
           <li><code>python -m tools scan --item NAME</code> — HUD numbers / item counts (default: souls).</li>
           <li><code>python -m ds_client --no-ap</code> — log changes to SQLite; they show in ACTIVITY.</li>
         </ul>
@@ -748,7 +749,7 @@ function renderItemList() {
     const tag = item.mapped ? (item.enabled ? `<span class="tag ok">MAPPED</span>` : `<span class="tag dim">DISABLED</span>`) : `<span class="tag">0x0</span>`;
     return `<button type="button" data-inv="${esc(item.id)}" class="fact${item.id === ui.item ? " sel" : ""}">
       <div class="line"><span class="name">${esc(item.label)}</span>${tag}</div>
-      <div class="meta"><span>${esc(item.category)} · ${esc(item.event_type || "MEMORY_STATE")}</span><span>${item.mapped ? esc(item.offset.split(" + ").pop()) : "skip write"}</span></div>
+      <div class="meta"><span>${esc(item.category)} · ${esc(item.event_type || "MEMORY_STATE")}</span><span>${item.mapped ? esc(item.offset.split(" + ").pop()) : "not mapped"}</span></div>
     </button>`;
   }).join("");
 }
@@ -897,7 +898,7 @@ function renderCapture() {
   } else if (stage === "diffed") {
     if (!cands.length) {
       setNext("warn", "No 0→1 byte found",
-        "Did it actually open? If yes, <b>Diff again</b>. If it never shows, the flag is on the heap and needs a pointer path (CLI <code>scan</code>), not this diff.",
+        "Did it actually open? If yes, <b>Diff again</b>. If it never shows, the flag lives on the heap — this diff only sees the game module's own data, so it needs a pointer path.",
         [over]);
     } else if (saveRva != null) {
       setNext("ok", cands.length === 1 ? "One candidate — save it" : "Save the chosen offset",

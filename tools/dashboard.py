@@ -22,6 +22,7 @@ from typing import Any, Iterator, Optional
 from urllib.parse import parse_qs, urlparse
 
 from ds_client import win32
+from ds_client.ap_config import read_config
 from ds_client.models import PROCESS_NAME, TARGETS_FILE, WatchTarget, load_targets
 from ds_client.sinks import DB_FILE, init_db
 from ds_client.watcher import find_process
@@ -256,21 +257,8 @@ class GameMonitor:
 
 
 def _ap_ops() -> dict[str, Any]:
-    """Read-only AP config/state. Do not call load_config — it writes uuid."""
-    cfg_path = Path("ap_config.json")
-    example = Path("ap_config.example.json")
-    present = cfg_path.exists()
-    raw: dict[str, Any] = {}
-    src = cfg_path if present else example
-    if src.exists():
-        loaded = json.loads(src.read_text(encoding="utf-8"))
-        if isinstance(loaded, dict):
-            raw = loaded
-    host = str(raw.get("host") or "localhost").strip()
-    port = int(raw.get("port") or 38281)
-    slot = str(raw.get("slot") or "").strip()
-    use_wss = bool(raw.get("use_wss"))
-    scheme = "wss" if use_wss else "ws"
+    """Read-only AP config/state (read_config never writes, unlike load_config)."""
+    cfg = read_config()
     seed = ""
     ingested = 0
     state_path = Path("ap_state.db")
@@ -293,9 +281,9 @@ def _ap_ops() -> dict[str, Any]:
         finally:
             conn.close()
     return {
-        "config_present": present,
-        "slot": slot,
-        "uri": f"{scheme}://{host}:{port}",
+        "config_present": cfg.path.exists(),
+        "slot": cfg.slot,
+        "uri": cfg.uri(),
         "seed": seed,
         "ingested": ingested,
     }

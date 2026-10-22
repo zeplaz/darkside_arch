@@ -81,6 +81,17 @@ def parse_connect_target(raw: str) -> tuple[str, Optional[int], bool]:
 
 
 def load_config(path: Path = CONFIG_FILE) -> ApConfig:
+    """read_config, then create the file / fill in a uuid if either is missing."""
+    cfg = read_config(path)
+    if path.exists() and cfg.uuid:
+        return cfg
+    cfg = replace(cfg, uuid=cfg.uuid or str(uuid.uuid4()))
+    save_config(cfg, path)
+    return replace(cfg, mtime=path.stat().st_mtime)
+
+
+def read_config(path: Path = CONFIG_FILE) -> ApConfig:
+    """Parse the config (or the example, or defaults) without writing anything."""
     data: dict[str, Any] = dict(_DEFAULTS)
     mtime = 0.0
     if path.exists():
@@ -96,10 +107,9 @@ def load_config(path: Path = CONFIG_FILE) -> ApConfig:
 
     # Accept "host:port" / "wss://host:port" pasted into the host field.
     host, host_port, host_wss = parse_connect_target(str(data.get("host") or "localhost"))
-    uid = str(data.get("uuid") or "").strip() or str(uuid.uuid4())
     tags_raw = data.get("tags") or _DEFAULTS["tags"]
     tags = tuple(str(t) for t in tags_raw)
-    cfg = ApConfig(
+    return ApConfig(
         host=host or "localhost",
         port=host_port or int(data.get("port") or 38281),
         slot=str(data.get("slot") or "").strip(),
@@ -108,15 +118,10 @@ def load_config(path: Path = CONFIG_FILE) -> ApConfig:
         use_wss=host_wss or _as_bool(data.get("use_wss", False)),
         tags=tags or ("Darksiders",),
         request_goal=_as_bool(data.get("request_goal", False)),
-        uuid=uid,
+        uuid=str(data.get("uuid") or "").strip(),
         path=path,
         mtime=mtime,
     )
-    if not path.exists() or not str(data.get("uuid") or "").strip():
-        save_config(cfg, path)
-        if path.exists():
-            cfg = replace(cfg, mtime=path.stat().st_mtime)
-    return cfg
 
 
 def save_config(cfg: ApConfig, path: Optional[Path] = None) -> Path:
