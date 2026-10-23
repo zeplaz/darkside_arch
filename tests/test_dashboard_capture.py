@@ -10,7 +10,7 @@ from tools import dashboard
 from tools.snapshot import Delta
 
 REPO = Path(__file__).resolve().parent.parent
-LABEL = "Crossroads Currency Chest Down Stairs"
+LABEL = "Crossroads Currency Chest South Crater"
 
 
 def _fake_snapshot(pid: int):
@@ -33,7 +33,7 @@ class DashboardCaptureTests(unittest.TestCase):
         Path("docs").mkdir()
         shutil.copy(REPO / "docs" / "world_locations.json", "docs/world_locations.json")
         template = {
-            "id": "chest_crossroads_currency_down_stairs",
+            "id": "chest_crossroads_currency_south_crater",
             "enabled": False,
             "event_type": "LOCATION_CHECK",
             "category": "location_flag",
@@ -69,7 +69,7 @@ class DashboardCaptureTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "no baseline"):
             self._diff([])
         dashboard.capture_before(self.slug)
-        other = dashboard._find_catalog_loc("Crossroads Currency Chest South Crater").slug
+        other = dashboard._find_catalog_loc("Crossroads Currency Chest in Subway Station").slug
         with self.assertRaisesRegex(ValueError, "baseline belongs to"):
             dashboard.capture_after(other, zero_to_one=True)
 
@@ -98,10 +98,49 @@ class DashboardCaptureTests(unittest.TestCase):
         self.assertEqual(out["action"], "updated")
         rows = json.loads(Path("targets.json").read_text(encoding="utf-8"))["targets"]
         self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0]["id"], "chest_crossroads_currency_down_stairs")
+        self.assertEqual(rows[0]["id"], "chest_crossroads_currency_south_crater")
         self.assertEqual(rows[0]["offsets"], ["0x1A40B20"])
         self.assertTrue(rows[0]["enabled"])
         self.assertEqual(rows[0]["bitmask"], "0x01")
+
+    def test_arm_waits_instead_of_dumping(self) -> None:
+        out = dashboard.capture_arm(self.slug, "baseline")["capture"]
+        self.assertEqual(out["wait"], "baseline")
+        self.assertEqual(out["stage"], "idle")
+        self.assertGreaterEqual(out["hold_s"], 7)
+        with self.assertRaisesRegex(ValueError, "no baseline"):
+            dashboard.capture_arm(self.slug, "diff")
+
+    def test_select_sets_slug_while_idle(self) -> None:
+        out = dashboard.capture_select(self.slug)["capture"]
+        self.assertEqual(out["id"], self.slug)
+        self.assertEqual(out["stage"], "idle")
+
+    def test_dump_refuses_when_game_not_in_front(self) -> None:
+        with mock.patch.object(dashboard, "game_is_foreground", return_value=False):
+            with self.assertRaisesRegex(ValueError, "not in front"):
+                dashboard.capture_before(self.slug, require_foreground=True)
+
+    def test_second_diff_intersects_previous_candidates(self) -> None:
+        dashboard.capture_before(self.slug)
+        self._diff(
+            [
+                Delta(".data", 0x10, 0, 1),
+                Delta(".data", 0x20, 0, 1),
+                Delta(".data", 0x30, 0, 1),
+            ]
+        )
+        cap = self._diff([Delta(".data", 0x20, 0, 1), Delta(".data", 0x40, 0, 1)])
+        self.assertEqual(cap["zero_to_one"], 1)
+        self.assertEqual(cap["deltas"][0]["rva"], 0x20)
+
+    def test_object_pool_bytes_are_dropped(self) -> None:
+        dashboard.capture_before(self.slug)
+        pool = [Delta(".data", 0x1000 + i * 0x100 + 8, 0, 1) for i in range(6)]
+        cap = self._diff(pool + [Delta(".data", 0xABCDEF, 0, 1)])
+        self.assertEqual(cap["zero_to_one"], 1)
+        self.assertEqual(cap["deltas"][0]["rva"], 0xABCDEF)
+        self.assertEqual(cap["raw_zero_to_one"], 7)
 
 
 class GameMonitorTests(unittest.TestCase):

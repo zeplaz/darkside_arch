@@ -1,0 +1,20 @@
+[
+    {
+        "name": "Seraphim Hotel",
+        "entrances": {
+            "Seraphim Hotel to Crossroads": {
+                "vanilla target": "Crossroads"
+            }
+        },
+        "locations": {
+            "Seraphim Hotel Life Chest 1": {
+                "ID": 200,
+                "vanilla item": "Health"
+            },
+            "Seraphim Hotel Life Chest 2": {
+                "ID": 201,
+                "vanilla item": "Health"
+            }
+        }
+    }
+]

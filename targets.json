@@ -3,16 +3,47 @@
   "module": "darksiders1.exe",
   "targets": [
     {
+      "id": "chest_seraphim_hotel_life_1",
+      "enabled": false,
+      "event_type": "LOCATION_CHECK",
+      "category": "location_flag",
+      "label": "Seraphim Hotel Life Chest 1",
+      "region": "Seraphim Hotel",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "save_object": {
+        "world": "overworld",
+        "region_id": 2,
+        "layer_id": 6,
+        "object_id": 342,
+        "value_key": "Triggered"
+      },
+      "notes": "Wiki H1 1/2. AP 200. Keen overworld r=2 L=6 obj=342 Triggered. Proposed in docs/proposed/Seraphim Hotel.json."
+    },
+    {
+      "id": "chest_seraphim_hotel_life_2",
+      "enabled": false,
+      "event_type": "LOCATION_CHECK",
+      "category": "location_flag",
+      "label": "Seraphim Hotel Life Chest 2",
+      "region": "Seraphim Hotel",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "notes": "Wiki H2 2/2 — after Gholen, top of the stairs. AP 201. Proposed in docs/proposed/Seraphim Hotel.json."
+    },
+    {
       "id": "chest_crossroads_currency_down_stairs",
       "enabled": false,
       "event_type": "LOCATION_CHECK",
       "category": "location_flag",
-      "label": "Crossroads Currency Chest Down Stairs",
+      "label": "Crossroads Currency Chest Down Back Alley Stairs",
       "region": "Crossroads",
       "offsets": ["0x0"],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — replace offsets via: python -m tools capture --region Crossroads"
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 600. Identify with two save slots."
     },
     {
       "id": "chest_crossroads_currency_south_crater",
@@ -24,7 +55,19 @@
       "offsets": ["0x0"],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — python -m tools capture --region Crossroads"
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 602."
+    },
+    {
+      "id": "chest_crossroads_currency_north_building",
+      "enabled": false,
+      "event_type": "LOCATION_CHECK",
+      "category": "location_flag",
+      "label": "Crossroads Currency Chest in North Building",
+      "region": "Crossroads",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 601. New in the JSON revamp."
     },
     {
       "id": "chest_crossroads_currency_subway",
@@ -36,43 +79,43 @@
       "offsets": ["0x0"],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — python -m tools capture --region Crossroads"
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 603."
     },
     {
-      "id": "chest_crossroads_life_gholen_west",
+      "id": "chest_crossroads_life_east_crater",
       "enabled": false,
       "event_type": "LOCATION_CHECK",
       "category": "location_flag",
-      "label": "Crossroads Life Chest Behind Gholen West",
+      "label": "Crossroads Life Chest East Crater",
       "region": "Crossroads",
       "offsets": ["0x0"],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — python -m tools capture --region Crossroads"
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 604. Replaces old Gholen/NE names."
     },
     {
-      "id": "chest_crossroads_life_gholen_north",
+      "id": "chest_crossroads_life_ne_back_alley",
       "enabled": false,
       "event_type": "LOCATION_CHECK",
       "category": "location_flag",
-      "label": "Crossroads Life Chest Behind Gholen North",
+      "label": "Crossroads Life Chest in NE Back Alley",
       "region": "Crossroads",
       "offsets": ["0x0"],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — python -m tools capture --region Crossroads"
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 605."
     },
     {
-      "id": "chest_crossroads_life_ne_crater",
+      "id": "chest_crossroads_life_west_of_library",
       "enabled": false,
       "event_type": "LOCATION_CHECK",
       "category": "location_flag",
-      "label": "Crossroads Life Chest NE Crater",
+      "label": "Crossroads Life Chest West of Library",
       "region": "Crossroads",
       "offsets": ["0x0"],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — python -m tools capture --region Crossroads"
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 606."
     },
     {
       "id": "chest_crossroads_rare_ice",
@@ -115,7 +158,7 @@
       "enabled": false,
       "event_type": "GOAL",
       "category": "misc",
-      "label": "Abaddon The Destroyer defeated",
+      "label": "Abaddon Destroyer defeated",
       "region": "Leviathan's Drift",
       "offsets": ["0x0"],
       "type": "uint8",
@@ -176,7 +219,7 @@
       "region": "",
       "offsets": ["0x0"],
       "type": "uint32",
-      "notes": "TEMPLATE — weapon Level integer. AP apply sets 1..5 from received count."
+      "notes": "TEMPLATE — weapon Level integer. AP apply sets 1..4 from received count."
     },
     {
       "id": "item_beholder_key",

@@ -15,6 +15,15 @@ LIST_MODULES_DEFAULT = 0x03
 
 kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
 psapi = ctypes.WinDLL("psapi", use_last_error=True)
+user32 = ctypes.WinDLL("user32", use_last_error=True)
+
+user32.GetForegroundWindow.argtypes = ()
+user32.GetForegroundWindow.restype = ctypes.wintypes.HWND
+user32.GetWindowThreadProcessId.argtypes = (
+    ctypes.wintypes.HWND,
+    ctypes.POINTER(ctypes.wintypes.DWORD),
+)
+user32.GetWindowThreadProcessId.restype = ctypes.wintypes.DWORD
 
 kernel32.OpenProcess.argtypes = (
     ctypes.wintypes.DWORD,
@@ -81,6 +90,16 @@ def open_process(pid: int, *, write: bool = True) -> ProcessHandle:
 
 def close_handle(handle: ProcessHandle) -> None:
     kernel32.CloseHandle(handle)
+
+
+def foreground_pid() -> Optional[int]:
+    """PID of the process that owns the foreground window, or None."""
+    hwnd = user32.GetForegroundWindow()
+    if not hwnd:
+        return None
+    pid = ctypes.wintypes.DWORD(0)
+    user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+    return int(pid.value) or None
 
 
 def process_alive(handle: ProcessHandle) -> bool:

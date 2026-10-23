@@ -1,6 +1,7 @@
 # Local-only workspaces (never commit)
 llm/
 world/
+tools/vendor/
 
 # Runtime SQLite (auto-created by ds_client / tools)
 *.db

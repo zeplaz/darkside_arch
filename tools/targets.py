@@ -36,6 +36,15 @@ def is_mapped(raw: dict) -> bool:
     return not is_template(raw.get("offsets"))
 
 
+def is_identified(raw: dict) -> bool:
+    """Keen save_object recorded; not a live RAM watch."""
+    obj = raw.get("save_object")
+    return isinstance(obj, dict) and all(
+        obj.get(k) not in (None, "")
+        for k in ("world", "region_id", "layer_id", "object_id", "value_key")
+    )
+
+
 def find_row(label: str, rows: Sequence[dict] | None = None) -> dict | None:
     rows = raw_targets() if rows is None else rows
     return next((t for t in rows if t.get("label") == label), None)

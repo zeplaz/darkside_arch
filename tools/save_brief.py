@@ -51,14 +51,22 @@ def _save_values(node: Any) -> list[tuple[str, str]]:
     return out
 
 
-def brief_save(path: Path) -> dict[str, Any]:
-    data = json.loads(path.read_text(encoding="utf-8"))
+def _flag_counts(flags: list[tuple[str, str]]) -> dict[str, int]:
+    counts = {"Triggered": 0, "Destroyed": 0, "Open": 0, "Activated": 0}
+    for key, val in flags:
+        if key in counts and str(val).lower() == "true":
+            counts[key] += 1
+    return counts
+
+
+def brief_from_data(
+    data: dict[str, Any], *, file: str = "", slot: Optional[int] = None
+) -> dict[str, Any]:
     p = _props(data)
     info = _props(p.get("GameInfo"))
     stats = _props(p.get("Stats"))
     items: list[str] = []
     _walk_classnames(p.get("Inventory"), items)
-    # unique, keep order
     seen: set[str] = set()
     unique_items: list[str] = []
     for name in items:
@@ -67,9 +75,12 @@ def brief_save(path: Path) -> dict[str, Any]:
         seen.add(name)
         unique_items.append(name)
     flags = _save_values(data)
+    counts = _flag_counts(flags)
     return {
-        "file": str(path),
+        "file": file,
+        "slot": slot,
         "classname": data.get("classname"),
+        "userid": _val(info.get("UserId")),
         "difficulty": _val(info.get("DifficultyLevel")),
         "health_level": _val(info.get("HealthLevel")),
         "wrath_level": _val(info.get("WrathLevel")),
@@ -86,15 +97,52 @@ def brief_save(path: Path) -> dict[str, Any]:
         "kills": _val(stats.get("NumberOfKills")),
         "inventory_item_types": unique_items,
         "save_value_count": len(flags),
+        "triggered": counts["Triggered"],
+        "destroyed": counts["Destroyed"],
+        "open": counts["Open"],
+        "activated": counts["Activated"],
         "true_flags": [k for k, v in flags if str(v).lower() == "true"],
     }
 
 
+def brief_save(path: Path, slot: Optional[int] = None) -> dict[str, Any]:
+    if path.suffix.lower() == ".sav":
+        from tools.save_patch import decode_sav_slot
+
+        data = decode_sav_slot(path, -1 if slot is None else slot)
+        return brief_from_data(data, file=str(path), slot=-1 if slot is None else slot)
+    if slot is not None:
+        raise ValueError("--slot only applies to .sav files")
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError(f"{path} is not a Keen object dump")
+    return brief_from_data(data, file=str(path), slot=slot)
+
+
+def export_slot_json(sav: Path, slot: int, dest: Path) -> Path:
+    from tools.save_patch import decode_sav_slot
+
+    data = decode_sav_slot(sav, slot)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    return dest
+
+
+SCRATCH_SLOTS = Path("saves") / "_scratch" / "slots"
+
+
+def default_export_path(slot: int) -> Path:
+    name = "slot_auto.json" if slot == -1 else f"slot_{slot}.json"
+    return SCRATCH_SLOTS / name
+
+
 def print_brief(info: dict[str, Any]) -> None:
-    print(f"Keen save: {info['classname']}  ({info['file']})")
+    slot = info.get("slot")
+    slot_bit = f"  slot {slot}" if slot is not None else ""
+    print(f"Keen save: {info['classname']}  ({info['file']}){slot_bit}")
     print(
         f"  spawn  {info['spawn_world']} / {info['spawn_region']} @ {info['spawn_point']}"
-        f"  overview_region={info['overview_region_id']}"
+        f"  overview_region={info['overview_region_id']}  UserId={info.get('userid')}"
     )
     print(
         f"  souls  {info['souls']} ({info['souls_type']})  "
@@ -104,6 +152,10 @@ def print_brief(info: dict[str, Any]) -> None:
     print(
         f"  time={info['game_time']}  kills={info['kills']}  "
         f"HP stones={info['health_level']}  wrath stones={info['wrath_level']}"
+    )
+    print(
+        f"  objects  Triggered={info.get('triggered', 0)}  "
+        f"Destroyed={info.get('destroyed', 0)}  Open={info.get('open', 0)}"
     )
     print("  inventory types:")
     for name in info["inventory_item_types"]:
@@ -129,19 +181,40 @@ def print_brief(info: dict[str, Any]) -> None:
 
 
 def main(argv: Optional[list[str]] = None) -> int:
-    p = argparse.ArgumentParser(prog="python -m tools save-brief")
-    p.add_argument("path", type=Path, help="Keen JSON export (not the binary .sav)")
+    p = argparse.ArgumentParser(
+        prog="python -m tools save-brief",
+        description="Summarize one Keen JSON dump, or one .sav slot (war decode).",
+    )
+    p.add_argument("path", type=Path, help="Keen JSON, or a Warmastered .sav with --slot")
+    p.add_argument("--slot", type=int, help="Keen slot in a .sav: -1 autosave, 0..9")
+    p.add_argument("--all", action="store_true", help="Brief every occupied slot in a .sav")
+    p.add_argument("--export", nargs="?", const="", metavar="JSON", help="Write decoded JSON (default saves/_scratch/slots/)")
     args = p.parse_args(argv)
     if not args.path.exists():
         print(f"[ERROR] missing {args.path}")
         return 1
-    if args.path.suffix.lower() == ".sav":
-        print("[ERROR] .sav is binary. Export/use the matching .json.")
+    try:
+        if args.all:
+            if args.path.suffix.lower() != ".sav":
+                print("[ERROR] --all requires a .sav")
+                return 2
+            from tools.save_object import occupied_slots
+
+            for slot in occupied_slots(args.path):
+                info = brief_save(args.path, slot)
+                print_brief(info)
+                print()
+            return 0
+        if args.export is not None:
+            if args.path.suffix.lower() != ".sav":
+                print("[ERROR] --export requires a .sav")
+                return 2
+            slot = -1 if args.slot is None else args.slot
+            dest = Path(args.export) if args.export else default_export_path(slot)
+            out = export_slot_json(args.path, slot, dest)
+            print(f"[OK] wrote {out}")
+        print_brief(brief_save(args.path, args.slot))
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"[ERROR] {exc}")
         return 1
-    print_brief(brief_save(args.path))
-    print(
-        "\nInstall the .sav into the game save folder, load it, then:\n"
-        "  python -m tools scan\n"
-        "  (Souls is float; that is the scan default)"
-    )
     return 0
