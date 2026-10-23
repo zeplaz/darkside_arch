@@ -42,10 +42,11 @@ from ds_client.watcher import find_process
 from tools.export_docs import DOCS_PATH, export_docs
 from tools.snapshot import (
     Delta,
-    diff_snapshots,
-    drop_pool_families,
+    RamCapture,
+    describe,
     intersect_deltas,
-    take_snapshot,
+    offsets_for,
+    start_capture,
 )
 from tools.save_brief import brief_save, default_export_path, export_slot_json
 from tools.save_patch import (
@@ -65,7 +66,7 @@ from tools.save_object import (
     occupied_slots,
     parse_save_object,
 )
-from tools.targets import build_target_entry, is_identified, is_template, raw_targets, save_target
+from tools.targets import build_target_entry, find_row, is_identified, is_template, raw_targets, save_target
 from tools.world_catalog import is_mapped, load_catalog
 
 DEFAULT_HOST = "127.0.0.1"
@@ -75,7 +76,6 @@ PAGE_PATH = Path(__file__).resolve().parent / "static" / "mapping_terminal.html"
 SCAN_PROCESS_SECONDS = 1.0  # psutil.process_iter costs ~200 ms; only while detached
 IDLE_TICK_SECONDS = 0.25
 MAX_DELTAS_SENT = 200
-AFTER_SETTLE_S = 1.2
 FOREGROUND_HOLD_S = 7.0
 DUMP_HOTKEY_VK = 0x77  # F8
 DUMP_HOTKEY_ID = 1
@@ -83,12 +83,6 @@ MOD_NOREPEAT = 0x4000
 WM_HOTKEY = 0x0312
 WM_QUIT = 0x0012
 HISTORY_EVENTS = 8
-
-# Fixed names: each capture overwrites the last, nothing piles up in snapshots/.
-SNAP_A = "_dash_a"
-SNAP_B = "_dash_b"
-SNAP_C = "_dash_c"
-SNAP_D = "_dash_d"
 
 
 def _json_response(handler: BaseHTTPRequestHandler, payload: Any, status: int = 200) -> None:
@@ -553,6 +547,8 @@ class CaptureSession:
     started_at: float = 0.0
     deltas: list[dict[str, Any]] = field(default_factory=list)
     raw_zero_to_one: int = 0
+    ram: Optional[RamCapture] = None  # baseline held in memory between steps
+    scope: str = ""  # describe(ram.stats): heap anchors or module .data
     wait: str = ""  # "" | "baseline" | "diff"
     hold_s: float = 0.0
     foreground: bool = False
@@ -599,17 +595,11 @@ def capture_payload() -> dict[str, Any]:
         "delta_count": len(s.deltas),
         "zero_to_one": n,
         "raw_zero_to_one": s.raw_zero_to_one,
+        "scope": s.scope,
         "hotkey": "F8" if _hotkey_ok else "",
         "error": s.last_error,
         "deltas": s.deltas[:MAX_DELTAS_SENT],
     }
-
-
-def _snapshot_pid(dest: Path) -> Optional[int]:
-    try:
-        return int(json.loads((dest / "meta.json").read_text(encoding="utf-8"))["pid"])
-    except (OSError, ValueError, KeyError, TypeError):
-        return None
 
 
 @contextmanager
@@ -682,21 +672,22 @@ def capture_before(slug: str, *, require_foreground: bool = False) -> dict[str, 
     loc = _find_catalog_loc(slug)
     if loc is None:
         raise ValueError(f"unknown location {slug!r}; pick one from the list")
+    save_object = parse_save_object((find_row(loc.name) or {}).get("save_object"))
     with _capture_lock, _busy("baseline"):
-        dest = take_snapshot(name=SNAP_A)
-        time.sleep(0.4)
-        take_snapshot(name=SNAP_B)
+        ram = start_capture(save_object)
         _capture = CaptureSession(
             slug=loc.slug,
             label=loc.name,
             stage="baseline",
-            pid=_snapshot_pid(dest),
+            pid=ram.pid,
             started_at=time.time(),
+            ram=ram,
+            scope=describe(ram.stats),
         )
     return {"ok": True, "capture": capture_payload()}
 
 
-def capture_after(slug: str, *, zero_to_one: bool, require_foreground: bool = False) -> dict[str, Any]:
+def capture_after(slug: str, *, require_foreground: bool = False) -> dict[str, Any]:
     if require_foreground:
         _require_game_front()
     with _capture_lock, _busy("diff"):
@@ -705,26 +696,14 @@ def capture_after(slug: str, *, zero_to_one: bool, require_foreground: bool = Fa
             raise ValueError("no baseline yet; take the baseline first")
         if s.slug != slug:
             raise ValueError(f"baseline belongs to {s.label!r}; select it or start over")
-        dest = take_snapshot(name=SNAP_C)
-        if s.pid is not None and _snapshot_pid(dest) != s.pid:
-            raise ValueError("game restarted since the baseline; start over")
-        deltas = diff_snapshots(SNAP_B, SNAP_C, stable=SNAP_A, only_zero_to_one=zero_to_one)
+        if s.ram is None:
+            raise ValueError("baseline was lost (dashboard restarted); start over")
+        deltas = s.ram.after()  # also refuses if the game restarted
         raw_n = len(deltas)
-        if zero_to_one:
-            time.sleep(AFTER_SETTLE_S)
-            take_snapshot(name=SNAP_D)
-            settled = diff_snapshots(SNAP_B, SNAP_D, stable=SNAP_A, only_zero_to_one=True)
-            deltas = intersect_deltas(deltas, settled)
-            if s.stage == "diffed" and s.deltas:
-                prev = [
-                    Delta(str(d["section"]), int(d["rva"]), int(d["old"]), int(d["new"]))
-                    for d in s.deltas
-                ]
-                deltas = intersect_deltas(prev, deltas)
-            deltas = drop_pool_families(deltas)
-        s.deltas = [
-            {"section": d.section, "rva": d.rva, "old": d.old, "new": d.new} for d in deltas
-        ]
+        if s.stage == "diffed" and s.deltas:
+            # DIFF AGAIN narrows: keep only candidates that survived every diff.
+            deltas = intersect_deltas([_delta(d) for d in s.deltas], deltas)
+        s.deltas = [_delta_json(d) for d in deltas]
         s.raw_zero_to_one = raw_n
         s.stage = "diffed"
         s.wait = ""
@@ -733,7 +712,16 @@ def capture_after(slug: str, *, zero_to_one: bool, require_foreground: bool = Fa
     return {"ok": True, "capture": capture_payload()}
 
 
-def capture_save(slug: str, rva: Optional[int] = None) -> dict[str, Any]:
+def _delta_json(d: Delta) -> dict[str, Any]:
+    return {"section": d.section, "address": d.address, "rva": d.rva, "old": d.old, "new": d.new}
+
+
+def _delta(d: dict[str, Any]) -> Delta:
+    rva = d.get("rva")
+    return Delta(str(d["section"]), int(d["address"]), int(d["old"]), int(d["new"]), None if rva is None else int(rva))
+
+
+def capture_save(slug: str, address: Optional[int] = None) -> dict[str, Any]:
     global _capture
     with _capture_lock, _busy("save"):
         s = _capture
@@ -744,24 +732,24 @@ def capture_save(slug: str, rva: Optional[int] = None) -> dict[str, Any]:
         loc = _find_catalog_loc(slug)
         if loc is None:
             raise ValueError(f"unknown location {slug!r}")
-        z2o = [d for d in s.deltas if d["old"] == 0 and d["new"] == 1]
-        pick = z2o or s.deltas
-        if rva is not None:
-            pick = [d for d in pick if int(d["rva"]) == int(rva)]
+        pick = s.deltas
+        if address is not None:
+            pick = [d for d in pick if int(d["address"]) == int(address)]
             if not pick:
-                raise ValueError(f"0x{int(rva):X} is not one of the diff candidates")
+                raise ValueError(f"0x{int(address):X} is not one of the diff candidates")
         if len(pick) != 1:
             raise ValueError(
                 f"{len(pick)} candidates; pick one row or diff again to narrow it down"
             )
-        d = pick[0]
+        d = _delta(pick[0])
+        offsets = offsets_for(d, s.pid)  # heap bytes need a static pointer chain
         entry = build_target_entry(
             target_id=loc.slug,
             label=loc.name,
             category="location_flag",
             dtype="uint8",
-            offsets=[int(d["rva"])],
-            notes=f"dashboard delta {d['old']}->{d['new']} in {d['section']}",
+            offsets=offsets,
+            notes=f"dashboard 0->1 in {d.section}" + ("" if d.rva is not None else f" (heap 0x{d.address:X}, pointer chain)"),
             region=loc.region,
         )
         action, entry = save_target(entry)
@@ -782,7 +770,7 @@ def capture_dump_now(*, require_foreground: bool = True) -> dict[str, Any]:
         raise ValueError("pick a location first")
     if kind == "baseline":
         return capture_before(slug, require_foreground=require_foreground)
-    return capture_after(slug, zero_to_one=True, require_foreground=require_foreground)
+    return capture_after(slug, require_foreground=require_foreground)
 
 
 def _fire_wait() -> None:
@@ -799,7 +787,7 @@ def _fire_wait() -> None:
         if kind == "baseline":
             capture_before(slug, require_foreground=True)
         else:
-            capture_after(slug, zero_to_one=True, require_foreground=True)
+            capture_after(slug, require_foreground=True)
     except ValueError as exc:
         with _capture_lock:
             _capture.last_error = str(exc)
@@ -1049,13 +1037,7 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                     _json_response(self, capture_before(str(body.get("id") or "")))
                     return
                 if path == "/api/capture/after":
-                    _json_response(
-                        self,
-                        capture_after(
-                            str(body.get("id") or ""),
-                            zero_to_one=bool(body.get("zero_to_one", True)),
-                        ),
-                    )
+                    _json_response(self, capture_after(str(body.get("id") or "")))
                     return
                 if path == "/api/capture/arm":
                     _json_response(
@@ -1070,12 +1052,12 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                     _json_response(self, capture_dump_now(require_foreground=True))
                     return
                 if path == "/api/capture/save":
-                    rva = body.get("rva")
+                    address = body.get("address")
                     _json_response(
                         self,
                         capture_save(
                             str(body.get("id") or ""),
-                            int(rva) if rva is not None else None,
+                            int(address) if address is not None else None,
                         ),
                     )
                     return

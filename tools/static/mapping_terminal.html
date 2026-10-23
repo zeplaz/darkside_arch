@@ -279,7 +279,7 @@
     <section class="col facts">
       <div class="hd">
         <div class="seg" role="tablist">
-          <button type="button" class="on" id="pane-checks" data-tip="Chests, artifacts, armor, cubes. Chests: two in-game save slots. RAM dump is last resort.">LOCATIONS</button>
+          <button type="button" class="on" id="pane-checks" data-tip="Chests, artifacts, armor, cubes. Chests: two in-game save slots for identity, then RAM DUMP for the live flag.">LOCATIONS</button>
           <button type="button" id="pane-items" data-tip="Inventory / stat / goal rows ds_client writes or watches. Mapped with scan --item (HUD number), not SAVE DIFF.">ITEM WRITES</button>
         </div>
       </div>
@@ -308,7 +308,7 @@
         <strong id="center-title" hidden>ITEM WRITES</strong>
         <div class="seg" id="work-seg" role="tablist">
           <button type="button" class="on" id="work-tab-diff" data-tip="Two in-game slots → object Triggered/Destroyed/Open. Primary chest method.">SAVE DIFF</button>
-          <button type="button" id="work-tab-ram" data-tip="Last resort .data dump. Opening a chest flips ~1500 pool bytes.">RAM DUMP</button>
+          <button type="button" id="work-tab-ram" data-tip="Finds the live flag for LocationChecks. Identified rows scan the heap around their Keen object; others diff .data.">RAM DUMP</button>
           <button type="button" id="work-tab-saves" data-tip="Brief / export JSON / encode UserId to saves/edited/ / install to Steam. Encode is not mapping.">SAVES</button>
         </div>
         <span class="sub" id="center-sub">two save slots → Keen identity</span>
@@ -401,8 +401,8 @@
 
           <div id="work-ram" hidden>
             <div class="card how">
-              <div class="lbl">LAST RESORT — NOT FOR CHESTS</div>
-              <p class="note">Opening a chest flips ~1500 object-pool bytes in 34 MB of .data. Use SAVE DIFF. F8 still dumps while this tab is hidden.</p>
+              <div class="lbl">AFTER SAVE DIFF — FINDS THE LIVE FLAG</div>
+              <p class="note">Identified rows (SAVE DIFF first) scan the heap for their ObjectID with RegionID / LayerID next to it and diff only around those. Rows without an identity diff 34 MB of .data, where chests are not. The closed dump samples for 4 s and the open dump for 1.5 s — stand still for both. F8 still dumps while this tab is hidden.</p>
             </div>
             <div class="steps">
             <div class="step" id="step-1">
@@ -593,7 +593,7 @@
       <h2 id="help-h">HOW THIS WORKS</h2>
       <button type="button" id="help-close">CLOSE (Esc)</button>
     </div>
-    <p>Workspace tabs: <b>SAVE DIFF</b> (chests), <b>RAM DUMP</b> (last resort), <b>SAVES</b> (encode UserId to <code>saves/edited/</code>, then INSTALL to Steam). This page never writes process memory and never connects to AP — the runtime is <code>python -m ds_client --connect HOST:PORT --slot NAME</code>.</p>
+    <p>Workspace tabs: <b>SAVE DIFF</b> (chests), <b>RAM DUMP</b> (live flag, after identity), <b>SAVES</b> (encode UserId to <code>saves/edited/</code>, then INSTALL to Steam). This page never writes process memory and never connects to AP — the runtime is <code>python -m ds_client --connect HOST:PORT --slot NAME</code>.</p>
     <div class="help-grid">
       <div>
         <h3>CAPTURE A CHEST</h3>
@@ -630,7 +630,7 @@
         <ul>
           <li><code>python -m tools capture --sav FILE --slots 1 2 --location NAME</code></li>
           <li><code>python -m tools scan --sav FILE --slots 1 2 --item NAME</code> — same save-diff</li>
-          <li><code>python -m tools capture --region Crossroads</code> — RAM dump last resort</li>
+          <li><code>python -m tools capture --location NAME</code> — RAM capture in the terminal (heap around its save_object)</li>
           <li><code>python -m tools scan --item NAME</code> — HUD numbers / item counts (default: souls).</li>
           <li><code>python -m ds_client --no-ap</code> — log changes to SQLite; they show in ACTIVITY.</li>
         </ul>
@@ -655,7 +655,7 @@ let lastEpoch = null;
 let lastTargetsRev = null;
 let pending = "";         // action in flight from this tab
 let stepMsg = {};         // step -> { cls, text }
-let pickRva = null;
+let pickAddr = null;
 
 const ui = loadPrefs({ region: "", status: "todo", kind: "all", pane: "checks", work: "diff", sel: "", item: "", savPath: "", slotBefore: 1, slotAfter: 2, userid: "" });
 let encodeResult = null;
@@ -681,6 +681,8 @@ function esc(s) {
   }[c]));
 }
 function hex(n) { return "0x" + Number(n).toString(16).toUpperCase(); }
+// Module bytes show their RVA; heap bytes their session address (saved as a pointer chain).
+function offLabel(d) { return d.rva != null ? "+" + hex(d.rva) : hex(d.address) + " heap"; }
 function loadPrefs(def) {
   try { return Object.assign(def, JSON.parse(localStorage.getItem("ds_map_ui") || "{}")); }
   catch { return def; }
@@ -900,7 +902,7 @@ $("location-list").addEventListener("click", e => {
 
 function selectLoc(id) {
   if (pending) return;
-  if (ui.sel !== id) { stepMsg = {}; pickRva = null; }
+  if (ui.sel !== id) { stepMsg = {}; pickAddr = null; }
   ui.sel = id;
   savePrefs();
   renderList();
@@ -1057,7 +1059,7 @@ function setWork(name) {
   $("center-sub").textContent = name === "diff"
     ? "two save slots → Keen identity"
     : name === "ram"
-      ? "last-resort .data dump · F8 in-game"
+      ? "live flag · heap around the Keen object · F8 in-game"
       : "encode autosave to edited/ · then INSTALL";
   $("row-box").hidden = name === "saves";
   $("files-box").hidden = name === "saves";
@@ -1244,8 +1246,9 @@ function renderCapture() {
   const other = cap.stage !== "idle" && (!loc || cap.id !== loc.id);
   const stage = mine ? cap.stage : "idle";
   const cands = mine && stage === "diffed" ? candidates(cap) : [];
-  if (pickRva != null && !cands.some(d => d.rva === pickRva)) pickRva = null;
-  const saveRva = cands.length === 1 ? cands[0].rva : pickRva;
+  if (pickAddr != null && !cands.some(d => d.address === pickAddr)) pickAddr = null;
+  const saveAddr = cands.length === 1 ? cands[0].address : pickAddr;
+  const saveCand = cands.find(d => d.address === saveAddr);
 
   // location card (mapping tabs only)
   $("loc-card").hidden = ui.work === "saves" || !loc;
@@ -1292,14 +1295,14 @@ function renderCapture() {
   $("why-3").textContent = stage === "diffed"
     ? "DIFF AGAIN is not a new baseline. F8 again keeps only bytes that stayed 1."
     : "Open in-game first. Then F8 (or DIFF and go back). Still open — same closed baseline.";
-  bS.disabled = saveRva == null || freeze;
-  bS.textContent = busy === "save" ? "SAVING…" : saveRva != null ? "SAVE " + hex(saveRva) : "SAVE";
+  bS.disabled = saveAddr == null || freeze;
+  bS.textContent = busy === "save" ? (saveCand && saveCand.rva == null ? "POINTER SCAN…" : "SAVING…") : saveCand ? "SAVE " + offLabel(saveCand) : "SAVE";
   $("btn-reset").disabled = dumping || (cap.stage === "idle" && !wait);
 
   const hint = {};
   if (loc && !up && stage !== "diffed") hint[2] = { cls: "warn", text: "Needs the game running." };
   if (stage === "baseline") hint[3] = { cls: "", text: "Baseline taken " + Math.round(cap.age_s) + " s ago." };
-  if (stage === "diffed" && cands.length > 1 && saveRva == null) hint[4] = { cls: "warn", text: "Pick one row below first." };
+  if (stage === "diffed" && cands.length > 1 && saveAddr == null) hint[4] = { cls: "warn", text: "Pick one row below first." };
   renderMsgs(hint);
 
   // candidates
@@ -1307,12 +1310,13 @@ function renderCapture() {
   box.hidden = !(mine && stage === "diffed");
   if (!box.hidden) {
     $("cand-head").textContent = cands.length + " CANDIDATE" + (cands.length === 1 ? "" : "S");
-    $("cand-note").textContent = (cap.raw_zero_to_one > cap.zero_to_one)
-      ? (cap.raw_zero_to_one + " raw 0→1, " + cap.zero_to_one + " after dropping object-pool copies")
-      : (cap.delta_count > cap.deltas.length ? "showing " + cap.deltas.length + " of " + cap.delta_count : (cands.length > 1 ? "click a row to choose" : ""));
+    $("cand-note").textContent = [cap.scope,
+      cap.raw_zero_to_one > cap.zero_to_one ? cap.raw_zero_to_one + " this diff, " + cap.zero_to_one + " in every diff" : "",
+      cap.delta_count > cap.deltas.length ? "showing " + cap.deltas.length + " of " + cap.delta_count : (cands.length > 1 ? "click a row to choose" : "")
+    ].filter(Boolean).join(" · ");
     setHTML($("cand-rows"), cands.length
-      ? cands.map(d => `<tr class="cand${d.rva === saveRva ? " pick" : ""}" data-rva="${d.rva}">
-          <td>${d.rva === saveRva ? "●" : "○"}</td><td>+${hex(d.rva)}</td><td>${d.old}→${d.new}</td><td>${esc(d.section)}</td></tr>`).join("")
+      ? cands.map(d => `<tr class="cand${d.address === saveAddr ? " pick" : ""}" data-addr="${d.address}">
+          <td>${d.address === saveAddr ? "●" : "○"}</td><td>${offLabel(d)}</td><td>${d.old}→${d.new}</td><td>${esc(d.section)}</td></tr>`).join("")
       : `<tr><td colspan="4" class="empty">No byte went 0→1.</td></tr>`);
   }
 
@@ -1367,20 +1371,22 @@ function renderCapture() {
   } else if (ui.work === "ram") {
     if (!loc) {
       setNext("action", "Pick the AP name, then dump",
-        "Last resort. Chests belong on SAVE DIFF. F8 still dumps while that tab is hidden.");
+        "Pick an IDENTIFIED chest (SAVE DIFF first) so the capture can scan the heap around it. F8 still dumps while this tab is hidden.");
     } else if (stage === "diffed") {
       if (!cands.length) {
         setNext("warn", "No 0→1 byte found",
-          "Did the chest actually open? If yes, press <b>F8</b> again (still open — same closed dump). If it never shows, the flag is on the heap.",
+          "Did the chest actually open, and were you standing still for both dumps? If yes, press <b>F8</b> again (same closed dump). " + (cap.scope || ""),
           [over]);
-      } else if (saveRva != null) {
+      } else if (saveCand) {
         setNext("ok", cands.length === 1 ? "One 0→1 — save it" : "Save the chosen offset",
-          esc(loc.label) + " → <code>darksiders1.exe + " + hex(saveRva) + "</code> as uint8. Then reload the save and watch LIVE VALUES.",
-          [{ label: "SAVE " + hex(saveRva), cls: "go", run: () => $("btn-save").click() }]);
+          esc(loc.label) + " → <code>" + (saveCand.rva != null ? "darksiders1.exe + " + hex(saveCand.rva) : "heap " + hex(saveCand.address)) + "</code> as uint8."
+            + (saveCand.rva != null ? "" : " Save runs a pointer scan for a static chain (can take a while).")
+            + " Then reload the save and watch LIVE VALUES.",
+          [{ label: "SAVE " + offLabel(saveCand), cls: "go", run: () => $("btn-save").click() }]);
       } else {
         const raw = cap.raw_zero_to_one || 0;
-        setNext("warn", (cap.zero_to_one || cands.length) + " 0→1 left" + (raw > cap.zero_to_one ? " (" + raw + " before pool filter)" : ""),
-          "Those extra bytes are the same field on many objects. Do not RETAKE. Press <b>F8</b> again until one remains.");
+        setNext("warn", (cap.zero_to_one || cands.length) + " 0→1 left" + (raw > cap.zero_to_one ? " (" + raw + " in the last diff)" : ""),
+          "Do not RETAKE. Stand still and press <b>F8</b> again — each diff keeps only bytes that stayed 1 — or click the row you trust.");
       }
     } else if (stage === "baseline") {
       if (!up) {
@@ -1390,10 +1396,13 @@ function renderCapture() {
           "Closed dump is done. Open <b>" + esc(loc.label) + "</b>, wait, stay in the game, press <b>F8</b>.");
       }
     } else if (loc.mapped) {
-      setNext("ok", "Already mapped", "RAM watch is under LIVE VALUES. This dump is last resort.");
+      setNext("ok", "Already mapped", "RAM watch is under LIVE VALUES. Recapture only if it does not flip.");
+    } else if (loc.identified) {
+      setNext("action", "Closed chest, stand still, F8",
+        "Heap capture around <code>" + esc(loc.save_key) + "</code>. Load a save where it is still closed, stand next to it, press <b>F8</b> (4 s sample).");
     } else {
-      setNext("warn", "RAM dump is last resort",
-        "Chests: two in-game slots on SAVE DIFF. Use this tab only if you need a .data offset.");
+      setNext("warn", "Identify it on SAVE DIFF first",
+        "Without a Keen identity this diffs 34 MB of .data, where chest flags are not. Two save slots on SAVE DIFF, then come back.");
     }
   } else if (!loc) {
     setNext("action", "Pick the location you just opened",
@@ -1414,7 +1423,7 @@ function renderCapture() {
     }
   } else if (loc.identified && !loc.mapped) {
     setNext("ok", "Keen identity saved",
-      "<code>" + esc(loc.save_key) + "</code> — ds_client still skips this until a RAM offset exists. Next chest: two more slots.");
+      "<code>" + esc(loc.save_key) + "</code> — ds_client still skips this until a RAM offset exists. Next: RAM DUMP tab finds the live flag around this object.");
   } else if (loc.mapped) {
     setNext("ok", "Already mapped",
       "RAM watch is under LIVE VALUES. Keen identity can still be saved from two slots.");
@@ -1425,9 +1434,9 @@ function renderCapture() {
 }
 
 $("cand-rows").addEventListener("click", e => {
-  const tr = e.target.closest("tr[data-rva]");
+  const tr = e.target.closest("tr[data-addr]");
   if (!tr) return;
-  pickRva = Number(tr.dataset.rva);
+  pickAddr = Number(tr.dataset.addr);
   renderCapture();
 });
 
@@ -1456,7 +1465,7 @@ function armCapture(kind) {
     const data = await post("/api/capture/arm", { id: loc.id, kind });
     st.capture = data.capture;
     if (kind === "baseline") {
-      pickRva = null;
+      pickAddr = null;
       setMsg(3, "", "");
       setMsg(4, "", "");
       setMsg(2, "", "Waiting for Darksiders in front…");
@@ -1660,11 +1669,11 @@ $("btn-save").onclick = () => {
   const cap = st?.capture;
   if (!loc || !cap) return;
   const cands = candidates(cap);
-  const rva = cands.length === 1 ? cands[0].rva : pickRva;
+  const address = cands.length === 1 ? cands[0].address : pickAddr;
   runStep(4, "save", async () => {
-    const data = await post("/api/capture/save", { id: loc.id, rva });
+    const data = await post("/api/capture/save", { id: loc.id, address });
     st.capture = data.capture;
-    pickRva = null;
+    pickAddr = null;
     stepMsg = {};
     log("SAVE", data.action + " " + data.entry.id + " @ " + data.entry.offsets.join(" -> "));
     await loadCatalog();
@@ -1678,7 +1687,7 @@ async function resetCapture() {
     const data = await post("/api/capture/reset");
     st.capture = data.capture;
     stepMsg = {};
-    pickRva = null;
+    pickAddr = null;
     log("STEP", "capture cleared");
   } catch (e) {
     log("ERR", e.message);
@@ -1731,7 +1740,7 @@ async function poll() {
       const p = prev.capture, c = data.capture || {};
       if (p.stage !== "baseline" && c.stage === "baseline") {
         setMsg(2, "ok", "Closed dump stored.");
-        log("STEP", "baseline · " + (c.label || "") + " · in-game");
+        log("STEP", "baseline · " + (c.label || "") + " · " + (c.scope || "in-game"));
       }
       if (c.stage === "diffed" && (p.stage !== "diffed" || p.zero_to_one !== c.zero_to_one)) {
         const n = c.zero_to_one ?? 0;
@@ -1739,7 +1748,7 @@ async function poll() {
         setMsg(3, n === 1 ? "ok" : "warn",
           n === 0 ? "No 0→1 bytes."
             : n + " candidate" + (n === 1 ? "" : "s") + (raw > n ? " (" + raw + " raw)" : "") + ".");
-        log("STEP", "diff · " + n + " 0→1 · " + (c.label || "") + (raw > n ? " · " + raw + " raw, pool copies dropped" : ""));
+        log("STEP", "diff · " + n + " 0→1 · " + (c.label || "") + (raw > n ? " · " + raw + " in this diff" : ""));
       }
       if (c.error && c.error !== p.error) log("ERR", c.error);
     }

@@ -113,6 +113,19 @@ def _pointer_paths(process, address: int, module_name: str, max_results: int = 8
         return []
 
 
+def pointer_chain(pid: int, address: int, module_name: str = PROCESS_NAME) -> Optional[list[int]]:
+    """targets.json offsets ``[module_offset, o1, ...]`` that resolve to ``address``
+    from ``module_name``'s base, or None. Same walk as win32.resolve_address."""
+    _require_pymemoryeditor()
+    from PyMemoryEditor import OpenProcess
+
+    with OpenProcess(pid=pid) as process:
+        for path in _pointer_paths(process, address, module_name):
+            if path.module_offset is not None:
+                return [int(path.module_offset), *[int(o) for o in path.offsets]]
+    return None
+
+
 def _read_live(process, pytype, width, addr, regions):
     for a, v in process.search_by_addresses(
         pytype, width, addresses=[addr], memory_regions=regions

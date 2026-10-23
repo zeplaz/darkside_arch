@@ -13,7 +13,7 @@ python -m tools CMD --help   # flags for one command
 | Command | Use |
 |---------|-----|
 | `dashboard` | Browser UI. Chests: two save slots → **DIFF SAVES**. **Start here.** |
-| `capture` | Same save-diff in the terminal (`--sav` `--slots`). RAM dump is last resort |
+| `capture` | Same save-diff in the terminal (`--sav` `--slots`), then the RAM capture for the live flag |
 | `scan` | HUD numbers (souls, counts), or `--sav` / `--slots` for a chest |
 | `locations` | List checks with todo / done |
 | `sync-world` | Refresh `docs/world_*.json` from `worlds/darksiders/data/` |
@@ -40,16 +40,22 @@ Chests: two in-game saves, then **DIFF SAVES**. The game can be closed. Press **
 
 That writes `save_object`. It is not a live AP watch. LIVE VALUES only appear after a real RAM offset.
 
-RAM dump (BASELINE / F8 / DIFF) is the **RAM DUMP** tab — last resort, not removed. Opening a chest flips ~1500 object-pool bytes in `.data`. Do not intersect those with ObjectID `342` — ObjectID is not global. LIVE VALUES stay on the right.
+The live flag comes from the **RAM DUMP** tab (closed → F8, open → F8), after the save identity exists:
+
+- **Identified row → heap.** Chest WorldObjects live on the heap, not in `.data`. The capture scans the game's private read-write memory for the ObjectID dword with the RegionID and LayerID dwords within 64 bytes (ObjectID alone is not unique; the triple is), then diffs only ±1 KB around those anchors. If the triple never occurs it falls back to ObjectID alone and says so.
+- **No identity → module `.data`.** 34 MB where opening a chest flips ~1,500 unrelated bytes. Chest flags are not there.
+- A candidate must be 0 in every baseline sample (5 over 4 s) and 1 in every after sample (3 over 1.5 s). Stand still for both. Each extra F8 keeps only candidates that survived every diff.
+- Saving a heap byte runs a pointer scan (depth 3) for a static chain from `darksiders1.exe`; no chain → not saved, because the heap address changes every launch.
+- `snapshots/last_capture.npz` keeps the last capture for offline analysis.
 
 ## `capture`
 
 ```powershell
 python -m tools capture --sav FILE.sav --slots 1 2 --location "Seraphim Hotel Life Chest 1"
-python -m tools capture --region Crossroads      # RAM dump last resort
+python -m tools capture --location "Seraphim Hotel Life Chest 1"   # RAM capture (heap, uses its save_object)
 ```
 
-`--dry-run` prints the Keen object without writing. Omit `--sav` to fall back to a `.data` dump (not for chests).
+`--dry-run` prints without writing. Without `--sav`, capture does the RAM capture: heap around the row's `save_object` if it has one, otherwise `.data`.
 
 ## `scan`
 
