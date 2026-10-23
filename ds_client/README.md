@@ -1,6 +1,6 @@
 # ds_client
 
-Player runtime: RAM watcher + Archipelago 0.6.7 client. Mapping lives in [tools](../tools/README.md).
+Player runtime: RAM watcher + Archipelago 0.6.7 client. Mapping lives in [tools](../tools/README.md). A `save_object` on a row is Keen identity only — this process ignores it until `offsets` is a real watch.
 
 Two independent loops: the AP socket and the `darksiders1.exe` attach. Closing the game does not drop AP; an AP reconnect does not detach RAM. `Ctrl+C` stops both.
 
@@ -32,7 +32,7 @@ Created on first run (from `ap_config.example.json` if present) with a generated
 ## How it behaves
 
 - **Locations:** a `location_flag` row going 0→1 (or already 1 when first read) sends `LocationChecks`. Every check is kept in `ap_state.db` and the full list is resent on each Connect, so nothing is lost to a dropped socket.
-- **Items:** `ReceivedItems` are stored by absolute index in `ap_state.db`. RAM is **set to the received total** (counts, progressive levels capped 4 / 4 / 5) or to 1 (flags), never incremented. A replay from index 0, a reconnect, or a fresh PC therefore cannot duplicate items. An index gap sends `Sync`.
+- **Items:** `ReceivedItems` are stored by absolute index in `ap_state.db`. RAM is **set to the received total** (counts, progressive levels capped 4 / 4 / 4) or to 1 (flags), never incremented. A replay from index 0, a reconnect, or a fresh PC therefore cannot duplicate items. An index gap sends `Sync`.
 - **Unmapped items** stay pending and apply as soon as their offset is saved — they never block other items.
 - **7 Armageddon Blade Shards** grant the Armageddon Blade once.
 - **Goal:** the GOAL row going 0→1 (or `--send-goal`) sends `CLIENT_GOAL`, remembered and resent on reconnect.
@@ -54,7 +54,7 @@ Status against the project requirement list. "Needs offsets" = code is done, but
 | Item index / resync without duplicates | Done (`ap_state.db` + set-to-total) |
 | Items sent while offline | Done — replayed on Connect, applied on attach |
 | 7 shards → Armageddon Blade | Done, needs the blade offset |
-| Progressive weapons | Done (levels 4 / 4 / 5), needs offsets |
+| Progressive weapons | Done (levels 4 / 4 / 4), needs offsets |
 | Save file handling (skip tutorial) | Partial — `tools save-install` exists; the Crossroads template save is not captured ([SAVES.md](../docs/SAVES.md)) |
 | Skip cutscenes | Not started |
 | Entrance randomization | Not started (world side) |

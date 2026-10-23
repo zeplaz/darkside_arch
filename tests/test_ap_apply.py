@@ -82,7 +82,7 @@ class ApplyRuleTests(unittest.TestCase):
                 current=0,
                 target=target,
             ),
-            5,
+            4,
         )
 
     def test_seventh_shard_queues_blade_once(self) -> None:

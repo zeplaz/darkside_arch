@@ -45,6 +45,7 @@
     button.primary { border-color: var(--key); color: var(--key); background: var(--key-bg); }
     button.go { border-color: var(--ok); color: var(--ok); background: var(--ok-bg); }
     button.ghost { border-color: var(--line); color: var(--dim); }
+    button.danger { border-color: var(--bad); color: var(--bad); background: var(--bad-bg); }
     input, select { width: 100%; min-width: 0; padding: 0.35em 0.5em; outline: none; }
     input:focus, select:focus, button:focus-visible { border-color: var(--key); outline: none; }
     code { color: var(--ok); }
@@ -152,6 +153,9 @@
     }
     .step .what { color: var(--fg); }
     .step .why { color: var(--mute); font-size: 0.92em; grid-column: 2 / 3; }
+    .how ol { margin: 0.35rem 0 0.4rem; padding-left: 1.2rem; }
+    .how li { margin: 0 0 0.2rem; }
+    .how p { margin: 0; color: var(--dim); }
     .step .msg { grid-column: 2 / -1; font-size: 0.92em; }
     .step .msg.err { color: var(--bad); }
     .step .msg.ok { color: var(--ok); }
@@ -256,7 +260,7 @@
 </head>
 <body>
   <header class="strip">
-    <div class="brand"><b>DARKSIDE_ARCH</b><span>mapping</span></div>
+    <div class="brand"><b>DARKSIDE_ARCH</b><span>workspace</span></div>
     <div class="pills">
       <span class="pill" id="pill-game" data-tip=""><span class="dot"></span>GAME <b>…</b></span>
       <span class="pill" id="pill-link" data-tip="Connection to this dashboard's Python server (python -m tools dashboard)."><span class="dot"></span>SERVER <b>…</b></span>
@@ -275,16 +279,17 @@
     <section class="col facts">
       <div class="hd">
         <div class="seg" role="tablist">
-          <button type="button" class="on" id="pane-checks" data-tip="Chests, artifacts, armor, cubes. Captured here with a memory diff.">LOCATIONS</button>
-          <button type="button" id="pane-items" data-tip="Inventory rows ds_client writes when items arrive. Mapped with the scan CLI, not here.">ITEM WRITES</button>
+          <button type="button" class="on" id="pane-checks" data-tip="Chests, artifacts, armor, cubes. Chests: two in-game save slots. RAM dump is last resort.">LOCATIONS</button>
+          <button type="button" id="pane-items" data-tip="Inventory / stat / goal rows ds_client writes or watches. Mapped with scan --item (HUD number), not SAVE DIFF.">ITEM WRITES</button>
         </div>
       </div>
       <div class="pad" id="check-filters">
         <select id="region-select" aria-label="Region" data-tip="Region from Locations.py. Start with Crossroads."></select>
         <input id="catalog-search" type="search" placeholder="Search name or AP id   ( / )" aria-label="Search">
         <div class="seg" id="status-seg">
-          <button type="button" data-filter="todo" class="on" data-tip="No offset yet — needs a capture.">OPEN<span class="n"></span></button>
-          <button type="button" data-filter="mapped" data-tip="Already has an offset in targets.json.">MAPPED<span class="n"></span></button>
+          <button type="button" data-filter="todo" class="on" data-tip="No Keen object and no RAM offset.">OPEN<span class="n"></span></button>
+          <button type="button" data-filter="identified" data-tip="Keen save_object recorded. Not a live AP watch until a RAM offset exists.">IDENTIFIED<span class="n"></span></button>
+          <button type="button" data-filter="mapped" data-tip="Has a RAM offset. LocationChecks can fire.">MAPPED<span class="n"></span></button>
           <button type="button" data-filter="all">ALL<span class="n"></span></button>
         </div>
         <div class="seg" id="kind-seg">
@@ -300,8 +305,13 @@
     <!-- CENTER: what to do -->
     <section class="col center">
       <div class="hd">
-        <strong id="center-title">CAPTURE</strong>
-        <span class="sub" id="center-sub">baseline → open in-game → diff → save</span>
+        <strong id="center-title" hidden>ITEM WRITES</strong>
+        <div class="seg" id="work-seg" role="tablist">
+          <button type="button" class="on" id="work-tab-diff" data-tip="Two in-game slots → object Triggered/Destroyed/Open. Primary chest method.">SAVE DIFF</button>
+          <button type="button" id="work-tab-ram" data-tip="Last resort .data dump. Opening a chest flips ~1500 pool bytes.">RAM DUMP</button>
+          <button type="button" id="work-tab-saves" data-tip="Brief / export JSON / encode UserId to saves/edited/ / install to Steam. Encode is not mapping.">SAVES</button>
+        </div>
+        <span class="sub" id="center-sub">two save slots → Keen identity</span>
       </div>
       <div class="body">
         <div class="body-inner" id="capture-panel">
@@ -316,26 +326,108 @@
             <div class="loc-meta" id="loc-meta"></div>
           </div>
 
+          <div id="work-diff">
+          <div class="card how" id="how-card">
+            <div class="lbl">TWO IN-GAME SAVES. DIFF THE OBJECT RECORD. NOT A RAM DUMP.</div>
+            <ol>
+              <li>Quit to the pause menu. <b>Save</b> while the chest is still closed (note the slot).</li>
+              <li>Open the chest. <b>Save</b> again in a different slot.</li>
+              <li>Pick the AP name on the left. Slot numbers: -1 is autosave, 0–9 are the list.</li>
+              <li><b>DIFF SAVES</b>. Chests write <code>Triggered</code>. Breakables are <code>Destroyed</code>. Doors are <code>Open</code>.</li>
+              <li><b>SAVE</b> the Keen identity. That is not a live AP watch — RAM offset comes later.</li>
+            </ol>
+          </div>
+
           <div class="steps">
+            <div class="step" id="step-s1">
+              <div class="num">1</div>
+              <div class="what">Pick the AP name, then the two slots</div>
+              <div class="btns"></div>
+              <div class="why">The .sav holds all 10 slots. war only reads autosave; this page copies the slot first.</div>
+              <div class="row" style="grid-column:2 / -1">
+                <input id="sav-path" type="text" placeholder=".sav path" aria-label="Save path" style="flex:1 1 12rem">
+                <select id="slot-before" aria-label="Closed slot"></select>
+                <select id="slot-after" aria-label="Opened slot"></select>
+                <button type="button" class="ghost" id="btn-slots" data-tip="Re-read which slots have DSAV bytes. Fast — no war decode.">SLOTS</button>
+                <button type="button" class="ghost" id="btn-brief-all" data-tip="Decode every occupied slot via war. Shows spawn, chests, Triggered/Destroyed/Open counts. A few seconds per slot.">BRIEF ALL</button>
+              </div>
+              <div class="row" style="grid-column:2 / -1">
+                <button type="button" class="ghost" id="btn-brief-before" data-tip="Decode the closed slot only.">BRIEF CLOSED</button>
+                <button type="button" class="ghost" id="btn-brief-after" data-tip="Decode the opened slot only.">BRIEF OPENED</button>
+                <button type="button" class="ghost" id="btn-export-before" data-tip="Write decoded JSON to saves/_scratch/slots/. Does not encode or touch Steam.">EXPORT CLOSED JSON</button>
+                <button type="button" class="ghost" id="btn-export-after" data-tip="Write decoded JSON to saves/_scratch/slots/. Does not encode or touch Steam.">EXPORT OPENED JSON</button>
+              </div>
+              <div class="msg" id="msg-s1"></div>
+            </div>
+            <div class="card" id="slot-brief-box" hidden>
+              <div class="row" style="justify-content:space-between">
+                <span class="lbl">SLOT BRIEFS</span>
+                <span class="note">war decode · not a live AP watch · no encode</span>
+              </div>
+              <table>
+                <thead><tr><th>SLOT</th><th>SPAWN</th><th>TIME</th><th>CHESTS</th><th>HP</th><th>TRIG</th><th>DEST</th><th>OPEN</th></tr></thead>
+                <tbody id="slot-brief-rows"></tbody>
+              </table>
+            </div>
+            <div class="step" id="step-s2">
+              <div class="num">2</div>
+              <div class="what">Diff the two slots</div>
+              <div class="btns">
+                <button type="button" class="primary" id="btn-save-diff" data-tip="Decode both slots and list WorldObject Triggered/Destroyed/Open changes.">DIFF SAVES</button>
+              </div>
+              <div class="why" id="why-s2">Closed slot first, opened slot second. Takes a couple of seconds (war decode).</div>
+              <div class="msg" id="msg-s2"></div>
+            </div>
+            <div class="card" id="save-cand-box" hidden>
+              <div class="row" style="justify-content:space-between">
+                <span class="lbl" id="save-cand-head">OBJECT FLAGS</span>
+                <span class="note" id="save-cand-note"></span>
+              </div>
+              <table>
+                <thead><tr><th></th><th>OBJECT</th><th>KEY</th><th>CHANGE</th></tr></thead>
+                <tbody id="save-cand-rows"></tbody>
+              </table>
+              <p class="note" id="save-stat-note"></p>
+            </div>
+            <div class="step" id="step-s3">
+              <div class="num">3</div>
+              <div class="what">Save the Keen identity to targets.json</div>
+              <div class="btns"><button type="button" class="go" id="btn-save-obj" data-tip="Writes save_object. Leaves offsets 0x0 so ds_client does not pretend this is a RAM watch.">SAVE IDENTITY</button></div>
+              <div class="why">One new Triggered → save it. Several → click the chest row. This does not enable LocationChecks yet.</div>
+              <div class="msg" id="msg-s3"></div>
+            </div>
+          </div>
+          </div>
+
+          <div id="work-ram" hidden>
+            <div class="card how">
+              <div class="lbl">LAST RESORT — NOT FOR CHESTS</div>
+              <p class="note">Opening a chest flips ~1500 object-pool bytes in 34 MB of .data. Use SAVE DIFF. F8 still dumps while this tab is hidden.</p>
+            </div>
+            <div class="steps">
             <div class="step" id="step-1">
               <div class="num">1</div>
-              <div class="what">Pick the location you are standing at</div>
+              <div class="what">Pick the AP name for the chest you are facing</div>
               <div class="btns"></div>
-              <div class="why">The dump cannot tell which chest you face — the name you pick is what gets saved.</div>
+              <div class="why">The dump cannot see which chest it is. The name you pick is what gets written.</div>
               <div class="msg" id="msg-1"></div>
             </div>
             <div class="step" id="step-2">
               <div class="num">2</div>
-              <div class="what">Baseline while it is still closed</div>
-              <div class="btns"><button type="button" class="primary" id="btn-baseline" data-tip="Two dumps of .data/.bss 0.4 s apart. Bytes that change between them (timers, HUD) are ignored later. Stand still. Shortcut: B">BASELINE</button></div>
-              <div class="why">Stand still near it. Takes about a second.</div>
+              <div class="what" id="what-2">Dump BEFORE — chest still closed</div>
+              <div class="btns">
+                <button type="button" class="primary" id="btn-baseline" data-tip="Arms a wait: dump after Darksiders stays in front 7s. Click the game, unpause (Esc), stand still. In-game F8 dumps now. Shortcut: B">BASELINE</button>
+              </div>
+              <div class="why" id="why-2">Stand still. Do not open it. RETAKE only if it is still closed.</div>
               <div class="msg" id="msg-2"></div>
             </div>
             <div class="step" id="step-3">
               <div class="num">3</div>
-              <div class="what">Open it in-game, then diff</div>
-              <div class="btns"><button type="button" class="primary" id="btn-diff" data-tip="Third dump; keeps only bytes that went 0→1 and were steady during the baseline. Shortcut: D">DIFF</button></div>
-              <div class="why">Diff again from the same baseline to drop bytes that flicked back.</div>
+              <div class="what" id="what-3">Open it, wait, dump AFTER</div>
+              <div class="btns">
+                <button type="button" class="primary" id="btn-diff" data-tip="Open the chest first, then arm AFTER. Click back, unpause, wait 7s — or press F8 in-game. Shortcut: D">DIFF</button>
+              </div>
+              <div class="why" id="why-3">Open in-game first. Then DIFF. If several rows, wait and DIFF AGAIN — still open, same closed baseline.</div>
               <div class="msg" id="msg-3"></div>
             </div>
             <div class="card" id="cand-box" hidden>
@@ -350,15 +442,69 @@
             </div>
             <div class="step" id="step-4">
               <div class="num">4</div>
-              <div class="what">Save the flag to targets.json</div>
-              <div class="btns"><button type="button" class="go" id="btn-save" data-tip="Writes a uint8 location_flag onto this location's row (the 0x0 template) and enables it. Saving again overwrites. ds_client and this page hot-reload it.">SAVE</button></div>
-              <div class="why">Needs exactly one candidate — or click the right row below.</div>
+              <div class="what">Save the RAM flag to targets.json</div>
+              <div class="btns"><button type="button" class="go" id="btn-save" data-tip="Writes a uint8 location_flag RAM offset. Saving again overwrites.">SAVE RAM</button></div>
+              <div class="why">Exactly one 0→1 → SAVE. Several → DIFF AGAIN. None → heap.</div>
               <div class="msg" id="msg-4"></div>
+            </div>
+            </div>
+            <div class="row">
+              <button type="button" class="ghost" id="btn-reset" data-tip="Forget the RAM baseline/diff.">START OVER RAM</button>
             </div>
           </div>
 
-          <div class="row">
-            <button type="button" class="ghost" id="btn-reset" data-tip="Forget the baseline/diff and start this location again.">START OVER</button>
+          <div id="work-saves" hidden>
+            <div class="card how">
+              <div class="lbl">ENCODE / INSTALL — SEPARATE FROM MAPPING</div>
+              <ol>
+                <li><b>ENCODE</b> writes <code>saves/edited/</code>. war only rewrites <b>autosave</b> (slot -1). Slots 0–9 are unchanged.</li>
+                <li>Quit Darksiders completely. Steam cloud will fight a live copy.</li>
+                <li><b>INSTALL</b> copies that edited file into <code>remote\</code> and <code>remote\autocloud\save\</code> as both <code>svd_fmt_0_0.sav</code> and <code>keen_savegame_0_0.sav</code>. Backs up each dest first.</li>
+              </ol>
+              <p class="note">This does not write <code>save_object</code> or RAM offsets. Mapping stays on SAVE DIFF.</p>
+            </div>
+            <div class="card">
+              <div class="lbl">SOURCE .SAV</div>
+              <div class="row" style="margin-top:0.4rem">
+                <input id="sav-path-saves" type="text" placeholder=".sav path" aria-label="Save path for encode" style="flex:1 1 12rem">
+                <button type="button" class="ghost" id="btn-slots-saves" data-tip="Same occupancy read as SAVE DIFF.">SLOTS</button>
+                <button type="button" class="ghost" id="btn-brief-saves" data-tip="Decode every occupied slot. Same as BRIEF ALL on SAVE DIFF.">BRIEF ALL</button>
+              </div>
+              <p class="note" id="sav-slots-note"></p>
+            </div>
+            <div class="card" id="slot-brief-saves" hidden>
+              <div class="row" style="justify-content:space-between">
+                <span class="lbl">SLOT BRIEFS</span>
+                <span class="note">inspect only · encode is the card below</span>
+              </div>
+              <table>
+                <thead><tr><th>SLOT</th><th>SPAWN</th><th>TIME</th><th>CHESTS</th><th>HP</th><th>TRIG</th><th>DEST</th><th>OPEN</th></tr></thead>
+                <tbody id="slot-brief-rows-saves"></tbody>
+              </table>
+            </div>
+            <div class="card">
+              <div class="lbl">1 · ENCODE AUTOSAVE (UserId)</div>
+              <p class="note">Decode autosave → set GameInfo.UserId → encode to dest. Never Steam.</p>
+              <div class="row" style="margin-top:0.4rem">
+                <input id="sav-userid" type="text" inputmode="numeric" placeholder="Steam UserId (userdata folder name)" aria-label="Steam UserId" style="flex:1 1 8rem">
+                <input id="sav-out" type="text" placeholder="saves/edited/…" aria-label="Encode dest" style="flex:1 1 12rem">
+              </div>
+              <div class="row" style="margin-top:0.4rem">
+                <button type="button" class="primary" id="btn-encode" data-tip="war sav encode to saves/edited/. Refuses a Steam dest.">ENCODE TO EDITED</button>
+              </div>
+              <p class="note" id="encode-note"></p>
+            </div>
+            <div class="card">
+              <div class="lbl">2 · INSTALL TO STEAM</div>
+              <p class="note">Source should be the edited file from step 1. Type INSTALL in the box. Refuses while the game is attached.</p>
+              <div class="row" style="margin-top:0.4rem">
+                <input id="sav-install-src" type="text" placeholder="saves/edited/….sav" aria-label="Patched sav to install" style="flex:1 1 12rem">
+                <input id="sav-confirm" type="text" placeholder="type INSTALL" aria-label="Confirm install" style="flex:0 1 8rem">
+                <button type="button" class="danger" id="btn-install" data-tip="Copies into Steam remote + autocloud. Game must be quit.">INSTALL TO STEAM</button>
+              </div>
+              <p class="note" id="install-preview"></p>
+              <p class="note" id="install-note"></p>
+            </div>
           </div>
 
           <details class="card" id="row-box">
@@ -380,30 +526,40 @@
         </div>
 
         <div class="body-inner" id="items-panel" hidden>
-          <div class="next">
-            <div class="t">Item writes are mapped from the command line</div>
-            <div class="d">These are the RAM sites ds_client writes when ReceivedItems arrive. A memory diff cannot find them reliably, so this page only shows their status. Items received for an unmapped row (offset 0x0) wait and are written once the row is mapped.</div>
+          <div class="next" id="item-next">
+            <div class="t" id="item-next-t">Pick an item write on the left</div>
+            <div class="d" id="item-next-d"></div>
+            <div class="row" id="item-next-acts"></div>
           </div>
           <div class="card" id="item-card">
             <div class="loc-title" id="item-title">Pick an item on the left</div>
             <div class="loc-meta" id="item-meta"></div>
           </div>
-          <div class="card">
-            <div class="lbl">HUD numbers (souls, counts)</div>
-            <div class="cmd"><code>python -m tools scan --item "Beholder Key"</code><button type="button" class="copy">COPY</button></div>
-            <p class="note" style="margin-top:0.4rem"><code>--item</code> is the row's label; the scan saves onto that row and enables it. Heap addresses become a pointer chain automatically. New item: copy a template row in targets.json with the exact Items.py name as <code>label</code>. Remove: <code>"enabled": false</code> or delete the row.</p>
+          <div class="card how" id="item-how-card" hidden>
+            <div class="lbl" id="item-how-lbl">HUD SCAN</div>
+            <ol id="item-how-steps"></ol>
           </div>
-          <div class="card">
-            <div class="lbl">Rules already in ds_client</div>
+          <div class="card" id="item-cmd-card" hidden>
+            <div class="lbl" id="item-cmd-lbl">COMMAND</div>
+            <div class="cmd"><code id="item-cmd"></code><button type="button" class="copy" id="item-copy">COPY</button></div>
+            <p class="note" id="item-cmd-note" style="margin-top:0.4rem"></p>
+          </div>
+          <div class="card" id="item-apply-card" hidden>
+            <div class="lbl">WHAT ds_client DOES</div>
+            <p class="note" id="item-apply" style="margin-top:0.35rem"></p>
+            <p class="note" id="item-related"></p>
+          </div>
+          <details class="card">
+            <summary>Apply rules (all items) · new row / disable</summary>
             <ul class="note" style="margin:0.3rem 0 0;padding-left:1.1rem">
               <li>Each ReceivedItems index is applied once — reconnects cannot duplicate.</li>
-              <li>An item with no mapped row waits; it never blocks other items.</li>
-              <li>Flag items already at 1: extra copies do nothing.</li>
-              <li>Count / level items: RAM is set to the received total (Chaoseater / Scythe / Gauntlet cap 4 / 4 / 5).</li>
+              <li>Unmapped rows wait. They never block other items.</li>
+              <li>Levels: Chaoseater / Scythe / Gauntlet cap 4 / 4 / 4.</li>
               <li>7 Armageddon Blade Shards grant the Armageddon Blade once.</li>
-              <li>GOAL watch 0→1, or <code>python -m ds_client --send-goal</code>, sends CLIENT_GOAL.</li>
+              <li>New row: copy a template in <code>targets.json</code> with the exact Items.py name as <code>label</code>.</li>
+              <li>Remove: <code>"enabled": false</code> or delete the row.</li>
             </ul>
-          </div>
+          </details>
         </div>
       </div>
     </section>
@@ -437,18 +593,20 @@
       <h2 id="help-h">HOW THIS WORKS</h2>
       <button type="button" id="help-close">CLOSE (Esc)</button>
     </div>
-    <p>This page finds the RAM byte behind each Archipelago location and saves it to <code>targets.json</code>. It reads the game but never writes to it, and it never connects to the AP server — the runtime is <code>python -m ds_client --connect HOST:PORT --slot NAME</code>.</p>
+    <p>Workspace tabs: <b>SAVE DIFF</b> (chests), <b>RAM DUMP</b> (last resort), <b>SAVES</b> (encode UserId to <code>saves/edited/</code>, then INSTALL to Steam). This page never writes process memory and never connects to AP — the runtime is <code>python -m ds_client --connect HOST:PORT --slot NAME</code>.</p>
     <div class="help-grid">
       <div>
         <h3>CAPTURE A CHEST</h3>
+        <p>Two in-game save slots. The chest is a Keen WorldObject (<code>Triggered</code>), same table as <code>Destroyed</code> breakables. Not a RAM 0→1.</p>
         <ol>
-          <li>Launch Darksiders Warmastered. <b>GAME</b> turns green within a second.</li>
-          <li>Walk to a chest that is still <b>closed</b>. Pick its exact name on the left.</li>
-          <li><b>Baseline</b> — stand still.</li>
-          <li>Open the chest in-game, then <b>Diff</b>.</li>
-          <li>One candidate → <b>Save</b>. Several → click the right row, or <b>Diff</b> again. None → the flag is probably on the heap.</li>
+          <li>Save while closed. Open it. Save again in another slot.</li>
+          <li>Pick the AP name. Set the two slot numbers. <b>DIFF SAVES</b>.</li>
+          <li><b>SAVE IDENTITY</b>. ds_client still skips it until a RAM offset exists.</li>
         </ol>
-        <p style="margin-top:0.4rem">After saving, the location appears under LIVE VALUES and its value updates as you play — that is your check that the offset is right.</p>
+        <p>CLI: <code>python -m tools scan --sav FILE --slots 1 2 --item "NAME"</code></p>
+        <p>Inspect: <code>python -m tools save-brief --slot 1 FILE.sav</code>. Encode/install: SAVES tab, or <code>python -m tools save-patch --sav FILE --userid ID --out saves\edited\FILE.sav --install</code>.</p>
+        <h3>SAVES TAB</h3>
+        <p>ENCODE writes <code>saves/edited/</code> (autosave only). INSTALL copies that file into Steam <code>remote\</code> and <code>autocloud\save\</code>. Type INSTALL to confirm. Refuses while the game is attached.</p>
         <h3>STATUS BAR</h3>
         <ul>
           <li><b>GAME</b> — attached, pid, module base (ASLR; never stored).</li>
@@ -466,15 +624,19 @@
           <li>Drop it: delete the object. Don't keep offsets you no longer trust.</li>
           <li>Labels must match <code>Locations.py</code> exactly. Refresh the list with <code>python -m tools sync-world</code>.</li>
         </ul>
+        <h3>ITEM WRITES</h3>
+        <p>Not chests. Pick the row, copy <code>python -m tools scan --item "Progressive Chaoseater"</code>, type the HUD number, change it, type again. Levels cap 4. Unmapped items wait; they never block others.</p>
         <h3>CLI EQUIVALENTS</h3>
         <ul>
-          <li><code>python -m tools capture --region Crossroads</code> — same flow in a terminal; both save to the same row.</li>
+          <li><code>python -m tools capture --sav FILE --slots 1 2 --location NAME</code></li>
+          <li><code>python -m tools scan --sav FILE --slots 1 2 --item NAME</code> — same save-diff</li>
+          <li><code>python -m tools capture --region Crossroads</code> — RAM dump last resort</li>
           <li><code>python -m tools scan --item NAME</code> — HUD numbers / item counts (default: souls).</li>
           <li><code>python -m ds_client --no-ap</code> — log changes to SQLite; they show in ACTIVITY.</li>
         </ul>
         <h3>KEYS</h3>
         <ul>
-          <li><kbd>/</kbd> search · <kbd>B</kbd> baseline · <kbd>D</kbd> diff · <kbd>?</kbd> help · <kbd>Esc</kbd> close</li>
+          <li><kbd>F8</kbd> dump in-game · <kbd>B</kbd> arm baseline · <kbd>D</kbd> arm diff · <kbd>?</kbd> help · <kbd>Esc</kbd> close</li>
         </ul>
       </div>
     </div>
@@ -495,7 +657,12 @@ let pending = "";         // action in flight from this tab
 let stepMsg = {};         // step -> { cls, text }
 let pickRva = null;
 
-const ui = loadPrefs({ region: "", status: "todo", kind: "all", pane: "checks", sel: "", item: "" });
+const ui = loadPrefs({ region: "", status: "todo", kind: "all", pane: "checks", work: "diff", sel: "", item: "", savPath: "", slotBefore: 1, slotAfter: 2, userid: "" });
+let encodeResult = null;
+let saveDiff = null;
+let pickObj = null;
+let savSlots = [];
+let slotBriefs = {};
 let searchQ = "";
 
 const $ = id => document.getElementById(id);
@@ -661,7 +828,8 @@ function findLoc(id) {
 }
 function selected() { return ui.sel ? findLoc(ui.sel) : null; }
 function matches(item, { status = ui.status, kind = ui.kind } = {}) {
-  if (status === "todo" && item.mapped) return false;
+  if (status === "todo" && (item.mapped || item.identified)) return false;
+  if (status === "identified" && (!item.identified || item.mapped)) return false;
   if (status === "mapped" && !item.mapped) return false;
   if (kind !== "all" && kindBucket(item.kind) !== kind) return false;
   const q = searchQ.trim().toLowerCase();
@@ -674,7 +842,7 @@ function renderRegions() {
   const sel = $("region-select");
   sel.innerHTML = regionNames().map(r => {
     const items = catalog.regions[r] || [];
-    const open = items.filter(i => !i.mapped).length;
+    const open = items.filter(i => !i.mapped && !i.identified).length;
     return `<option value="${esc(r)}">${esc(r)} — ${open} open / ${items.length}</option>`;
   }).join("");
   sel.value = ui.region;
@@ -714,9 +882,10 @@ function renderList() {
       if (capturing) tag = `<span class="tag key">${cap.stage === "baseline" ? "BASELINE" : "DIFFED"}</span>`;
       else if (item.mapped && !item.enabled) tag = `<span class="tag dim">DISABLED</span>`;
       else if (item.mapped) tag = `<span class="tag ok">MAPPED</span>`;
+      else if (item.identified) tag = `<span class="tag key">IDENTIFIED</span>`;
       return `<button type="button" data-id="${esc(item.id)}" class="fact${sel ? " sel" : ""}${capturing ? " capturing" : ""}" title="${esc(item.label)}">
         <div class="line"><span class="name">${esc(short)}</span>${tag}</div>
-        <div class="meta"><span>AP ${item.ap_id}</span><span>${item.mapped ? esc(item.offset.split(" + ").pop()) : ""}</span></div>
+        <div class="meta"><span>AP ${item.ap_id}</span><span>${item.mapped ? esc(item.offset.split(" + ").pop()) : (item.save_key ? esc(item.save_key) : "")}</span></div>
       </button>`;
     }).join("");
   }).join("");
@@ -736,8 +905,25 @@ function selectLoc(id) {
   savePrefs();
   renderList();
   renderCapture();
+  post("/api/capture/select", { id }).then(data => {
+    if (st) st.capture = data.capture;
+  }).catch(() => {});
 }
 
+function itemWriteTag(item) {
+  if (item.mapped && !item.enabled) return `<span class="tag dim">DISABLED</span>`;
+  if (item.mapped) return `<span class="tag ok">MAPPED</span>`;
+  if (item.write === "goal") return `<span class="tag">GOAL</span>`;
+  return `<span class="tag">NEEDS SCAN</span>`;
+}
+function itemWriteKind(item) {
+  if (item.write === "level") return "level" + (item.cap != null ? " 1.." + item.cap : "");
+  if (item.write === "count") return "count";
+  if (item.write === "flag") return "flag";
+  if (item.write === "stat") return item.dtype || "stat";
+  if (item.write === "goal") return "goal";
+  return item.category || "";
+}
 function renderItemList() {
   const box = $("location-list");
   const rows = catalog.inventory || [];
@@ -745,21 +931,94 @@ function renderItemList() {
     box.innerHTML = `<div class="empty">No inventory / goal rows in targets.json.</div>`;
     return;
   }
-  box.innerHTML = rows.map(item => {
-    const tag = item.mapped ? (item.enabled ? `<span class="tag ok">MAPPED</span>` : `<span class="tag dim">DISABLED</span>`) : `<span class="tag">0x0</span>`;
-    return `<button type="button" data-inv="${esc(item.id)}" class="fact${item.id === ui.item ? " sel" : ""}">
-      <div class="line"><span class="name">${esc(item.label)}</span>${tag}</div>
-      <div class="meta"><span>${esc(item.category)} · ${esc(item.event_type || "MEMORY_STATE")}</span><span>${item.mapped ? esc(item.offset.split(" + ").pop()) : "not mapped"}</span></div>
-    </button>`;
+  const groups = [
+    { k: "inventory", rows: rows.filter(i => i.category === "inventory") },
+    { k: "stat", rows: rows.filter(i => i.category === "stat") },
+    { k: "goal", rows: rows.filter(i => i.write === "goal") },
+  ].filter(g => g.rows.length);
+  box.innerHTML = groups.map(g => {
+    const head = groups.length > 1 ? `<div class="grp">${g.k.toUpperCase()} · ${g.rows.length}</div>` : "";
+    return head + g.rows.map(item => {
+      const metaL = [itemWriteKind(item), item.ap_id != null ? ("AP " + item.ap_id) : ""].filter(Boolean).join(" · ");
+      const metaR = item.mapped ? esc((item.offset || "").split(" + ").pop()) : (item.dtype || "");
+      return `<button type="button" data-inv="${esc(item.id)}" class="fact${item.id === ui.item ? " sel" : ""}">
+        <div class="line"><span class="name">${esc(item.label)}</span>${itemWriteTag(item)}</div>
+        <div class="meta"><span>${esc(metaL)}</span><span>${metaR}</span></div>
+      </button>`;
+    }).join("");
   }).join("");
 }
-
+function setItemNext(tone, title, detail, actions = []) {
+  const key = [tone, title, detail, ...actions.map(a => a.label)].join("|");
+  const box = $("item-next-acts");
+  if (!box || box._key === key) return;
+  box._key = key;
+  $("item-next").className = "next " + tone;
+  $("item-next-t").textContent = title;
+  $("item-next-d").innerHTML = detail || "";
+  box.innerHTML = "";
+  for (const a of actions) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = a.cls || "";
+    b.textContent = a.label;
+    b.onclick = a.run;
+    box.appendChild(b);
+  }
+}
 function renderItemCard() {
   const item = (catalog.inventory || []).find(i => i.id === ui.item);
-  $("item-title").textContent = item ? item.label : "Pick an item on the left";
-  $("item-meta").innerHTML = item
-    ? `<span>${esc(item.category)}</span><span>${item.mapped ? "offset " + esc(item.offset) : "unmapped (0x0) — ds_client skips the write"}</span><span>row ${item.enabled ? "enabled" : "disabled"}</span><span>id ${esc(item.id)}</span>`
+  $("item-title").textContent = item ? item.label : "Pick an item write on the left";
+  $("item-how-card").hidden = !item;
+  $("item-cmd-card").hidden = !item;
+  $("item-apply-card").hidden = !item;
+  if (!item) {
+    $("item-meta").innerHTML = "";
+    setItemNext("action", "Pick an item write on the left",
+      "These are RAM sites ds_client pokes when ReceivedItems arrive. Chests stay on SAVE DIFF. Mapping is <code>python -m tools scan --item LABEL</code> while the HUD shows that number.");
+    return;
+  }
+  const bits = [
+    item.ap_kind || item.category,
+    item.ap_id != null ? "AP " + item.ap_id : "",
+    item.dtype || "",
+    itemWriteKind(item),
+    item.mapped ? "offset " + item.offset : "no offset yet",
+    item.mapped ? (item.enabled ? "enabled" : "disabled") : "scan will enable the row",
+  ].filter(Boolean);
+  setHTML($("item-meta"), bits.map(x => `<span>${esc(x)}</span>`).join(""));
+  $("item-how-lbl").textContent = item.write === "goal" ? "GOAL — NOT A HUD SCAN"
+    : item.write === "flag" ? "FLAG — 0/1, NOT A COUNT"
+    : item.write === "stat" ? "HUD SOULS"
+    : item.write === "level" ? "HUD WEAPON LEVEL"
+    : "HUD COUNT";
+  $("item-how-steps").innerHTML = (item.how || []).map(s => `<li>${esc(s)}</li>`).join("");
+  $("item-cmd-lbl").textContent = item.write === "goal" ? "UNTIL MAPPED" : "SCAN COMMAND";
+  $("item-cmd").textContent = item.scan || "";
+  $("item-cmd-note").textContent = item.write === "goal"
+    ? "This command sends CLIENT_GOAL. It does not find a RAM offset."
+    : "Type the HUD number, change it in-game, type again. Heap hits become a pointer chain. Label must match this row exactly.";
+  $("item-apply").textContent = item.apply || "";
+  $("item-related").textContent = (item.related || []).length
+    ? "Also map: " + item.related.join(" · ")
     : "";
+  const copyScan = { label: "COPY COMMAND", cls: "primary", run: () => $("item-copy").click() };
+  if (link.ok === false) {
+    setItemNext("bad", "Lost the dashboard server", "Restart it with <code>python -m tools dashboard</code>.");
+  } else if (item.mapped) {
+    setItemNext("ok", item.enabled ? "Mapped — LIVE VALUES on the right" : "Mapped but disabled",
+      item.enabled
+        ? esc(item.label) + " → <code>" + esc(item.offset) + "</code>. ds_client writes ReceivedItems here."
+        : "Set <code>\"enabled\": true</code> in targets.json, or leave it off.");
+  } else if (item.write === "goal") {
+    setItemNext("action", "No Abaddon flag yet",
+      "ds_client cannot see the boss. <code>--send-goal</code> marks the seed complete until this row has a real offset.",
+      [copyScan]);
+  } else {
+    setItemNext("action", "Scan the HUD number for " + item.label,
+      "Game running. Copy the command into a terminal. Unmapped items wait in ap_state.db and apply as soon as this offset exists.",
+      [copyScan]);
+  }
 }
 
 function setPane(name) {
@@ -770,10 +1029,41 @@ function setPane(name) {
   $("check-filters").hidden = name !== "checks";
   $("capture-panel").hidden = name !== "checks";
   $("items-panel").hidden = name !== "items";
-  $("center-title").textContent = name === "checks" ? "CAPTURE" : "ITEM WRITES";
-  $("center-sub").textContent = name === "checks" ? "baseline → open in-game → diff → save" : "mapped with the scan CLI";
+  $("work-seg").hidden = name !== "checks";
+  $("center-title").hidden = name !== "items";
+  $("center-title").textContent = "ITEM WRITES";
+  if (name === "items") {
+    $("center-sub").textContent = "HUD scan CLI · ds_client writes when items arrive";
+    const rows = catalog.inventory || [];
+    if (!ui.item || !rows.some(r => r.id === ui.item)) {
+      ui.item = (rows.find(r => !r.mapped) || rows[0] || {}).id || "";
+      savePrefs();
+    }
+  } else {
+    setWork(ui.work === "ram" || ui.work === "saves" ? ui.work : "diff");
+  }
   renderList();
   if (name === "items") renderItemCard(); else renderCapture();
+}
+function setWork(name) {
+  ui.work = name;
+  savePrefs();
+  $("work-tab-diff").classList.toggle("on", name === "diff");
+  $("work-tab-ram").classList.toggle("on", name === "ram");
+  $("work-tab-saves").classList.toggle("on", name === "saves");
+  $("work-diff").hidden = name !== "diff";
+  $("work-ram").hidden = name !== "ram";
+  $("work-saves").hidden = name !== "saves";
+  $("center-sub").textContent = name === "diff"
+    ? "two save slots → Keen identity"
+    : name === "ram"
+      ? "last-resort .data dump · F8 in-game"
+      : "encode autosave to edited/ · then INSTALL";
+  $("row-box").hidden = name === "saves";
+  $("files-box").hidden = name === "saves";
+  syncSavFields();
+  if (name === "saves") previewInstall();
+  if (ui.pane === "checks") renderCapture();
 }
 
 /* ---------- capture panel ---------- */
@@ -798,18 +1088,21 @@ function setNext(tone, title, detail, actions = []) {
 
 function stepState(n, state) {
   const el = $("step-" + n);
+  if (!el) return;
   el.classList.toggle("done", state === "done");
   el.classList.toggle("now", state === "now");
   el.classList.toggle("locked", state === "locked");
-  el.querySelector(".num").textContent = state === "done" ? "✓" : String(n);
+  const label = String(n).replace(/^s/, "");
+  el.querySelector(".num").textContent = state === "done" ? "✓" : label;
 }
 function setMsg(n, cls, text) {
   if (text) stepMsg[n] = { cls, text }; else delete stepMsg[n];
 }
 function renderMsgs(hint) {
-  for (const n of [1, 2, 3, 4]) {
+  for (const n of [1, 2, 3, 4, "s1", "s2", "s3"]) {
     const m = stepMsg[n] || hint[n];
     const el = $("msg-" + n);
+    if (!el) continue;
     el.className = "msg" + (m ? " " + m.cls : "");
     el.textContent = m ? m.text : "";
   }
@@ -820,13 +1113,133 @@ function candidates(cap) {
   return z.length ? z : cap.deltas;
 }
 
+function slotLabel(n) {
+  return Number(n) === -1 ? "autosave (-1)" : ("slot " + n);
+}
+function objKey(d) {
+  return [d.world, d.region_id, d.layer_id, d.object_id, d.value_key].join("|");
+}
+function fillSlotSelects() {
+  const nums = savSlots.length ? savSlots : [-1, 0, 1, 2, 3, 4];
+  const opts = nums.map(n => {
+    const b = slotBriefs[n];
+    const extra = b ? (` · chests ${b.chests_opened ?? "?"} · t=${b.game_time ?? "?"}`) : "";
+    return `<option value="${n}">${slotLabel(n)}${extra}</option>`;
+  }).join("");
+  const b = $("slot-before"), a = $("slot-after");
+  if (!b || !a) return;
+  b.innerHTML = opts;
+  a.innerHTML = opts;
+  b.value = String(nums.includes(Number(ui.slotBefore)) ? ui.slotBefore : nums[0]);
+  a.value = String(nums.includes(Number(ui.slotAfter)) ? ui.slotAfter : (nums[1] ?? nums[0]));
+  ui.slotBefore = Number(b.value);
+  ui.slotAfter = Number(a.value);
+}
+function rememberBrief(info) {
+  if (!info || info.slot == null) return;
+  slotBriefs[info.slot] = info;
+  if (info.userid != null && info.userid !== "") {
+    ui.userid = String(info.userid);
+    savePrefs();
+    if ($("sav-userid") && !$("sav-userid").value) $("sav-userid").value = ui.userid;
+  }
+}
+function renderSlotBriefs() {
+  const rows = Object.values(slotBriefs).sort((x, y) => (x.slot ?? 99) - (y.slot ?? 99));
+  const html = rows.map(b => `<tr>
+    <td>${esc(slotLabel(b.slot))}</td>
+    <td>${esc([b.spawn_world, b.spawn_region, b.spawn_point].filter(Boolean).join(" / "))}</td>
+    <td>${esc(b.game_time)}</td>
+    <td>${esc(b.chests_opened)}</td>
+    <td>${esc(b.health)}</td>
+    <td>${esc(b.triggered)}</td>
+    <td>${esc(b.destroyed)}</td>
+    <td>${esc(b.open)}</td>
+  </tr>`).join("");
+  for (const [boxId, rowId] of [["slot-brief-box", "slot-brief-rows"], ["slot-brief-saves", "slot-brief-rows-saves"]]) {
+    const box = $(boxId);
+    if (!box) continue;
+    box.hidden = !rows.length;
+    if (rows.length) setHTML($(rowId), html);
+  }
+}
+function renderSaveDiffPanel(loc) {
+  const pathEl = $("sav-path");
+  if (pathEl && ui.savPath && pathEl.value !== ui.savPath) pathEl.value = ui.savPath;
+  fillSlotSelects();
+  stepState("s1", loc ? "done" : "now");
+  const hasDiff = !!(saveDiff && loc && saveDiff.id === loc.id);
+  stepState("s2", !loc ? "locked" : hasDiff ? "done" : "now");
+  const pick = hasDiff ? (pickObj || saveDiff.pick) : null;
+  stepState("s3", pick ? "now" : "locked");
+  $("btn-save-diff").disabled = !loc || pending === "save-diff";
+  $("btn-save-diff").textContent = pending === "save-diff" ? "DECODING…" : "DIFF SAVES";
+  $("btn-save-obj").disabled = !pick || pending === "save-obj";
+  const saveBusy = pending === "save-brief" || pending === "save-export" || pending === "save-diff";
+  $("btn-brief-all").disabled = saveBusy;
+  $("btn-brief-all").textContent = pending === "save-brief" ? "DECODING…" : "BRIEF ALL";
+  $("btn-brief-before").disabled = saveBusy;
+  $("btn-brief-after").disabled = saveBusy;
+  $("btn-export-before").disabled = saveBusy;
+  $("btn-export-after").disabled = saveBusy;
+  if ($("btn-encode")) {
+    const encBusy = pending === "save-encode" || pending === "save-install";
+    $("btn-encode").disabled = encBusy;
+    $("btn-encode").textContent = pending === "save-encode" ? "ENCODING…" : "ENCODE TO EDITED";
+    $("btn-install").disabled = encBusy;
+    $("btn-install").textContent = pending === "save-install" ? "COPYING…" : "INSTALL TO STEAM";
+  }
+  if ($("btn-brief-saves")) {
+    $("btn-brief-saves").disabled = saveBusy;
+    $("btn-brief-saves").textContent = pending === "save-brief" ? "DECODING…" : "BRIEF ALL";
+  }
+  renderSlotBriefs();
+  const box = $("save-cand-box");
+  const flags = hasDiff ? (saveDiff.flags || []) : [];
+  box.hidden = !hasDiff;
+  if (hasDiff) {
+    $("save-cand-head").textContent = flags.length + " OBJECT FLAG" + (flags.length === 1 ? "" : "S");
+    $("save-cand-note").textContent = "Triggered = chest · Destroyed = breakable · Open = door";
+    const pickKey = pick ? objKey(pick) : "";
+    setHTML($("save-cand-rows"), flags.length
+      ? flags.map(d => `<tr class="cand${objKey(d) === pickKey ? " pick" : ""}" data-obj="${esc(objKey(d))}">
+          <td>${objKey(d) === pickKey ? "●" : "○"}</td>
+          <td>${esc(d.world)} r=${d.region_id} L=${d.layer_id} obj=${d.object_id}</td>
+          <td>${esc(d.value_key)}</td>
+          <td>${esc(d.old)}→${esc(d.new)}</td></tr>`).join("")
+      : `<tr><td colspan="4" class="empty">No Triggered / Destroyed / Open change.</td></tr>`);
+    $("save-stat-note").textContent = (saveDiff.stats || []).map(s => s.field + " " + s.old + " → " + s.new).join(" · ");
+  }
+}
+async function loadSavSlots() {
+  try {
+    const q = ui.savPath ? "?path=" + encodeURIComponent(ui.savPath) : "";
+    const data = await api("/api/save-slots" + q);
+    if (data.path) { ui.savPath = data.path; savePrefs(); }
+    savSlots = data.slots || [];
+    fillSlotSelects();
+    syncSavFields();
+    const note = $("sav-slots-note");
+    if (note) {
+      note.textContent = savSlots.length
+        ? ("occupied: " + savSlots.map(slotLabel).join(" · "))
+        : "no DSAV slots (check the path)";
+    }
+  } catch (e) {
+    log("ERR", "save slots: " + e.message);
+  }
+}
+
 function renderCapture() {
   if (ui.pane !== "checks") return;
   const loc = selected();
   const s = st?.status || {};
   const up = !!s.attached && link.ok !== false;
   const cap = st?.capture || { stage: "idle", deltas: [] };
+  const wait = cap.wait || "";
   const busy = pending || cap.busy || "";
+  const dumping = busy === "baseline" || busy === "diff" || busy === "save" || cap.busy === "baseline" || cap.busy === "diff" || cap.busy === "save";
+  const freeze = dumping || !!wait;
   const mine = loc && cap.stage !== "idle" && cap.id === loc.id;
   const other = cap.stage !== "idle" && (!loc || cap.id !== loc.id);
   const stage = mine ? cap.stage : "idle";
@@ -834,17 +1247,22 @@ function renderCapture() {
   if (pickRva != null && !cands.some(d => d.rva === pickRva)) pickRva = null;
   const saveRva = cands.length === 1 ? cands[0].rva : pickRva;
 
-  // location card
-  $("loc-card").hidden = !loc;
+  // location card (mapping tabs only)
+  $("loc-card").hidden = ui.work === "saves" || !loc;
   if (!loc) $("row-json").textContent = "Pick a location first.";
   if (loc) {
     $("loc-title").textContent = loc.label;
     setHTML($("loc-meta"), [
-      esc(loc.region), esc(loc.kind), "AP " + loc.ap_id,
-      loc.mapped ? `<span style="color:var(--ok)">mapped ${esc(loc.offset)}${loc.enabled ? "" : " (disabled)"}</span>` : `<span style="color:var(--warn)">no offset yet</span>`
-    ].map(x => `<span>${x}</span>`).join(""));
-    $("row-json").textContent = loc.target ? JSON.stringify(loc.target, null, 2) : "No row yet. SAVE appends one with id \"" + loc.id + "\".";
+      esc(loc.ap_region || loc.region), esc(loc.kind), "AP " + loc.ap_id,
+      loc.vanilla_item ? ("vanilla " + esc(loc.vanilla_item)) : "",
+      loc.mapped ? `<span style="color:var(--ok)">RAM ${esc(loc.offset)}${loc.enabled ? "" : " (disabled)"}</span>`
+        : loc.identified ? `<span style="color:var(--key)">Keen ${esc(loc.save_key)}</span>`
+        : `<span style="color:var(--warn)">no Keen object yet</span>`
+    ].filter(Boolean).map(x => `<span>${x}</span>`).join(""));
+    $("row-json").textContent = loc.target ? JSON.stringify(loc.target, null, 2) : "No row yet. SAVE IDENTITY appends one with id \"" + loc.id + "\".";
   }
+
+  renderSaveDiffPanel(loc);
 
   // steps
   stepState(1, loc ? "done" : "now");
@@ -853,13 +1271,30 @@ function renderCapture() {
   stepState(4, stage === "diffed" && cands.length ? "now" : "locked");
 
   const bB = $("btn-baseline"), bD = $("btn-diff"), bS = $("btn-save");
-  bB.disabled = !loc || !up || !!busy;
-  bB.textContent = busy === "baseline" ? "DUMPING…" : stage === "idle" ? "BASELINE" : "RETAKE";
-  bD.disabled = stage === "idle" || !up || !!busy;
-  bD.textContent = busy === "diff" ? "DIFFING…" : stage === "diffed" ? "DIFF AGAIN" : "DIFF";
-  bS.disabled = saveRva == null || !!busy;
+  const hold = Math.ceil(cap.hold_s || 0);
+  bB.disabled = !loc || !up || freeze;
+  bB.textContent = busy === "baseline" ? "DUMPING…"
+    : wait === "baseline" ? (cap.foreground ? ("IN-GAME " + hold + "s") : "GO TO GAME")
+    : stage === "idle" ? "BASELINE" : "RETAKE";
+  bD.disabled = stage === "idle" || !up || freeze;
+  bD.textContent = busy === "diff" ? "DIFFING…"
+    : wait === "diff" ? (cap.foreground ? ("IN-GAME " + hold + "s") : "GO TO GAME")
+    : stage === "diffed" ? "DIFF AGAIN" : "DIFF";
+  $("what-2").textContent = stage === "idle"
+    ? "Dump BEFORE — chest still closed"
+    : "Closed dump stored — do not RETAKE unless still closed";
+  $("why-2").textContent = stage === "idle"
+    ? "Stand still. Do not open it. RETAKE only if it is still closed."
+    : "Closed dump is locked. Opening the chest is in-game only. RETAKE would overwrite the before-state — reload the save first.";
+  $("what-3").textContent = stage === "diffed"
+    ? "Still open — dump AFTER again (same closed dump)"
+    : "Open it, wait, dump AFTER";
+  $("why-3").textContent = stage === "diffed"
+    ? "DIFF AGAIN is not a new baseline. F8 again keeps only bytes that stayed 1."
+    : "Open in-game first. Then F8 (or DIFF and go back). Still open — same closed baseline.";
+  bS.disabled = saveRva == null || freeze;
   bS.textContent = busy === "save" ? "SAVING…" : saveRva != null ? "SAVE " + hex(saveRva) : "SAVE";
-  $("btn-reset").disabled = cap.stage === "idle" || !!busy;
+  $("btn-reset").disabled = dumping || (cap.stage === "idle" && !wait);
 
   const hint = {};
   if (loc && !up && stage !== "diffed") hint[2] = { cls: "warn", text: "Needs the game running." };
@@ -872,58 +1307,120 @@ function renderCapture() {
   box.hidden = !(mine && stage === "diffed");
   if (!box.hidden) {
     $("cand-head").textContent = cands.length + " CANDIDATE" + (cands.length === 1 ? "" : "S");
-    $("cand-note").textContent = cap.delta_count > cap.deltas.length ? "showing " + cap.deltas.length + " of " + cap.delta_count : (cands.length > 1 ? "click a row to choose" : "");
+    $("cand-note").textContent = (cap.raw_zero_to_one > cap.zero_to_one)
+      ? (cap.raw_zero_to_one + " raw 0→1, " + cap.zero_to_one + " after dropping object-pool copies")
+      : (cap.delta_count > cap.deltas.length ? "showing " + cap.deltas.length + " of " + cap.delta_count : (cands.length > 1 ? "click a row to choose" : ""));
     setHTML($("cand-rows"), cands.length
       ? cands.map(d => `<tr class="cand${d.rva === saveRva ? " pick" : ""}" data-rva="${d.rva}">
           <td>${d.rva === saveRva ? "●" : "○"}</td><td>+${hex(d.rva)}</td><td>${d.old}→${d.new}</td><td>${esc(d.section)}</td></tr>`).join("")
       : `<tr><td colspan="4" class="empty">No byte went 0→1.</td></tr>`);
   }
 
-  // next-step banner
+  // next-step banner: dump wait always wins; otherwise follow the workspace tab
   const jump = { label: "GO TO " + (cap.label || "IT"), cls: "primary", run: () => { const l = findLoc(cap.id); if (l) { ui.region = l.region; ui.status = "all"; renderRegions(); } selectLoc(cap.id); } };
   const over = { label: "START OVER", cls: "ghost", run: resetCapture };
   if (link.ok === false) {
     setNext("bad", "Lost the dashboard server", "Restart it with <code>python -m tools dashboard</code>. This page reconnects by itself.");
+  } else if (wait) {
+    const n = Math.ceil(cap.hold_s || 0);
+    if (!cap.foreground) {
+      setNext("action", "Click Darksiders — dump will not run on this page",
+        wait === "baseline"
+          ? "Unpause (Esc). Chest still <b>closed</b>. Stay in-game 7s, or press <b>F8</b>. START OVER cancels."
+          : "Chest must already be open. Unpause (Esc), stand still 7s, or press <b>F8</b>. Do not open it on F8.");
+    } else {
+      setNext("action", "In-game dump in " + n + "s — or F8 now",
+        wait === "baseline"
+          ? "Stay unpaused. Chest still <b>closed</b>. Don't look at this page."
+          : "Stay unpaused. Already open. Don't look at this page.");
+    }
   } else if (busy) {
-    const what = { baseline: "Taking baseline — stand still", diff: "Diffing memory", save: "Writing targets.json" }[busy] || "Working";
-    setNext("busy action", what, "About a second.");
+    const what = {
+      baseline: "Taking closed dump — stand still",
+      diff: "Dumping AFTER (two samples)",
+      save: "Writing targets.json",
+      "save-encode": "Encoding autosave UserId",
+      "save-install": "Copying into Steam",
+      "save-brief": "Decoding slots",
+    }[busy] || "Working";
+    setNext("busy action", what, busy === "diff" ? "Two dumps ~1s apart. Stand still." : "About a second.");
+  } else if (ui.work === "saves") {
+    const userid = ($("sav-userid")?.value || ui.userid || "").trim();
+    const src = ($("sav-path-saves")?.value || ui.savPath || "").trim();
+    const encoded = ($("sav-install-src")?.value || encodeResult?.path || "").trim();
+    if (!src) {
+      setNext("action", "Point at a .sav", "Paste the path. SLOTS lists occupancy. BRIEF ALL decodes spawn / chests.");
+    } else if (!userid) {
+      setNext("action", "Set Steam UserId", "The userdata folder name. Encode writes <code>saves/edited/</code> — not Steam.");
+    } else if (!encoded) {
+      setNext("action", "ENCODE TO EDITED", "war rewrites autosave only. Slots 0–9 stay as they were. Then quit the game.");
+    } else if (up) {
+      setNext("bad", "Quit Darksiders first", "INSTALL refuses while the game is attached. Steam cloud will fight a live copy.");
+    } else {
+      setNext("action", "Type INSTALL, then copy to Steam",
+        "Copies <code>remote\\</code> and <code>autocloud\\save\\</code> as svd_fmt_0_0.sav and keen_savegame_0_0.sav. Launch from Steam.");
+    }
   } else if (other) {
     setNext("warn", "A capture is open for another location",
       esc(cap.label) + " has a " + (cap.stage === "baseline" ? "baseline" : "diff") + ". Go back to it, or start over to capture this one.",
       [jump, over]);
+  } else if (ui.work === "ram") {
+    if (!loc) {
+      setNext("action", "Pick the AP name, then dump",
+        "Last resort. Chests belong on SAVE DIFF. F8 still dumps while that tab is hidden.");
+    } else if (stage === "diffed") {
+      if (!cands.length) {
+        setNext("warn", "No 0→1 byte found",
+          "Did the chest actually open? If yes, press <b>F8</b> again (still open — same closed dump). If it never shows, the flag is on the heap.",
+          [over]);
+      } else if (saveRva != null) {
+        setNext("ok", cands.length === 1 ? "One 0→1 — save it" : "Save the chosen offset",
+          esc(loc.label) + " → <code>darksiders1.exe + " + hex(saveRva) + "</code> as uint8. Then reload the save and watch LIVE VALUES.",
+          [{ label: "SAVE " + hex(saveRva), cls: "go", run: () => $("btn-save").click() }]);
+      } else {
+        const raw = cap.raw_zero_to_one || 0;
+        setNext("warn", (cap.zero_to_one || cands.length) + " 0→1 left" + (raw > cap.zero_to_one ? " (" + raw + " before pool filter)" : ""),
+          "Those extra bytes are the same field on many objects. Do not RETAKE. Press <b>F8</b> again until one remains.");
+      }
+    } else if (stage === "baseline") {
+      if (!up) {
+        setNext("bad", "Game closed after the closed dump", "Relaunch, load the save (chest closed) and START OVER.", [over]);
+      } else {
+        setNext("action", "Now open it in-game, then F8",
+          "Closed dump is done. Open <b>" + esc(loc.label) + "</b>, wait, stay in the game, press <b>F8</b>.");
+      }
+    } else if (loc.mapped) {
+      setNext("ok", "Already mapped", "RAM watch is under LIVE VALUES. This dump is last resort.");
+    } else {
+      setNext("warn", "RAM dump is last resort",
+        "Chests: two in-game slots on SAVE DIFF. Use this tab only if you need a .data offset.");
+    }
   } else if (!loc) {
-    setNext(up ? "action" : "warn", "Pick the location you are standing at",
-      up ? "Choose it from the list on the left. Use the exact name — that is what the AP server checks."
-         : "Pick it on the left, and launch Darksiders Warmastered — dumps need the running game.");
-  } else if (stage === "diffed") {
-    if (!cands.length) {
-      setNext("warn", "No 0→1 byte found",
-        "Did it actually open? If yes, <b>Diff again</b>. If it never shows, the flag lives on the heap — this diff only sees the game module's own data, so it needs a pointer path.",
-        [over]);
-    } else if (saveRva != null) {
-      setNext("ok", cands.length === 1 ? "One candidate — save it" : "Save the chosen offset",
-        esc(loc.label) + " → <code>darksiders1.exe + " + hex(saveRva) + "</code> as uint8.",
-        [{ label: "SAVE " + hex(saveRva), cls: "go", run: () => $("btn-save").click() }]);
+    setNext("action", "Pick the location you just opened",
+      "Save while it is closed, open it, save again. Then pick its exact AP name.");
+  } else if (saveDiff && saveDiff.id === loc.id) {
+    const flags = saveDiff.flags || [];
+    const pick = pickObj || saveDiff.pick;
+    if (!flags.length) {
+      setNext("warn", "No Triggered / Destroyed / Open change",
+        "Those slots may be the same, or the chest did not write a WorldObject.");
+    } else if (pick) {
+      setNext("ok", "Keen object — save the identity",
+        esc(loc.label) + " → <code>" + esc(pick.world + " r=" + pick.region_id + " L=" + pick.layer_id + " obj=" + pick.object_id + " " + pick.value_key) + "</code>",
+        [{ label: "SAVE IDENTITY", cls: "go", run: () => $("btn-save-obj").click() }]);
     } else {
-      setNext("warn", cands.length + " candidates",
-        "Wait a few seconds and <b>Diff again</b> to drop bytes that flicked back, or click the row you trust.");
+      setNext("warn", flags.length + " object flags — pick the chest",
+        "Usually a new <code>Triggered</code> row. Breakables are Destroyed.");
     }
-  } else if (stage === "baseline") {
-    if (!up) {
-      setNext("bad", "Game closed after the baseline", "Relaunch, walk back to it (still closed) and start over.", [over]);
-    } else {
-      setNext("action", "Now open it in-game, then press DIFF",
-        "Open <b>" + esc(loc.label) + "</b>, wait for the animation to finish, then Diff. Shortcut <kbd>D</kbd>.");
-    }
-  } else if (!up) {
-    setNext("warn", "Launch Darksiders Warmastered",
-      s.error ? esc(s.error) : "GAME turns green within about a second of launch. Then walk to <b>" + esc(loc.label) + "</b>.");
+  } else if (loc.identified && !loc.mapped) {
+    setNext("ok", "Keen identity saved",
+      "<code>" + esc(loc.save_key) + "</code> — ds_client still skips this until a RAM offset exists. Next chest: two more slots.");
   } else if (loc.mapped) {
     setNext("ok", "Already mapped",
-      "Its live value is under LIVE VALUES. Recapture only if it does not flip when you open it — Save overwrites the row.");
+      "RAM watch is under LIVE VALUES. Keen identity can still be saved from two slots.");
   } else {
-    setNext("action", "Stand still at the closed chest, then BASELINE",
-      "Make sure <b>" + esc(loc.label) + "</b> is still closed. Shortcut <kbd>B</kbd>.");
+    setNext("action", "Two save slots, then DIFF SAVES",
+      "Save while <b>" + esc(loc.label) + "</b> is closed. Open it. Save in another slot. Pick the slots. The game can be closed.");
   }
 }
 
@@ -951,29 +1448,210 @@ async function runStep(n, kind, fn) {
   }
 }
 
-$("btn-baseline").onclick = () => {
+function armCapture(kind) {
   const loc = selected();
   if (!loc) return;
-  runStep(2, "baseline", async () => {
-    const data = await post("/api/capture/before", { id: loc.id });
+  const step = kind === "baseline" ? 2 : 3;
+  runStep(step, "arm-" + kind, async () => {
+    const data = await post("/api/capture/arm", { id: loc.id, kind });
     st.capture = data.capture;
-    pickRva = null;
-    setMsg(3, "", "");
-    setMsg(4, "", "");
-    setMsg(2, "ok", "Baseline stored.");
-    log("STEP", "baseline · " + loc.label);
+    if (kind === "baseline") {
+      pickRva = null;
+      setMsg(3, "", "");
+      setMsg(4, "", "");
+      setMsg(2, "", "Waiting for Darksiders in front…");
+    }
+    log("STEP", kind + " armed · click the game, unpause, F8 or wait 7s in-game");
+  });
+}
+$("btn-baseline").onclick = () => armCapture("baseline");
+$("btn-diff").onclick = () => armCapture("diff");
+
+$("save-cand-rows").addEventListener("click", e => {
+  const tr = e.target.closest("tr[data-obj]");
+  if (!tr || !saveDiff) return;
+  pickObj = (saveDiff.flags || []).find(d => objKey(d) === tr.dataset.obj) || null;
+  renderCapture();
+});
+function currentSav() {
+  ui.savPath = ($("sav-path")?.value || $("sav-path-saves")?.value || ui.savPath || "").trim();
+  ui.slotBefore = Number($("slot-before").value);
+  ui.slotAfter = Number($("slot-after").value);
+  savePrefs();
+  syncSavFields();
+}
+function syncSavFields() {
+  if ($("sav-path") && ui.savPath && $("sav-path").value !== ui.savPath) $("sav-path").value = ui.savPath;
+  if ($("sav-path-saves") && ui.savPath && $("sav-path-saves").value !== ui.savPath) $("sav-path-saves").value = ui.savPath;
+  if ($("sav-userid") && ui.userid && !$("sav-userid").value) $("sav-userid").value = ui.userid;
+  if ($("sav-out") && ui.savPath && !$("sav-out").value) {
+    const base = ui.savPath.replace(/^.*[\\/]/, "") || "svd_fmt_0_0.sav";
+    $("sav-out").value = "saves\\edited\\" + base;
+  }
+  if (encodeResult?.path && $("sav-install-src") && !$("sav-install-src").value) {
+    $("sav-install-src").value = encodeResult.path;
+  }
+}
+$("btn-slots").onclick = () => {
+  currentSav();
+  loadSavSlots();
+};
+$("btn-slots-saves").onclick = () => {
+  ui.savPath = $("sav-path-saves").value.trim();
+  savePrefs();
+  syncSavFields();
+  loadSavSlots();
+};
+$("sav-path-saves").addEventListener("change", () => {
+  ui.savPath = $("sav-path-saves").value.trim();
+  savePrefs();
+  syncSavFields();
+});
+$("sav-userid").addEventListener("change", () => {
+  ui.userid = $("sav-userid").value.trim();
+  savePrefs();
+  previewInstall();
+});
+$("sav-install-src").addEventListener("change", previewInstall);
+$("btn-brief-saves").onclick = () => {
+  ui.savPath = $("sav-path-saves").value.trim() || ui.savPath;
+  savePrefs();
+  syncSavFields();
+  $("btn-brief-all").click();
+};
+$("btn-encode").onclick = () => {
+  ui.savPath = $("sav-path-saves").value.trim() || ui.savPath;
+  ui.userid = $("sav-userid").value.trim();
+  savePrefs();
+  if (!ui.savPath) { $("encode-note").textContent = "Need a .sav path."; return; }
+  if (!ui.userid) { $("encode-note").textContent = "Need Steam UserId (userdata folder name)."; return; }
+  $("encode-note").textContent = "";
+  runStep("s1", "save-encode", async () => {
+    try {
+      const data = await post("/api/save-encode", {
+        path: ui.savPath,
+        userid: Number(ui.userid),
+        out: $("sav-out").value.trim(),
+      });
+      encodeResult = data;
+      $("sav-install-src").value = data.path;
+      $("encode-note").textContent = "UserId " + data.old + " → " + data.userid + " · " + data.path + " · " + (data.note || "");
+      log("SAVE", "encode " + data.path + " UserId " + data.old + "→" + data.userid);
+      previewInstall();
+    } catch (e) {
+      $("encode-note").textContent = e.message;
+      throw e;
+    }
   });
 };
-
-$("btn-diff").onclick = () => {
+$("btn-install").onclick = () => {
+  const src = $("sav-install-src").value.trim();
+  const userid = ($("sav-userid").value || ui.userid || "").trim();
+  if (!src) { $("install-note").textContent = "Need the edited .sav from ENCODE."; return; }
+  if (!userid) { $("install-note").textContent = "Need Steam UserId."; return; }
+  $("install-note").textContent = "";
+  runStep("s1", "save-install", async () => {
+    try {
+      const data = await post("/api/save-install", {
+        path: src,
+        userid: Number(userid),
+        confirm: $("sav-confirm").value.trim(),
+      });
+      $("install-note").textContent = "copied " + (data.copied || []).length + " paths · " + (data.note || "");
+      log("SAVE", "install " + (data.copied || []).join(" | "));
+      $("sav-confirm").value = "";
+    } catch (e) {
+      $("install-note").textContent = e.message;
+      throw e;
+    }
+  });
+};
+async function previewInstall() {
+  const el = $("install-preview");
+  if (!el) return;
+  const userid = Number(($("sav-userid").value || ui.userid || "").trim());
+  const src = ($("sav-install-src").value || encodeResult?.path || "").trim();
+  const name = src.replace(/^.*[\\/]/, "") || "svd_fmt_0_0.sav";
+  if (!userid) { el.textContent = ""; return; }
+  try {
+    const data = await api("/api/save-install-preview?userid=" + userid + "&name=" + encodeURIComponent(name));
+    el.textContent = (data.attached ? "GAME ATTACHED — quit first. " : "") + "Will copy to: " + (data.dests || []).join(" · ");
+  } catch (e) {
+    el.textContent = e.message;
+  }
+}
+$("btn-brief-all").onclick = () => {
+  currentSav();
+  runStep("s1", "save-brief", async () => {
+    const data = await post("/api/save-brief-all", { path: ui.savPath });
+    if (data.path) { ui.savPath = data.path; savePrefs(); }
+    slotBriefs = {};
+    for (const b of (data.briefs || [])) rememberBrief(b);
+    fillSlotSelects();
+    renderSlotBriefs();
+    setMsg("s1", "ok", (data.briefs || []).length + " slot(s) decoded.");
+    log("STEP", "brief-all · " + (data.briefs || []).length + " slots");
+  });
+};
+function briefOne(slot) {
+  currentSav();
+  runStep("s1", "save-brief", async () => {
+    const data = await post("/api/save-brief", { path: ui.savPath, slot });
+    rememberBrief(data.brief);
+    fillSlotSelects();
+    renderSlotBriefs();
+    const b = data.brief || {};
+    setMsg("s1", "ok", slotLabel(slot) + " · chests " + b.chests_opened + " · Triggered " + b.triggered);
+    log("STEP", "brief · slot " + slot + " · chests " + b.chests_opened + " · " + (b.spawn_region || ""));
+  });
+}
+function exportOne(slot) {
+  currentSav();
+  runStep("s1", "save-export", async () => {
+    const data = await post("/api/save-export", { path: ui.savPath, slot });
+    setMsg("s1", "ok", "wrote " + data.path);
+    log("SAVE", "export slot " + slot + " → " + data.path);
+  });
+}
+$("btn-brief-before").onclick = () => briefOne(Number($("slot-before").value));
+$("btn-brief-after").onclick = () => briefOne(Number($("slot-after").value));
+$("btn-export-before").onclick = () => exportOne(Number($("slot-before").value));
+$("btn-export-after").onclick = () => exportOne(Number($("slot-after").value));
+$("sav-path").addEventListener("change", () => {
+  ui.savPath = $("sav-path").value.trim();
+  savePrefs();
+});
+$("slot-before").addEventListener("change", () => { ui.slotBefore = Number($("slot-before").value); savePrefs(); });
+$("slot-after").addEventListener("change", () => { ui.slotAfter = Number($("slot-after").value); savePrefs(); });
+$("btn-save-diff").onclick = () => {
   const loc = selected();
   if (!loc) return;
-  runStep(3, "diff", async () => {
-    const data = await post("/api/capture/after", { id: loc.id, zero_to_one: true });
-    st.capture = data.capture;
-    const n = candidates(data.capture).length;
-    setMsg(3, n === 1 ? "ok" : "warn", n === 0 ? "No 0→1 bytes." : n + " candidate" + (n === 1 ? "" : "s") + ".");
-    log("STEP", "diff · " + n + " candidate" + (n === 1 ? "" : "s") + " · " + loc.label);
+  ui.savPath = $("sav-path").value.trim();
+  ui.slotBefore = Number($("slot-before").value);
+  ui.slotAfter = Number($("slot-after").value);
+  savePrefs();
+  runStep("s2", "save-diff", async () => {
+    const data = await post("/api/save-diff", {
+      id: loc.id, path: ui.savPath, before: ui.slotBefore, after: ui.slotAfter
+    });
+    saveDiff = data;
+    pickObj = data.pick || null;
+    const n = (data.flags || []).length;
+    setMsg("s2", n ? "ok" : "warn", n ? n + " object flag(s)." : "No object flag change.");
+    log("STEP", "save-diff · " + loc.label + " · slots " + ui.slotBefore + "→" + ui.slotAfter + " · " + n + " flags");
+  });
+};
+$("btn-save-obj").onclick = () => {
+  const loc = selected();
+  const pick = pickObj || saveDiff?.pick;
+  if (!loc || !pick) return;
+  runStep("s3", "save-obj", async () => {
+    const data = await post("/api/save-diff/save", { id: loc.id, ...pick });
+    pickObj = null;
+    saveDiff = null;
+    log("SAVE", data.action + " " + data.entry.id + " Keen " + JSON.stringify(data.entry.save_object));
+    await loadCatalog();
+    setMsg("s3", "ok", "Saved Keen identity. RAM offset still needed for AP.");
   });
 };
 
@@ -1047,8 +1725,24 @@ async function poll() {
     const prev = st;
     st = data;
     // capture may have moved in another tab / after reload
-    const capKey = c => c ? [c.id, c.stage, c.busy, c.delta_count].join("|") : "";
+    const capKey = c => c ? [c.id, c.stage, c.busy, c.wait, c.delta_count, c.zero_to_one].join("|") : "";
     if (prev && pending === "" && capKey(prev.capture) !== capKey(data.capture)) renderList();
+    if (prev && prev.capture) {
+      const p = prev.capture, c = data.capture || {};
+      if (p.stage !== "baseline" && c.stage === "baseline") {
+        setMsg(2, "ok", "Closed dump stored.");
+        log("STEP", "baseline · " + (c.label || "") + " · in-game");
+      }
+      if (c.stage === "diffed" && (p.stage !== "diffed" || p.zero_to_one !== c.zero_to_one)) {
+        const n = c.zero_to_one ?? 0;
+        const raw = c.raw_zero_to_one || n;
+        setMsg(3, n === 1 ? "ok" : "warn",
+          n === 0 ? "No 0→1 bytes."
+            : n + " candidate" + (n === 1 ? "" : "s") + (raw > n ? " (" + raw + " raw)" : "") + ".");
+        log("STEP", "diff · " + n + " 0→1 · " + (c.label || "") + (raw > n ? " · " + raw + " raw, pool copies dropped" : ""));
+      }
+      if (c.error && c.error !== p.error) log("ERR", c.error);
+    }
     onStatus(data.status);
     onEvents(data.events || [], data.history);
   } catch (e) {
@@ -1096,7 +1790,11 @@ function onEvents(events, history) {
 async function loadCatalog() {
   catalog = await api("/api/catalog");
   const names = regionNames();
-  if (!names.includes(ui.region)) ui.region = names.includes("Crossroads") ? "Crossroads" : (names[0] || "");
+  if (!names.includes(ui.region)) {
+    ui.region = names.includes("Seraphim Hotel") ? "Seraphim Hotel"
+      : names.includes("Crossroads") ? "Crossroads"
+      : (names[0] || "");
+  }
   if (ui.sel && !findLoc(ui.sel)) ui.sel = "";
   renderRegions();
   renderPills();
@@ -1127,6 +1825,9 @@ $("tab-md").onclick = () => showPreviewTab("md");
 /* ---------- controls ---------- */
 $("pane-checks").onclick = () => setPane("checks");
 $("pane-items").onclick = () => setPane("items");
+$("work-tab-diff").onclick = () => setWork("diff");
+$("work-tab-ram").onclick = () => setWork("ram");
+$("work-tab-saves").onclick = () => setWork("saves");
 $("region-select").addEventListener("change", e => {
   ui.region = e.target.value;
   savePrefs();
@@ -1171,6 +1872,7 @@ document.querySelectorAll(".copy").forEach(b => b.onclick = async () => {
     log("ERR", "catalog: " + e.message);
   }
   setPane(ui.pane === "items" ? "items" : "checks");
+  loadSavSlots();
   poll();
 })();
 </script>

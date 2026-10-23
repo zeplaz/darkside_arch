@@ -10,6 +10,7 @@ import argparse
 import json
 import sys
 import time
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -129,6 +130,40 @@ class Delta:
     new: int
 
 
+# Same field in many objects (stride 0x80..0x400). A chest save flag is not 40 copies.
+POOL_STRIDES = (0x80, 0x100, 0x200, 0x400)
+POOL_FAMILY_MIN = 4
+
+
+def intersect_deltas(left: list[Delta], right: list[Delta]) -> list[Delta]:
+    keep = {d.rva for d in right}
+    return [d for d in left if d.rva in keep]
+
+
+def drop_pool_families(
+    deltas: list[Delta], *, min_family: int = POOL_FAMILY_MIN
+) -> list[Delta]:
+    """Drop 0→1 bytes that sit at the same offset in many objects.
+
+    Warmastered .data is ~34 MB. Opening a chest flips hundreds of bools at
+    the same struct offset. Keep unique-layout bytes; if that would drop
+    everything, leave the list alone.
+    """
+    if len(deltas) < min_family:
+        return deltas
+    rvas = [d.rva for d in deltas]
+    drop: set[int] = set()
+    for stride in POOL_STRIDES:
+        buckets: dict[int, list[int]] = defaultdict(list)
+        for r in rvas:
+            buckets[r % stride].append(r)
+        for members in buckets.values():
+            if len(members) >= min_family:
+                drop.update(members)
+    kept = [d for d in deltas if d.rva not in drop]
+    return kept if kept else list(deltas)
+
+
 def diff_snapshots(
     before: str,
     after: str,
@@ -201,7 +236,7 @@ def capture_deltas(wait_before, wait_after) -> list[Delta]:
     take_snapshot(name=b)
     wait_after()
     take_snapshot(name=c)
-    return diff_snapshots(b, c, stable=a, only_zero_to_one=True)
+    return drop_pool_families(diff_snapshots(b, c, stable=a, only_zero_to_one=True))
 
 
 def main_capture(argv: Optional[list[str]] = None) -> int:
@@ -210,12 +245,14 @@ def main_capture(argv: Optional[list[str]] = None) -> int:
 
     p = argparse.ArgumentParser(
         prog="python -m tools capture",
-        description="Pick a world location, dump before/after opening it, save the 0->1 flag.",
-        epilog="python -m tools capture --region Crossroads",
+        description="Identify a location. Chests: two in-game save slots. RAM dump is last resort.",
+        epilog='python -m tools capture --sav FILE.sav --slots 1 2 --location "Seraphim Hotel Life Chest 1"',
     )
     p.add_argument("--location", default="", help="Exact name or unique substring (also recaptures a mapped one)")
     p.add_argument("--region", default="", help="Filter the picker, e.g. Crossroads")
     p.add_argument("--next", action="store_true", help="First unmapped check in --region, no menu")
+    p.add_argument("--sav", type=Path, help="Warmastered .sav with two slots (closed then open)")
+    p.add_argument("--slots", nargs=2, type=int, metavar=("BEFORE", "AFTER"), help="Keen slots: -1 autosave, 0..9")
     p.add_argument("--dry-run", action="store_true", help="Print the result; do not write targets.json")
     args = p.parse_args(argv)
     if sys.platform != "win32":
@@ -225,8 +262,38 @@ def main_capture(argv: Optional[list[str]] = None) -> int:
     loc = resolve_location(location=args.location, region=args.region, next_unmapped=args.next)
     if loc is None:
         return 1
+    if args.sav or args.slots:
+        from tools.save_object import diff_sav_slots, find_default_sav, identify_location, parse_save_object
+
+        sav = args.sav or find_default_sav()
+        if sav is None:
+            print("[ERROR] No .sav. Pass --sav PATH")
+            return 1
+        if not args.slots:
+            print("[ERROR] --slots BEFORE AFTER is required with --sav")
+            return 2
+        print(f"[*] {loc.name}  save-diff  {sav}  slots {args.slots[0]} -> {args.slots[1]}")
+        try:
+            result = diff_sav_slots(sav, args.slots[0], args.slots[1])
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"[-] {exc}")
+            return 1
+        pick = result.get("pick")
+        if parse_save_object(pick) is None:
+            print("[-] Need exactly one Triggered/Destroyed/Open delta. Rows:")
+            for d in result["flags"]:
+                print(f"    {d['world']} r={d['region_id']} L={d['layer_id']} obj={d['object_id']} {d['value_key']}: {d['old']} -> {d['new']}")
+            return 1
+        if args.dry_run:
+            print(json.dumps(pick, indent=2))
+            return 0
+        action, entry = identify_location(loc, pick)
+        print(f"[OK] {action} {entry['id']} Keen {entry['save_object']}")
+        return 0
     print(
         f"[*] {loc.name}  (AP {loc.ap_id}, {loc.region})\n"
+        "    Chests: python -m tools capture --sav FILE --slots 1 2 --location NAME\n"
+        "    RAM dump is last resort.\n"
         "    1) Stand still next to it while it is still closed.\n"
         "    2) Enter = baseline.  3) Open it in-game.  4) Enter = after.\n"
     )

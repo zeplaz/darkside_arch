@@ -8,15 +8,16 @@ from typing import Optional
 
 # name -> (module:function, one-line help). Order is the order shown in --help.
 COMMANDS: dict[str, tuple[str, str]] = {
-    "dashboard": ("tools.dashboard:main", "Browser UI: pick a location, capture it, watch live values"),
-    "capture": ("tools.snapshot:main_capture", "Terminal capture of one location flag (baseline -> open -> save)"),
-    "scan": ("tools.scanner:main", "Find a HUD number (souls, item counts) by narrowing its value"),
+    "dashboard": ("tools.dashboard:main", "Browser UI: two save slots → DIFF SAVES, then live RAM watches"),
+    "capture": ("tools.snapshot:main_capture", "Identify a location from two .sav slots (RAM dump last resort)"),
+    "scan": ("tools.scanner:main", "HUD numbers, or --sav/--slots for a chest identity"),
     "locations": ("tools.world_catalog:main_locations", "List location checks with todo/done status"),
-    "sync-world": ("tools.world_catalog:main_sync_world", "Refresh docs/world_*.json from the local world clone"),
+    "sync-world": ("tools.world_catalog:main_sync_world", "Refresh docs/world_*.json from worlds/darksiders/data"),
     "export-docs": ("tools.export_docs:main", "Write docs/memory_map.md from targets.json"),
-    "save-brief": ("tools.save_brief:main", "Summarize a Keen JSON save export"),
-    "save-diff": ("tools.save_diff:main", "Diff two Keen JSON save exports"),
+    "save-brief": ("tools.save_brief:main", "Summarize a Keen JSON dump or a .sav slot (war decode)"),
+    "save-diff": ("tools.save_diff:main", "Diff two Keen slots or JSON dumps; --location writes save_object"),
     "save-install": ("tools.save_install:main", "Rewrite the Steam UserId on an AP template save"),
+    "save-patch": ("tools.save_patch:main", "Change .sav UserId via whatisaphone/war decode-encode"),
 }
 
 

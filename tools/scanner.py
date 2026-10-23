@@ -1,7 +1,8 @@
 """Exact-value scanner for *known* HUD numbers (souls, etc.).
 
-Chests and unknown flags: use ``python -m tools capture`` (snapshot/diff).
-Typing 0 into this scanner is the wrong tool — it matches every zero byte.
+HUD numbers only (souls, item counts). Chests: two save slots via
+``python -m tools scan --sav FILE --slots 1 2 --item NAME``
+or the dashboard SAVE DIFF. Typing 0 here matches every zero byte.
 """
 
 from __future__ import annotations
@@ -9,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
 from typing import Optional, Sequence
 
 from ds_client.models import PROCESS_NAME, TYPE_SPECS
@@ -164,7 +166,7 @@ def run_value_scan(row: dict, *, dry_run: bool = False) -> int:
             regions = process.snapshot_memory_regions()
             print(
                 "\nExact-value scan — for a known HUD number (souls).\n"
-                "Chests / unknown flags: Ctrl+C, then python -m tools capture\n"
+                "Chests: Ctrl+C, then python -m tools scan --sav FILE --slots 1 2 --item NAME\n"
                 "Look at the HUD and type that number. Live logging is python -m ds_client.\n"
             )
             raw = input("HUD value right now (or 'q' to quit): ").strip()
@@ -280,21 +282,64 @@ def _entry(row: dict, module: str, offsets: Sequence[int], notes: str) -> dict:
 def main(argv: Optional[list[str]] = None) -> int:
     p = argparse.ArgumentParser(
         prog="python -m tools scan",
-        description="Find a HUD number (souls, item counts) by narrowing its value. Not for chests.",
-        epilog='python -m tools scan --item "Progressive Chaoseater"',
+        description="HUD numbers by exact value, or chest identity from two save slots.",
+        epilog='python -m tools scan --sav FILE.sav --slots 1 2 --item "Seraphim Hotel Life Chest 1"',
     )
-    p.add_argument("--item", default=SOULS_LABEL, help=f"targets.json label to map (default {SOULS_LABEL!r})")
+    p.add_argument("--item", default="", help=f"targets.json / catalog label (default {SOULS_LABEL!r} for HUD scan)")
     p.add_argument("--type", dest="dtype", choices=sorted(TYPE_SPECS), help="Override the row's type")
+    p.add_argument("--sav", type=Path, help="Warmastered .sav — chest save-diff, not a RAM scan")
+    p.add_argument("--slots", nargs=2, type=int, metavar=("BEFORE", "AFTER"), help="Keen slots: -1 autosave, 0..9")
     p.add_argument("--dry-run", action="store_true", help="Print the result; do not write targets.json")
     args = p.parse_args(argv)
     if sys.platform != "win32":
         print("[ERROR] Scanner requires Windows.")
         return 1
-    row = find_row(args.item)
+    if args.sav or args.slots:
+        from tools.save_object import diff_sav_slots, find_default_sav, identify_location, parse_save_object
+        from tools.world_catalog import resolve_location
+
+        name = args.item or ""
+        loc = resolve_location(location=name)
+        if loc is None:
+            return 1
+        sav = args.sav or find_default_sav()
+        if sav is None:
+            print("[ERROR] No .sav. Pass --sav PATH")
+            return 1
+        if not args.slots:
+            print("[ERROR] --slots BEFORE AFTER is required with --sav")
+            return 2
+        print(f"[*] {loc.name}  save-diff  {sav}  slots {args.slots[0]} -> {args.slots[1]}")
+        try:
+            result = diff_sav_slots(sav, args.slots[0], args.slots[1])
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"[-] {exc}")
+            return 1
+        pick = result.get("pick")
+        if parse_save_object(pick) is None:
+            print("[-] Need exactly one Triggered/Destroyed/Open delta.")
+            for d in result["flags"]:
+                print(f"    {d['world']} r={d['region_id']} L={d['layer_id']} obj={d['object_id']} {d['value_key']}: {d['old']} -> {d['new']}")
+            return 1
+        if args.dry_run:
+            print(json.dumps(pick, indent=2))
+            return 0
+        action, entry = identify_location(loc, pick)
+        print(f"[OK] {action} {entry['id']} Keen {entry['save_object']}")
+        return 0
+    item = args.item or SOULS_LABEL
+    row = find_row(item)
     if row is None:
         labels = [t["label"] for t in raw_targets() if t.get("category") in {"inventory", "stat"}]
-        print(f"[ERROR] No targets.json row labelled {args.item!r}. Known: {', '.join(labels)}")
+        print(f"[ERROR] No targets.json row labelled {item!r}. Known HUD: {', '.join(labels)}")
+        print("        Chests: python -m tools scan --sav FILE --slots 1 2 --item NAME")
         return 1
+    if str(row.get("category")) == "location_flag":
+        print(
+            "[ERROR] Chests are identified from two save slots, not a HUD scan.\n"
+            f'        python -m tools scan --sav FILE --slots 1 2 --item "{item}"'
+        )
+        return 2
     if args.dtype:
         row = {**row, "type": args.dtype}
     return run_value_scan(row, dry_run=args.dry_run)

@@ -10,13 +10,15 @@ from typing import Optional
 LOCATIONS_PATH = Path("docs") / "world_locations.json"
 ITEMS_PATH = Path("docs") / "world_items.json"
 
-GOAL_LABELS = frozenset({"Abaddon The Destroyer defeated", "Victory"})
+GOAL_LABELS = frozenset(
+    {"Abaddon Destroyer defeated", "Abaddon The Destroyer defeated", "Victory"}
+)
 SHARD_ITEM = "Armageddon Blade Shards"
 BLADE_ITEM = "Armageddon Blade"
 PROGRESSIVE_LEVEL_CAPS = {
     "Progressive Chaoseater": 4,
     "Progressive Scythe": 4,
-    "Progressive Gauntlet": 5,
+    "Progressive Gauntlet": 4,
 }
 
 
@@ -48,8 +50,11 @@ class ApCatalog:
         return entry.ap_id if entry else None
 
     def item_id(self, name: str) -> Optional[int]:
-        entry = self._items.get(name)
+        entry = self.item_entry(name)
         return entry.ap_id if entry else None
+
+    def item_entry(self, name: str) -> Optional[CatalogEntry]:
+        return self._items.get(name)
 
     def item_name(self, ap_id: int) -> Optional[str]:
         entry = self._items_by_id.get(ap_id)
