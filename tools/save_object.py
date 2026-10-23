@@ -1,21 +1,17 @@
-"""Keen WorldObject identity from a save-diff — chests, doors, breakables.
-
-Not a RAM address. ds_client still skips the row until offsets are mapped.
-"""
+"""Keen WorldObject identity from a save-diff. Not a RAM address."""
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any, Optional
 
-from tools.game_data import persist_flag
-from tools.save_diff import diff_saves, _load
-from tools.save_install import steam_userdata_roots, APP_ID
-from tools.save_patch import SLOT_LENGTH, slot_byte_offset
+from tools.game_data import FLAG_KEYS, persist_flag
+from tools.save_brief import load_save
+from tools.save_diff import diff_saves
+from tools.save_install import APP_ID, steam_userdata_roots
 from tools.targets import find_row, is_template, save_target
 from tools.world_catalog import WorldLocation
-
-FLAG_KEYS = ("Triggered", "Destroyed", "Open", "Activated")
 
 
 def parse_save_object(raw: object) -> Optional[dict[str, Any]]:
@@ -47,10 +43,6 @@ def format_save_object(obj: dict[str, Any]) -> str:
     )
 
 
-def is_identified(raw: dict) -> bool:
-    return parse_save_object(raw.get("save_object")) is not None
-
-
 def object_flag_deltas(
     rows: list[tuple[tuple[str, ...], str, str]],
 ) -> list[dict[str, Any]]:
@@ -74,7 +66,6 @@ def object_flag_deltas(
 
 
 def pick_flag_delta(deltas: list[dict[str, Any]]) -> Optional[dict[str, Any]]:
-    """Prefer a new persist-flag record (chest ``setSaveValue``). Else the only flag delta."""
     key = persist_flag()
     fresh = [
         d
@@ -88,17 +79,6 @@ def pick_flag_delta(deltas: list[dict[str, Any]]) -> Optional[dict[str, Any]]:
     return None
 
 
-def occupied_slots(sav: Path) -> list[int]:
-    raw = sav.read_bytes()
-    found: list[int] = []
-    for slot in [-1, *range(10)]:
-        off = slot_byte_offset(slot)
-        chunk = raw[off : off + SLOT_LENGTH]
-        if len(chunk) == SLOT_LENGTH and chunk[:4] == b"DSAV":
-            found.append(slot)
-    return found
-
-
 def find_default_sav() -> Optional[Path]:
     names = ("svd_fmt_0_0.sav", "keen_savegame_0_0.sav")
     for root in steam_userdata_roots():
@@ -107,19 +87,14 @@ def find_default_sav() -> Optional[Path]:
         for user in root.iterdir():
             remote = user / APP_ID / "remote"
             for name in names:
-                for path in (
-                    remote / "autocloud" / "save" / name,
-                    remote / name,
-                ):
+                for path in (remote / "autocloud" / "save" / name, remote / name):
                     if path.is_file():
                         return path
     return None
 
 
 def diff_sav_slots(sav: Path, before_slot: int, after_slot: int) -> dict[str, Any]:
-    before = _load(sav, before_slot)
-    after = _load(sav, after_slot)
-    rows = diff_saves(before, after)
+    rows = diff_saves(load_save(sav, before_slot), load_save(sav, after_slot))
     flags = object_flag_deltas(rows)
     stats = [
         {"field": k[5], "old": left, "new": right}
@@ -127,14 +102,13 @@ def diff_sav_slots(sav: Path, before_slot: int, after_slot: int) -> dict[str, An
         if k[0] == "stat"
         and k[5] in {"NumberOfChestsOpened", "Health", "HealthLevel", "GameTime"}
     ]
-    pick = pick_flag_delta(flags)
     return {
         "path": str(sav),
         "before_slot": before_slot,
         "after_slot": after_slot,
         "flags": flags,
         "stats": stats,
-        "pick": pick,
+        "pick": pick_flag_delta(flags),
     }
 
 
@@ -155,12 +129,57 @@ def identify_location(loc: WorldLocation, obj: dict[str, Any]) -> tuple[str, dic
         "type": str(existing.get("type") or "uint8"),
         "bitmask": existing.get("bitmask", "0x01"),
         "save_object": parsed,
-        "notes": (
-            existing.get("notes") or ""
-        ).strip()
+        "notes": (existing.get("notes") or "").strip()
         or f"Keen {format_save_object(parsed)}. RAM offset not mapped.",
     }
     if ram:
         entry["module"] = existing.get("module")
         entry["type"] = existing.get("type") or "uint8"
     return save_target(entry)
+
+
+def write_identity(
+    loc: WorldLocation,
+    pick: Optional[dict[str, Any]],
+    *,
+    dry_run: bool = False,
+    flags: Optional[list[dict[str, Any]]] = None,
+) -> int:
+    if parse_save_object(pick) is None:
+        print("[-] Need exactly one Triggered/Destroyed/Open delta.")
+        for d in flags or []:
+            print(
+                f"    {d['world']} r={d['region_id']} L={d['layer_id']} "
+                f"obj={d['object_id']} {d['value_key']}: {d['old']} -> {d['new']}"
+            )
+        return 1
+    if dry_run:
+        print(json.dumps(pick, indent=2))
+        return 0
+    action, entry = identify_location(loc, pick)  # type: ignore[arg-type]
+    print(f"[OK] {action} {entry['id']} Keen {entry['save_object']}")
+    return 0
+
+
+def write_identity_from_slots(
+    loc: WorldLocation,
+    sav: Optional[Path] = None,
+    before: Optional[int] = None,
+    after: Optional[int] = None,
+    *,
+    dry_run: bool = False,
+) -> int:
+    sav = sav or find_default_sav()
+    if sav is None:
+        print("[ERROR] No .sav. Pass --sav PATH")
+        return 1
+    if before is None or after is None:
+        print("[ERROR] --slots BEFORE AFTER is required with --sav")
+        return 2
+    print(f"[*] {loc.name}  save-diff  {sav}  slots {before} -> {after}")
+    try:
+        result = diff_sav_slots(sav, before, after)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"[-] {exc}")
+        return 1
+    return write_identity(loc, result.get("pick"), dry_run=dry_run, flags=result["flags"])

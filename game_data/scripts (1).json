@@ -1,0 +1,58 @@
+{
+  "classname": "RegionLayer",
+  "properties": {
+    "Root": {
+      "classname": "WorldGroup",
+      "properties": {
+        "Objects": [
+          {
+            "classname": "special_casket/chest_healthchest",
+            "properties": {
+              "Heading": 125.0,
+              "HitPoints": 75.0,
+              "Inventory": {
+                "classname": "Inventory",
+                "properties": {}
+              },
+              "Position": [
+                -538.49,
+                -30761.44,
+                1184.73
+              ],
+              "Rotation": [
+                0.0,
+                0.0,
+                125.0
+              ],
+              "ObjectID": 16,
+              "RegionID": 260,
+              "LayerID": 1,
+              "Name": "CI_SB_Exit_Chest_HealthChest"
+            }
+          },
+          {
+            "classname": "base/waypoint",
+            "properties": {
+              "Position": [
+                -674.7733,
+                -29501.645,
+                597.55225
+              ],
+              "Rotation": [
+                0.0,
+                0.0,
+                -58.0
+              ],
+              "Render": true,
+              "ObjectID": 2,
+              "RegionID": 260,
+              "LayerID": 1,
+              "Name": "Start"
+            }
+          }
+        ]
+      }
+    },
+    "NextObjectID": 16
+  }
+}

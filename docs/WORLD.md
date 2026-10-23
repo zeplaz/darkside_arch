@@ -53,8 +53,8 @@ Hotel is a local/proposed patch: [proposed/Seraphim Hotel.json](proposed/Seraphi
 
 | Location | |
 |----------|--|
-| `Seraphim Hotel Life Chest 1` | AP 200. Keen `overworld` r=2 L=6 obj=342 `Triggered` |
-| `Seraphim Hotel Life Chest 2` | AP 201. Wiki H2 2/2 |
+| `Seraphim Hotel Life Chest 1` | AP 200. Keen `SB_G_Chest_HealthChest_01` `overworld` r=2 L=6 obj=342 `Triggered` (`/overworld/CI_StartBld`) |
+| `Seraphim Hotel Life Chest 2` | AP 201. Keen `CI_SB_Exit_Chest_HealthChest` `overworld` r=260 L=1 obj=16 `Triggered` (`/overworld/CI_SB_Exit`). Different region than chest 1. |
 | `Crossroads Currency Chest Down Back Alley Stairs` | was “Down Stairs”, AP 600 |
 | `Crossroads Currency Chest in North Building` | new, AP 601 |
 | `Crossroads Currency Chest South Crater` | AP 602 |

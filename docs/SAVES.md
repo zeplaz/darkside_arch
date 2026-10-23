@@ -34,7 +34,11 @@ Keen world objects live in `PlayerSaveData.WorldData[].Regions[].Layers[].WorldO
 | `Open` | Doors |
 | `Triggered` | Chests / one-shots |
 
-`Seraphim Hotel Life Chest 1` is `overworld` / RegionID `2` / LayerID `6` / ObjectID `342` / `Triggered`. Slot 1 = closed, slot 2 = open (`NumberOfChestsOpened` 0→1, Health 81→200). ObjectID is not global — never search RAM for `342` alone; the RAM capture anchors on ObjectID + RegionID + LayerID together.
+`Seraphim Hotel Life Chest 1` is `overworld` / RegionID `2` / LayerID `6` / ObjectID `342` / `Triggered` (`SB_G_Chest_HealthChest_01`, `/overworld/CI_StartBld`). Slot 1 = closed, slot 2 = open (`NumberOfChestsOpened` 0→1, Health 81→200).
+
+`Seraphim Hotel Life Chest 2` is `overworld` / RegionID `260` / LayerID `1` / ObjectID `16` / `Triggered` (`CI_SB_Exit_Chest_HealthChest`, `/overworld/CI_SB_Exit`). Sacha matched the name to the minimap; not yet save-diff confirmed. Same hotel, different Keen region — do not look for obj 343 on layer 6.
+
+ObjectID is not global — never search RAM for `342` or `16` alone; the RAM capture anchors on ObjectID + RegionID + LayerID together.
 
 `war sav decode` only reads the autosave slot (`-1`). Manual slots 0–9 sit in the same `.sav`; `save-diff --slots` copies a slot onto autosave before decode.
 

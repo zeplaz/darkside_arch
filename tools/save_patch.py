@@ -87,6 +87,17 @@ def slot_byte_offset(slot: int) -> int:
     raise ValueError(f"slot must be -1 (autosave) or 0..9, not {slot}")
 
 
+def occupied_slots(sav: Path) -> list[int]:
+    raw = sav.read_bytes()
+    found: list[int] = []
+    for slot in [-1, *range(10)]:
+        off = slot_byte_offset(slot)
+        chunk = raw[off : off + SLOT_LENGTH]
+        if len(chunk) == SLOT_LENGTH and chunk[:4] == b"DSAV":
+            found.append(slot)
+    return found
+
+
 def decode_sav_slot(sav: Path, slot: int, war: Optional[list[str]] = None) -> dict:
     """Decode one Keen slot. war-cli only reads autosave, so other slots are copied there first."""
     raw = sav.read_bytes()

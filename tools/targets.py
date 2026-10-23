@@ -37,12 +37,9 @@ def is_mapped(raw: dict) -> bool:
 
 
 def is_identified(raw: dict) -> bool:
-    """Keen save_object recorded; not a live RAM watch."""
-    obj = raw.get("save_object")
-    return isinstance(obj, dict) and all(
-        obj.get(k) not in (None, "")
-        for k in ("world", "region_id", "layer_id", "object_id", "value_key")
-    )
+    from tools.save_object import parse_save_object
+
+    return parse_save_object(raw.get("save_object")) is not None
 
 
 def find_row(label: str, rows: Sequence[dict] | None = None) -> dict | None:

@@ -63,9 +63,9 @@ from tools.save_object import (
     find_default_sav,
     format_save_object,
     identify_location,
-    occupied_slots,
     parse_save_object,
 )
+from tools.save_patch import occupied_slots
 from tools.targets import build_target_entry, find_row, is_identified, is_template, raw_targets, save_target
 from tools.world_catalog import is_mapped, load_catalog
 
