@@ -55,6 +55,34 @@ kernel32.GetExitCodeProcess.argtypes = (
 )
 kernel32.GetExitCodeProcess.restype = ctypes.wintypes.BOOL
 
+MEM_COMMIT = 0x1000
+MEM_PRIVATE = 0x20000
+PAGE_READWRITE = 0x04
+PAGE_GUARD = 0x100
+USER_SPACE_END = 0x7FFF_FFFF_0000
+
+
+class MEMORY_BASIC_INFORMATION(ctypes.Structure):
+    _fields_ = [
+        ("BaseAddress", ctypes.c_void_p),
+        ("AllocationBase", ctypes.c_void_p),
+        ("AllocationProtect", ctypes.wintypes.DWORD),
+        ("PartitionId", ctypes.wintypes.WORD),
+        ("RegionSize", ctypes.c_size_t),
+        ("State", ctypes.wintypes.DWORD),
+        ("Protect", ctypes.wintypes.DWORD),
+        ("Type", ctypes.wintypes.DWORD),
+    ]
+
+
+kernel32.VirtualQueryEx.argtypes = (
+    ctypes.wintypes.HANDLE,
+    ctypes.wintypes.LPCVOID,
+    ctypes.POINTER(MEMORY_BASIC_INFORMATION),
+    ctypes.c_size_t,
+)
+kernel32.VirtualQueryEx.restype = ctypes.c_size_t
+
 psapi.EnumProcessModulesEx.argtypes = (
     ctypes.wintypes.HANDLE,
     ctypes.POINTER(ctypes.wintypes.HMODULE),
@@ -135,6 +163,31 @@ def get_module_base(handle: ProcessHandle, module_name: str) -> int:
             return int(ctypes.cast(mod, ctypes.c_void_p).value)
 
     raise OSError(f"module {module_name!r} not found in process")
+
+
+def private_rw_regions(handle: ProcessHandle) -> list[tuple[int, int]]:
+    """(address, size) of committed, private, read-write pages — the heaps.
+
+    Image sections (.data) and mapped files are excluded; guard pages too.
+    """
+    out: list[tuple[int, int]] = []
+    mbi = MEMORY_BASIC_INFORMATION()
+    addr = 0
+    while addr < USER_SPACE_END:
+        if not kernel32.VirtualQueryEx(handle, ctypes.c_void_p(addr), ctypes.byref(mbi), ctypes.sizeof(mbi)):
+            break
+        base = int(mbi.BaseAddress or 0)
+        size = int(mbi.RegionSize)
+        if (
+            mbi.State == MEM_COMMIT
+            and mbi.Type == MEM_PRIVATE
+            and mbi.Protect == PAGE_READWRITE  # excludes PAGE_GUARD / NOACCESS combos
+        ):
+            out.append((base, size))
+        if size <= 0:
+            break
+        addr = base + size
+    return out
 
 
 def read_memory(handle: ProcessHandle, address: int, size: int) -> Optional[bytes]:

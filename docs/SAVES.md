@@ -34,13 +34,13 @@ Keen world objects live in `PlayerSaveData.WorldData[].Regions[].Layers[].WorldO
 | `Open` | Doors |
 | `Triggered` | Chests / one-shots |
 
-`Seraphim Hotel Life Chest 1` is `overworld` / RegionID `2` / LayerID `6` / ObjectID `342` / `Triggered`. Slot 1 = closed, slot 2 = open (`NumberOfChestsOpened` 0→1, Health 81→200). ObjectID is not global — do not scan RAM for `342`.
+`Seraphim Hotel Life Chest 1` is `overworld` / RegionID `2` / LayerID `6` / ObjectID `342` / `Triggered`. Slot 1 = closed, slot 2 = open (`NumberOfChestsOpened` 0→1, Health 81→200). ObjectID is not global — never search RAM for `342` alone; the RAM capture anchors on ObjectID + RegionID + LayerID together.
 
 `war sav decode` only reads the autosave slot (`-1`). Manual slots 0–9 sit in the same `.sav`; `save-diff --slots` copies a slot onto autosave before decode.
 
-A closed→open slot pair identifies the chest. Dashboard **DIFF SAVES** / `scan --sav` writes `save_object` onto that AP name. Do not RAM-dump `.data` for chests, and do not scan RAM for ObjectID.
+A closed→open slot pair identifies the chest. Dashboard **DIFF SAVES** / `scan --sav` writes `save_object` onto that AP name. The live flag then comes from the **RAM DUMP** tab, which scans the heap around that identity ([tools](../tools/README.md#dashboard)); `.data` does not hold chest flags.
 
-Dashboard is a workspace. Center tabs: **SAVE DIFF** (mapping), **RAM DUMP** (last resort, F8 still works while hidden), **SAVES** (inspect, encode UserId to `saves/edited/`, then **INSTALL TO STEAM**). INSTALL refuses while the game is attached, refuses a live Steam source, and requires typing `INSTALL`. Encode dest must stay under `saves/edited/`. war only rewrites autosave. LIVE VALUES stay on the right.
+Dashboard is a workspace. Center tabs: **SAVE DIFF** (mapping), **RAM DUMP** (live flag after identity, heap capture; F8 still works while hidden), **SAVES** (inspect, encode UserId to `saves/edited/`, then **INSTALL TO STEAM**). INSTALL refuses while the game is attached, refuses a live Steam source, and requires typing `INSTALL`. Encode dest must stay under `saves/edited/`. war only rewrites autosave. LIVE VALUES stay on the right.
 
 ```powershell
 python -m tools dashboard

@@ -13,14 +13,24 @@ REPO = Path(__file__).resolve().parent.parent
 LABEL = "Crossroads Currency Chest South Crater"
 
 
-def _fake_snapshot(pid: int):
-    def take(*, name: str, **_kw) -> Path:
-        dest = Path("snapshots") / name
-        dest.mkdir(parents=True, exist_ok=True)
-        (dest / "meta.json").write_text(json.dumps({"pid": pid}), encoding="utf-8")
-        return dest
+class FakeRam:
+    """Stands in for snapshot.RamCapture: after() returns whatever the test queued."""
 
-    return take
+    def __init__(self, save_object=None) -> None:
+        self.pid = 1234
+        self.save_object = save_object
+        self.stats = {"scope": "module", "scanned_mb": 32}
+        self.next: list[Delta] = []
+        self.error: str = ""
+
+    def after(self) -> list[Delta]:
+        if self.error:
+            raise ValueError(self.error)
+        return self.next
+
+
+def _mod(rva: int) -> Delta:
+    return Delta(".data", 0x7FF0_0000_0000 + rva, 0, 1, rva=rva)
 
 
 class DashboardCaptureTests(unittest.TestCase):
@@ -48,10 +58,13 @@ class DashboardCaptureTests(unittest.TestCase):
         )
         dashboard.capture_reset()
         self.slug = dashboard._find_catalog_loc(LABEL).slug
-        patches = [
-            mock.patch.object(dashboard, "take_snapshot", _fake_snapshot(1234)),
-            mock.patch.object(dashboard.time, "sleep", lambda _s: None),
-        ]
+        self.rams: list[FakeRam] = []
+
+        def start(save_object=None):
+            self.rams.append(FakeRam(save_object))
+            return self.rams[-1]
+
+        patches = [mock.patch.object(dashboard, "start_capture", side_effect=start)]
         for p in patches:
             p.start()
             self.addCleanup(p.stop)
@@ -62,38 +75,38 @@ class DashboardCaptureTests(unittest.TestCase):
         self._tmp.cleanup()
 
     def _diff(self, deltas: list[Delta]) -> dict:
-        with mock.patch.object(dashboard, "diff_snapshots", return_value=deltas):
-            return dashboard.capture_after(self.slug, zero_to_one=True)["capture"]
+        self.rams[-1].next = deltas
+        return dashboard.capture_after(self.slug)["capture"]
 
     def test_diff_needs_baseline_for_same_location(self) -> None:
         with self.assertRaisesRegex(ValueError, "no baseline"):
-            self._diff([])
+            dashboard.capture_after(self.slug)
         dashboard.capture_before(self.slug)
         other = dashboard._find_catalog_loc("Crossroads Currency Chest in Subway Station").slug
         with self.assertRaisesRegex(ValueError, "baseline belongs to"):
-            dashboard.capture_after(other, zero_to_one=True)
+            dashboard.capture_after(other)
 
     def test_game_restart_invalidates_baseline(self) -> None:
         dashboard.capture_before(self.slug)
-        with mock.patch.object(dashboard, "take_snapshot", _fake_snapshot(999)):
-            with self.assertRaisesRegex(ValueError, "restarted"):
-                self._diff([])
+        self.rams[-1].error = "game restarted since the baseline; start over"
+        with self.assertRaisesRegex(ValueError, "restarted"):
+            self._diff([])
 
     def test_multiple_candidates_need_a_pick(self) -> None:
         dashboard.capture_before(self.slug)
-        cap = self._diff([Delta(".data", 0x10, 0, 1), Delta(".data", 0x20, 0, 1)])
+        cap = self._diff([_mod(0x10), _mod(0x20)])
         self.assertEqual((cap["stage"], cap["zero_to_one"]), ("diffed", 2))
         with self.assertRaisesRegex(ValueError, "2 candidates"):
             dashboard.capture_save(self.slug)
         with self.assertRaisesRegex(ValueError, "not one of"):
-            dashboard.capture_save(self.slug, rva=0x30)
-        out = dashboard.capture_save(self.slug, rva=0x20)
+            dashboard.capture_save(self.slug, address=_mod(0x30).address)
+        out = dashboard.capture_save(self.slug, address=_mod(0x20).address)
         self.assertEqual(out["entry"]["offsets"], ["0x20"])
         self.assertEqual(out["capture"]["stage"], "idle")
 
     def test_save_updates_template_row_instead_of_appending(self) -> None:
         dashboard.capture_before(self.slug)
-        self._diff([Delta(".data", 0x1A40B20, 0, 1)])
+        self._diff([_mod(0x1A40B20)])
         out = dashboard.capture_save(self.slug)
         self.assertEqual(out["action"], "updated")
         rows = json.loads(Path("targets.json").read_text(encoding="utf-8"))["targets"]
@@ -123,24 +136,23 @@ class DashboardCaptureTests(unittest.TestCase):
 
     def test_second_diff_intersects_previous_candidates(self) -> None:
         dashboard.capture_before(self.slug)
-        self._diff(
-            [
-                Delta(".data", 0x10, 0, 1),
-                Delta(".data", 0x20, 0, 1),
-                Delta(".data", 0x30, 0, 1),
-            ]
-        )
-        cap = self._diff([Delta(".data", 0x20, 0, 1), Delta(".data", 0x40, 0, 1)])
+        self._diff([_mod(0x10), _mod(0x20), _mod(0x30)])
+        cap = self._diff([_mod(0x20), _mod(0x40)])
         self.assertEqual(cap["zero_to_one"], 1)
         self.assertEqual(cap["deltas"][0]["rva"], 0x20)
 
-    def test_object_pool_bytes_are_dropped(self) -> None:
+    def test_identified_row_captures_on_the_heap_and_saves_a_pointer_chain(self) -> None:
+        so = {"world": "overworld", "region_id": 2, "layer_id": 6, "object_id": 342, "value_key": "Triggered"}
+        rows = json.loads(Path("targets.json").read_text(encoding="utf-8"))
+        rows["targets"][0]["save_object"] = so
+        Path("targets.json").write_text(json.dumps(rows), encoding="utf-8")
         dashboard.capture_before(self.slug)
-        pool = [Delta(".data", 0x1000 + i * 0x100 + 8, 0, 1) for i in range(6)]
-        cap = self._diff(pool + [Delta(".data", 0xABCDEF, 0, 1)])
-        self.assertEqual(cap["zero_to_one"], 1)
-        self.assertEqual(cap["deltas"][0]["rva"], 0xABCDEF)
-        self.assertEqual(cap["raw_zero_to_one"], 7)
+        self.assertEqual(self.rams[-1].save_object, so)
+        cap = self._diff([Delta("heap", 0x2000_0041, 0, 1)])
+        self.assertIsNone(cap["deltas"][0]["rva"])
+        with mock.patch("tools.scanner.pointer_chain", return_value=[0x3B40000, 0x18, 0x41]):
+            out = dashboard.capture_save(self.slug)
+        self.assertEqual(out["entry"]["offsets"], ["0x3B40000", "0x18", "0x41"])
 
 
 class GameMonitorTests(unittest.TestCase):

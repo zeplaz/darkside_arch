@@ -1,7 +1,19 @@
-"""Snapshot / diff / capture for writable module data (chest flags, etc.).
+"""RAM capture for location flags: baseline samples -> open it in-game -> after samples.
 
-Exact-value ``tools scan`` is for known HUD numbers (souls).
-This path dumps .data/.bss-class sections, then diffs — no typed values.
+Two scopes:
+
+* ``heap`` (used when the targets.json row has a ``save_object``): scan the game's
+  private read-write memory for the packed ObjectID+RegionID+LayerID dwords
+  (order from ``game_data/Chests.json``), then nearby, then ObjectID alone, and
+  diff only small windows around those anchors. Chest WorldObjects live on the
+  heap. The ``.s`` scripts name the save flag ``Triggered``; they are not RVAs.
+* ``module``: the game's writable PE sections (.data/.bss). Static addresses, but
+  ~34 MB where opening a chest flips ~1,500 unrelated bytes. Kept for rows that
+  have no ``save_object`` yet.
+
+A candidate must be 0 in every baseline sample and 1 in every after sample, so
+bytes that tick on either side are dropped. Exact-value ``tools scan`` is for
+known HUD numbers (souls).
 """
 
 from __future__ import annotations
@@ -10,26 +22,57 @@ import argparse
 import json
 import sys
 import time
-from collections import defaultdict
-from dataclasses import dataclass
+from contextlib import contextmanager
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import Any, Callable, Iterator, Optional
+
+import numpy as np
 
 from ds_client import win32
 from ds_client.models import PROCESS_NAME
 from ds_client.watcher import find_process
 
 SNAPSHOT_DIR = Path("snapshots")
+DEBUG_DUMP = SNAPSHOT_DIR / "last_capture.npz"
 CHUNK = 64 * 1024
+SCAN_CHUNK = 16 * 1024 * 1024
 IMAGE_SCN_MEM_WRITE = 0x80000000
+
+ANCHOR_SPAN = 0x40  # fallback: RegionID / LayerID within this many bytes of ObjectID
+WINDOW = 0x400  # bytes diffed on each side of an anchor
+MAX_ANCHORS = 4096
+BASELINE_SAMPLES = 5
+BASELINE_WINDOW_S = 4.0  # long enough to catch slow tickers, not just per-frame ones
+AFTER_SAMPLES = 3
+AFTER_WINDOW_S = 1.5  # the flag must stay 1 while popups / animations settle
+
+Sleep = Callable[[float], None]
 
 
 @dataclass(frozen=True)
-class Section:
-    name: str
-    rva: int
+class Region:
+    label: str  # ".data", ".bss", "heap"
+    address: int  # absolute, this session only
     size: int
-    file_offset: int
+    rva: Optional[int] = None  # module-relative start; None on the heap
+
+
+@dataclass(frozen=True)
+class Delta:
+    section: str
+    address: int
+    old: int
+    new: int
+    rva: Optional[int] = None  # set for module bytes; heap bytes need a pointer chain
+
+
+def intersect_deltas(left: list[Delta], right: list[Delta]) -> list[Delta]:
+    keep = {d.address for d in right}
+    return [d for d in left if d.address in keep]
+
+
+# -- reading --------------------------------------------------------------------
 
 
 def _read_exact(handle, address: int, size: int) -> bytes:
@@ -47,7 +90,23 @@ def _read_exact(handle, address: int, size: int) -> bytes:
     return b"".join(chunks)
 
 
-def _pe_writable_sections(handle, base: int) -> list[Section]:
+def _read_region(handle, region: Region) -> Optional[np.ndarray]:
+    """Bytes of one region, or None if any page is gone (freed heap block)."""
+    try:
+        return np.frombuffer(_read_exact(handle, region.address, region.size), dtype=np.uint8)
+    except OSError:
+        return None
+
+
+def _samples(handle, regions: list[Region], n: int, window_s: float, sleep: Sleep) -> Iterator[list]:
+    for k in range(n):
+        if k:
+            sleep(window_s / (n - 1))
+        yield [_read_region(handle, r) for r in regions]
+
+
+def module_regions(handle, base: int) -> list[Region]:
+    """Writable PE sections of the game module."""
     dos = _read_exact(handle, base, 64)
     if dos[:2] != b"MZ":
         raise ValueError("module image is not a PE (no MZ)")
@@ -59,193 +118,252 @@ def _pe_writable_sections(handle, base: int) -> list[Section]:
     size_opt = int.from_bytes(nt[20:22], "little")
     table = _read_exact(handle, base + e_lfanew + 24 + size_opt, n_sections * 40)
 
-    sections: list[Section] = []
-    blob_off = 0
+    regions: list[Region] = []
     for i in range(n_sections):
         sh = table[i * 40 : (i + 1) * 40]
         name = sh[:8].split(b"\x00", 1)[0].decode("ascii", "replace")
-        vsize = int.from_bytes(sh[8:12], "little")
+        size = max(int.from_bytes(sh[8:12], "little"), int.from_bytes(sh[16:20], "little"))
         rva = int.from_bytes(sh[12:16], "little")
-        rawsize = int.from_bytes(sh[16:20], "little")
         chars = int.from_bytes(sh[36:40], "little")
-        size = max(vsize, rawsize)
-        prefer_name = name.lower() in {".data", ".bss", ".idata"}
-        if size <= 0 or not ((chars & IMAGE_SCN_MEM_WRITE) or prefer_name):
-            continue
-        sections.append(Section(name=name, rva=rva, size=size, file_offset=blob_off))
-        blob_off += size
-    if not sections:
+        if size > 0 and (chars & IMAGE_SCN_MEM_WRITE or name.lower() in {".data", ".bss"}):
+            regions.append(Region(label=name, address=base + rva, size=size, rva=rva))
+    if not regions:
         raise ValueError("no writable / .data sections found")
-    return sections
+    return regions
 
 
-def take_snapshot(*, name: str, process_name: str = PROCESS_NAME) -> Path:
-    pid = find_process(process_name)
-    if pid is None:
-        raise RuntimeError(
-            f"Process {process_name!r} is not running. Launch the game first."
+# -- heap anchors -----------------------------------------------------------------
+
+
+def _dwords(buf: np.ndarray) -> np.ndarray:
+    return buf[: len(buf) // 4 * 4].view("<u4")
+
+
+def find_packed_anchors(buf: np.ndarray, object_id: int, region_id: int, layer_id: int) -> list[int]:
+    """ObjectID, RegionID, LayerID as three consecutive dwords (Chests.json order)."""
+    words = _dwords(buf)
+    if words.size < 3:
+        return []
+    hits = (words[:-2] == object_id) & (words[1:-1] == region_id) & (words[2:] == layer_id)
+    return [int(i) * 4 for i in np.nonzero(hits)[0].tolist()]
+
+
+def find_anchors(buf: np.ndarray, object_id: int, near: tuple[int, ...]) -> list[int]:
+    """Byte offsets in ``buf`` of 4-byte-aligned ``object_id`` dwords that have every
+    value in ``near`` as an aligned dword within ANCHOR_SPAN bytes (either side)."""
+    words = _dwords(buf)
+    span = ANCHOR_SPAN // 4
+    out: list[int] = []
+    for h in np.nonzero(words == object_id)[0].tolist():
+        around = np.concatenate((words[max(h - span, 0) : h], words[h + 1 : h + span + 1]))
+        if all((around == v).any() for v in near):
+            out.append(h * 4)
+    return out
+
+
+def choose_anchors(
+    packed: list[int], nearby: list[int], id_only: list[int]
+) -> tuple[list[int], str]:
+    if packed:
+        return packed, "packed object+region+layer"
+    if nearby:
+        return nearby, "object+region+layer nearby"
+    return id_only, "object id only"
+
+
+def heap_anchor_regions(
+    handle, object_id: int, region_id: int, layer_id: int
+) -> tuple[list[Region], dict[str, Any]]:
+    """Windows of heap memory around the chest's Keen identity.
+
+    Prefers the packed ObjectID+RegionID+LayerID triple from Chests.json;
+    then the same three dwords nearby; then ObjectID alone (``stats["anchor"]``).
+    """
+    heaps = win32.private_rw_regions(handle)
+    packed: list[int] = []
+    nearby: list[int] = []
+    id_only: list[int] = []
+    scanned = 0
+    for base, size in heaps:
+        for off in range(0, size, SCAN_CHUNK):
+            lo = max(off - ANCHOR_SPAN, 0)
+            hi = min(off + SCAN_CHUNK + ANCHOR_SPAN, size)
+            raw = win32.read_memory(handle, base + lo, hi - lo)
+            if raw is None:
+                continue  # freed or reprotected while we scanned
+            buf = np.frombuffer(raw, dtype=np.uint8)
+            scanned += min(SCAN_CHUNK, size - off)
+            in_chunk = lambda o: off <= lo + o < off + SCAN_CHUNK  # noqa: E731
+            packed += [
+                base + lo + o
+                for o in find_packed_anchors(buf, object_id, region_id, layer_id)
+                if in_chunk(o)
+            ]
+            nearby += [
+                base + lo + o for o in find_anchors(buf, object_id, (region_id, layer_id)) if in_chunk(o)
+            ]
+            id_only += [base + lo + o for o in find_anchors(buf, object_id, ()) if in_chunk(o)]
+    anchors, kind = choose_anchors(packed, nearby, id_only)
+    stats = {
+        "scope": "heap",
+        "heap_regions": len(heaps),
+        "scanned_mb": round(scanned / 2**20),
+        "object_id_hits": len(id_only),
+        "anchors": len(anchors),
+        "anchor": kind if anchors else "none",
+    }
+    if not anchors:
+        raise ValueError(
+            f"ObjectID {object_id} not found in {stats['scanned_mb']} MB of heap. "
+            "Is this the right save_object, and is the chest's area loaded?"
         )
-    handle = win32.open_process(pid)
+    if len(anchors) > MAX_ANCHORS:
+        raise ValueError(f"{len(anchors)} anchors for ObjectID {object_id} ({kind}); too common to narrow")
+    return _windows(anchors, heaps), stats
+
+
+def _windows(anchors: list[int], heaps: list[tuple[int, int]]) -> list[Region]:
+    """±WINDOW around each anchor, clipped to its heap region, overlaps merged."""
+    spans: list[tuple[int, int]] = []
+    for a in sorted(anchors):
+        base, size = next((b, s) for b, s in heaps if b <= a < b + s)
+        lo, hi = max(a - WINDOW, base), min(a + WINDOW, base + size)
+        if spans and lo <= spans[-1][1]:
+            spans[-1] = (spans[-1][0], max(spans[-1][1], hi))
+        else:
+            spans.append((lo, hi))
+    return [Region(label="heap", address=lo, size=hi - lo) for lo, hi in spans]
+
+
+# -- capture ------------------------------------------------------------------------
+
+
+@contextmanager
+def _open_game(pid: Optional[int] = None) -> Iterator[tuple[int, Any]]:
+    live = find_process(PROCESS_NAME)
+    if live is None:
+        raise RuntimeError(f"{PROCESS_NAME} is not running. Launch the game first.")
+    if pid is not None and live != pid:
+        raise ValueError("game restarted since the baseline; start over")
+    handle = win32.open_process(live, write=False)
     try:
-        base = win32.get_module_base(handle, process_name)
-        sections = _pe_writable_sections(handle, base)
-        parts = [_read_exact(handle, base + s.rva, s.size) for s in sections]
+        yield live, handle
     finally:
         win32.close_handle(handle)
 
-    dest = SNAPSHOT_DIR / name
-    dest.mkdir(parents=True, exist_ok=True)
-    blob = b"".join(parts)
-    (dest / "dump.bin").write_bytes(blob)
-    meta = {
-        "name": name,
-        "process": process_name,
-        "pid": pid,
-        "module_base": f"0x{base:X}",
-        "bytes": len(blob),
-        "sections": [
-            {"name": s.name, "rva": f"0x{s.rva:X}", "size": s.size, "file_offset": s.file_offset}
-            for s in sections
-        ],
-    }
-    (dest / "meta.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
-    return dest
 
+@dataclass
+class RamCapture:
+    """Baseline of one capture; ``after()`` returns the 0->1 candidates."""
 
-def _load(name: str) -> tuple[dict, bytes]:
-    dest = SNAPSHOT_DIR / name
-    meta_path = dest / "meta.json"
-    dump_path = dest / "dump.bin"
-    if not meta_path.exists() or not dump_path.exists():
-        raise FileNotFoundError(f"snapshot {name!r} not found under {SNAPSHOT_DIR}/")
-    meta = json.loads(meta_path.read_text(encoding="utf-8"))
-    return meta, dump_path.read_bytes()
+    pid: int
+    regions: list[Region]
+    base: list[Optional[np.ndarray]]
+    unstable: list[np.ndarray]
+    stats: dict[str, Any] = field(default_factory=dict)
 
-
-@dataclass(frozen=True)
-class Delta:
-    section: str
-    rva: int
-    old: int
-    new: int
-
-
-# Same field in many objects (stride 0x80..0x400). A chest save flag is not 40 copies.
-POOL_STRIDES = (0x80, 0x100, 0x200, 0x400)
-POOL_FAMILY_MIN = 4
-
-
-def intersect_deltas(left: list[Delta], right: list[Delta]) -> list[Delta]:
-    keep = {d.rva for d in right}
-    return [d for d in left if d.rva in keep]
-
-
-def drop_pool_families(
-    deltas: list[Delta], *, min_family: int = POOL_FAMILY_MIN
-) -> list[Delta]:
-    """Drop 0→1 bytes that sit at the same offset in many objects.
-
-    Warmastered .data is ~34 MB. Opening a chest flips hundreds of bools at
-    the same struct offset. Keep unique-layout bytes; if that would drop
-    everything, leave the list alone.
-    """
-    if len(deltas) < min_family:
+    def after(self, *, sleep: Sleep = time.sleep) -> list[Delta]:
+        with _open_game(self.pid) as (_pid, handle):
+            stays_one = [np.ones(r.size, dtype=bool) for r in self.regions]
+            for sample in _samples(handle, self.regions, AFTER_SAMPLES, AFTER_WINDOW_S, sleep):
+                for i, cur in enumerate(sample):
+                    stays_one[i] &= False if cur is None else (cur == 1)
+        deltas: list[Delta] = []
+        for r, base, unstable, one in zip(self.regions, self.base, self.unstable, stays_one):
+            if base is None:
+                continue
+            for j in np.nonzero((base == 0) & ~unstable & one)[0].tolist():
+                rva = None if r.rva is None else r.rva + j
+                deltas.append(Delta(section=r.label, address=r.address + j, old=0, new=1, rva=rva))
+        self._save_debug(stays_one)
         return deltas
-    rvas = [d.rva for d in deltas]
-    drop: set[int] = set()
-    for stride in POOL_STRIDES:
-        buckets: dict[int, list[int]] = defaultdict(list)
-        for r in rvas:
-            buckets[r % stride].append(r)
-        for members in buckets.values():
-            if len(members) >= min_family:
-                drop.update(members)
-    kept = [d for d in deltas if d.rva not in drop]
-    return kept if kept else list(deltas)
+
+    def _save_debug(self, stays_one: list[np.ndarray]) -> None:
+        """Keep the last capture for offline analysis (snapshots/ is gitignored)."""
+        try:
+            SNAPSHOT_DIR.mkdir(exist_ok=True)
+            table = np.array([(r.address, r.size, -1 if r.rva is None else r.rva) for r in self.regions], dtype=np.int64)
+            empty = np.zeros(0, dtype=np.uint8)
+            np.savez(
+                DEBUG_DUMP,
+                regions=table,
+                base=np.concatenate([b if b is not None else empty for b in self.base] or [empty]),
+                unstable=np.concatenate(self.unstable or [empty.astype(bool)]),
+                stays_one=np.concatenate(stays_one or [empty.astype(bool)]),
+            )
+        except OSError:
+            pass
 
 
-def diff_snapshots(
-    before: str,
-    after: str,
-    *,
-    stable: Optional[str] = None,
-    only_zero_to_one: bool = False,
-) -> list[Delta]:
-    meta_b, data_b = _load(before)
-    meta_a, data_a = _load(after)
-    if meta_b.get("sections") != meta_a.get("sections"):
+def start_capture(save_object: Optional[dict[str, Any]] = None, *, sleep: Sleep = time.sleep) -> RamCapture:
+    """Pick the scope, then sample the baseline over BASELINE_WINDOW_S."""
+    with _open_game() as (pid, handle):
+        if save_object:
+            regions, stats = heap_anchor_regions(
+                handle, int(save_object["object_id"]), int(save_object["region_id"]), int(save_object["layer_id"])
+            )
+        else:
+            regions = module_regions(handle, win32.get_module_base(handle, PROCESS_NAME))
+            stats = {"scope": "module", "scanned_mb": round(sum(r.size for r in regions) / 2**20)}
+        base: list[Optional[np.ndarray]] = []
+        unstable: list[np.ndarray] = []
+        for k, sample in enumerate(_samples(handle, regions, BASELINE_SAMPLES, BASELINE_WINDOW_S, sleep)):
+            for i, cur in enumerate(sample):
+                if k == 0:
+                    base.append(cur)
+                    unstable.append(np.zeros(regions[i].size, dtype=bool) if cur is not None else np.ones(regions[i].size, dtype=bool))
+                elif cur is None or base[i] is None:
+                    unstable[i][:] = True
+                else:
+                    unstable[i] |= cur != base[i]
+    stats["window_kb"] = round(sum(r.size for r in regions) / 1024)
+    return RamCapture(pid=pid, regions=regions, base=base, unstable=unstable, stats=stats)
+
+
+def offsets_for(delta: Delta, pid: int) -> list[int]:
+    """targets.json offsets for a candidate: the RVA, or a static pointer chain for heap bytes."""
+    if delta.rva is not None:
+        return [delta.rva]
+    from tools.scanner import pointer_chain
+
+    chain = pointer_chain(pid, delta.address)
+    if not chain:
         raise ValueError(
-            "snapshot section maps differ; retake both in one session. "
-            "PE headers do not drift from GC — a mismatch means a reload or different build."
+            f"no static pointer path to heap byte 0x{delta.address:X} (depth 3); "
+            "its address changes every launch, so it cannot be saved yet"
         )
-    if len(data_b) != len(data_a):
-        raise ValueError("snapshot sizes differ")
+    return chain
 
-    stable_bytes: Optional[bytes] = None
-    if stable:
-        _meta_s, stable_bytes = _load(stable)
-        if len(stable_bytes) != len(data_b):
-            raise ValueError("stable snapshot size differs")
 
-    deltas: list[Delta] = []
-    for sec in meta_b["sections"]:
-        off = int(sec["file_offset"])
-        size = int(sec["size"])
-        rva0 = int(sec["rva"], 0)
-        sb = data_b[off : off + size]
-        sa = data_a[off : off + size]
-        ss = stable_bytes[off : off + size] if stable_bytes is not None else None
-        for i, (old, new) in enumerate(zip(sb, sa)):
-            if old == new:
-                continue
-            if ss is not None and ss[i] != old:
-                continue  # ticking / unstable between idle samples
-            if only_zero_to_one and not (old == 0 and new == 1):
-                continue
-            deltas.append(Delta(section=sec["name"], rva=rva0 + i, old=old, new=new))
-    return deltas
+def describe(stats: dict[str, Any]) -> str:
+    if stats.get("scope") == "heap":
+        return (
+            f"heap: {stats['anchors']} anchor(s) [{stats['anchor']}] from {stats['object_id_hits']} ObjectID hits "
+            f"in {stats['scanned_mb']} MB; diffing {stats.get('window_kb', 0)} KB"
+        )
+    return f"module .data: {stats.get('scanned_mb', 0)} MB (chests are usually not here)"
 
 
 def _print_deltas(deltas: list[Delta], module: str = PROCESS_NAME) -> None:
     if not deltas:
-        print("[-] No 0->1 bytes. Did it open? If it never shows, the flag lives on the heap (needs a pointer path).")
+        print("[-] No 0->1 bytes. Did it open? Try again, standing still on both sides.")
         return
-    print(f"[+] {len(deltas)} byte(s) went 0->1:\n")
+    print(f"[+] {len(deltas)} byte(s) went 0->1 and stayed 1:\n")
     for i, d in enumerate(deltas[:80], start=1):
-        print(
-            f"  [{i:3}] {module} + 0x{d.rva:X}  "
-            f"{d.old} -> {d.new}  ({d.section})"
-        )
+        where = f"{module} + 0x{d.rva:X}" if d.rva is not None else f"heap 0x{d.address:X}"
+        print(f"  [{i:3}] {where}  ({d.section})")
     if len(deltas) > 80:
         print(f"  … {len(deltas) - 80} more")
 
 
-CAPTURE_SNAPSHOTS = ("_cap_a", "_cap_b", "_cap_c")
-
-
-def capture_deltas(wait_before, wait_after) -> list[Delta]:
-    """Idle pair (a, b) 0.4 s apart, then c after the in-game action.
-
-    Keeps only bytes that went 0 -> 1 between b and c and were steady a -> b.
-    Fixed snapshot names: each capture overwrites the last.
-    """
-    a, b, c = CAPTURE_SNAPSHOTS
-    wait_before()
-    take_snapshot(name=a)
-    time.sleep(0.4)
-    take_snapshot(name=b)
-    wait_after()
-    take_snapshot(name=c)
-    return drop_pool_families(diff_snapshots(b, c, stable=a, only_zero_to_one=True))
-
-
 def main_capture(argv: Optional[list[str]] = None) -> int:
-    from tools.targets import build_target_entry, save_target
+    from tools.save_object import parse_save_object
+    from tools.targets import build_target_entry, find_row, save_target
     from tools.world_catalog import resolve_location
 
     p = argparse.ArgumentParser(
         prog="python -m tools capture",
-        description="Identify a location. Chests: two in-game save slots. RAM dump is last resort.",
+        description="Identify a location. Chests: two in-game save slots, then a heap RAM capture.",
         epilog='python -m tools capture --sav FILE.sav --slots 1 2 --location "Seraphim Hotel Life Chest 1"',
     )
     p.add_argument("--location", default="", help="Exact name or unique substring (also recaptures a mapped one)")
@@ -263,7 +381,7 @@ def main_capture(argv: Optional[list[str]] = None) -> int:
     if loc is None:
         return 1
     if args.sav or args.slots:
-        from tools.save_object import diff_sav_slots, find_default_sav, identify_location, parse_save_object
+        from tools.save_object import diff_sav_slots, find_default_sav, identify_location
 
         sav = args.sav or find_default_sav()
         if sav is None:
@@ -290,39 +408,50 @@ def main_capture(argv: Optional[list[str]] = None) -> int:
         action, entry = identify_location(loc, pick)
         print(f"[OK] {action} {entry['id']} Keen {entry['save_object']}")
         return 0
+
+    save_object = parse_save_object((find_row(loc.name) or {}).get("save_object"))
     print(
         f"[*] {loc.name}  (AP {loc.ap_id}, {loc.region})\n"
-        "    Chests: python -m tools capture --sav FILE --slots 1 2 --location NAME\n"
-        "    RAM dump is last resort.\n"
-        "    1) Stand still next to it while it is still closed.\n"
-        "    2) Enter = baseline.  3) Open it in-game.  4) Enter = after.\n"
+        + (
+            f"    Heap capture near Keen obj={save_object['object_id']} r={save_object['region_id']} L={save_object['layer_id']}.\n"
+            if save_object
+            else "    No save_object for this row: diffing module .data (identify it with --sav --slots first).\n"
+        )
+        + f"    1) Stand still next to it, closed. Enter = baseline ({BASELINE_WINDOW_S:.0f} s, keep still).\n"
+        "    2) Open it, wait for popups to close, stand still. Enter = after.\n"
     )
     try:
-        deltas = capture_deltas(
-            lambda: input("Baseline — press Enter… "),
-            lambda: input("Opened it? Press Enter… "),
-        )
+        input("Baseline — press Enter… ")
+        cap = start_capture(save_object)
+        print(f"[*] {describe(cap.stats)}")
+        input("Opened it and standing still? Press Enter… ")
+        deltas = cap.after()
     except (OSError, RuntimeError, ValueError) as exc:
         print(f"[-] {exc}")
         return 1
 
     _print_deltas(deltas)
     if len(deltas) != 1:
-        print("\n[-] Not saved: need exactly one 0->1 byte. Retry, or use the dashboard to pick a row.")
+        print("\n[-] Not saved: need exactly one candidate. Retry, or use the dashboard to pick a row.")
         return 1
     d = deltas[0]
+    try:
+        offsets = offsets_for(d, cap.pid)
+    except ValueError as exc:
+        print(f"[-] {exc}")
+        return 1
     entry = build_target_entry(
         target_id=loc.slug,
         label=loc.name,
         category="location_flag",
         dtype="uint8",
-        offsets=[d.rva],
-        notes=f"capture delta {d.old}->{d.new} in {d.section}",
+        offsets=offsets,
+        notes=f"capture 0->1 in {d.section}",
         region=loc.region,
     )
     if args.dry_run:
         print(json.dumps(entry, indent=2))
         return 0
     action, entry = save_target(entry)
-    print(f"[OK] {action} {entry['id']} @ {entry['offsets'][0]}  (ds_client hot-reloads it)")
+    print(f"[OK] {action} {entry['id']} @ {' -> '.join(entry['offsets'])}  (ds_client hot-reloads it)")
     return 0
