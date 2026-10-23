@@ -402,7 +402,7 @@
           <div id="work-ram" hidden>
             <div class="card how">
               <div class="lbl">AFTER SAVE DIFF — FINDS THE LIVE FLAG</div>
-              <p class="note">Identified rows (SAVE DIFF first) scan the heap for their ObjectID with RegionID / LayerID next to it and diff only around those. Rows without an identity diff 34 MB of .data, where chests are not. The closed dump samples for 4 s and the open dump for 1.5 s — stand still for both. F8 still dumps while this tab is hidden.</p>
+              <p class="note">Identified rows (SAVE DIFF first) scan the heap for the packed ObjectID+RegionID+LayerID triple from the Keen dumps, then nearby, and diff only around those. Rows without an identity diff 34 MB of .data, where chests are not. The closed dump samples for 4 s and the open dump for 1.5 s — stand still for both. F8 still dumps while this tab is hidden.</p>
             </div>
             <div class="steps">
             <div class="step" id="step-1">

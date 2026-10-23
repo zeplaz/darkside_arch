@@ -8,6 +8,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Optional
 
+from tools.game_data import persist_flag
 from tools.save_diff import diff_saves, _load
 from tools.save_install import steam_userdata_roots, APP_ID
 from tools.save_patch import SLOT_LENGTH, slot_byte_offset
@@ -73,11 +74,12 @@ def object_flag_deltas(
 
 
 def pick_flag_delta(deltas: list[dict[str, Any]]) -> Optional[dict[str, Any]]:
-    """Prefer a new Triggered record (chest). Else the only flag delta."""
+    """Prefer a new persist-flag record (chest ``setSaveValue``). Else the only flag delta."""
+    key = persist_flag()
     fresh = [
         d
         for d in deltas
-        if d["value_key"] == "Triggered" and d["old"] == "(absent)" and "true" in d["new"].lower()
+        if d["value_key"] == key and d["old"] == "(absent)" and "true" in d["new"].lower()
     ]
     if len(fresh) == 1:
         return fresh[0]

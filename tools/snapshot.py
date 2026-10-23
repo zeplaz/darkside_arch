@@ -3,9 +3,10 @@
 Two scopes:
 
 * ``heap`` (used when the targets.json row has a ``save_object``): scan the game's
-  private read-write memory for the Keen identity — the ObjectID dword with the
-  RegionID and LayerID dwords close by — and diff only small windows around those
-  anchors. Chest WorldObjects live on the heap; they are not in the module image.
+  private read-write memory for the packed ObjectID+RegionID+LayerID dwords
+  (order from ``game_data/Chests.json``), then nearby, then ObjectID alone, and
+  diff only small windows around those anchors. Chest WorldObjects live on the
+  heap. The ``.s`` scripts name the save flag ``Triggered``; they are not RVAs.
 * ``module``: the game's writable PE sections (.data/.bss). Static addresses, but
   ~34 MB where opening a chest flips ~1,500 unrelated bytes. Kept for rows that
   have no ``save_object`` yet.
@@ -38,7 +39,7 @@ CHUNK = 64 * 1024
 SCAN_CHUNK = 16 * 1024 * 1024
 IMAGE_SCN_MEM_WRITE = 0x80000000
 
-ANCHOR_SPAN = 0x40  # RegionID / LayerID must sit within this many bytes of the ObjectID
+ANCHOR_SPAN = 0x40  # fallback: RegionID / LayerID within this many bytes of ObjectID
 WINDOW = 0x400  # bytes diffed on each side of an anchor
 MAX_ANCHORS = 4096
 BASELINE_SAMPLES = 5
@@ -134,10 +135,23 @@ def module_regions(handle, base: int) -> list[Region]:
 # -- heap anchors -----------------------------------------------------------------
 
 
+def _dwords(buf: np.ndarray) -> np.ndarray:
+    return buf[: len(buf) // 4 * 4].view("<u4")
+
+
+def find_packed_anchors(buf: np.ndarray, object_id: int, region_id: int, layer_id: int) -> list[int]:
+    """ObjectID, RegionID, LayerID as three consecutive dwords (Chests.json order)."""
+    words = _dwords(buf)
+    if words.size < 3:
+        return []
+    hits = (words[:-2] == object_id) & (words[1:-1] == region_id) & (words[2:] == layer_id)
+    return [int(i) * 4 for i in np.nonzero(hits)[0].tolist()]
+
+
 def find_anchors(buf: np.ndarray, object_id: int, near: tuple[int, ...]) -> list[int]:
     """Byte offsets in ``buf`` of 4-byte-aligned ``object_id`` dwords that have every
     value in ``near`` as an aligned dword within ANCHOR_SPAN bytes (either side)."""
-    words = buf[: len(buf) // 4 * 4].view("<u4")
+    words = _dwords(buf)
     span = ANCHOR_SPAN // 4
     out: list[int] = []
     for h in np.nonzero(words == object_id)[0].tolist():
@@ -147,16 +161,27 @@ def find_anchors(buf: np.ndarray, object_id: int, near: tuple[int, ...]) -> list
     return out
 
 
+def choose_anchors(
+    packed: list[int], nearby: list[int], id_only: list[int]
+) -> tuple[list[int], str]:
+    if packed:
+        return packed, "packed object+region+layer"
+    if nearby:
+        return nearby, "object+region+layer nearby"
+    return id_only, "object id only"
+
+
 def heap_anchor_regions(
     handle, object_id: int, region_id: int, layer_id: int
 ) -> tuple[list[Region], dict[str, Any]]:
     """Windows of heap memory around the chest's Keen identity.
 
-    Prefers ObjectID with RegionID and LayerID nearby; if that layout never
-    occurs, falls back to ObjectID alone (reported in ``stats["anchor"]``).
+    Prefers the packed ObjectID+RegionID+LayerID triple from Chests.json;
+    then the same three dwords nearby; then ObjectID alone (``stats["anchor"]``).
     """
     heaps = win32.private_rw_regions(handle)
-    full: list[int] = []
+    packed: list[int] = []
+    nearby: list[int] = []
     id_only: list[int] = []
     scanned = 0
     for base, size in heaps:
@@ -169,11 +194,16 @@ def heap_anchor_regions(
             buf = np.frombuffer(raw, dtype=np.uint8)
             scanned += min(SCAN_CHUNK, size - off)
             in_chunk = lambda o: off <= lo + o < off + SCAN_CHUNK  # noqa: E731
-            id_only += [base + lo + o for o in find_anchors(buf, object_id, ()) if in_chunk(o)]
-            full += [
+            packed += [
+                base + lo + o
+                for o in find_packed_anchors(buf, object_id, region_id, layer_id)
+                if in_chunk(o)
+            ]
+            nearby += [
                 base + lo + o for o in find_anchors(buf, object_id, (region_id, layer_id)) if in_chunk(o)
             ]
-    anchors, kind = (full, "object+region+layer") if full else (id_only, "object id only")
+            id_only += [base + lo + o for o in find_anchors(buf, object_id, ()) if in_chunk(o)]
+    anchors, kind = choose_anchors(packed, nearby, id_only)
     stats = {
         "scope": "heap",
         "heap_regions": len(heaps),

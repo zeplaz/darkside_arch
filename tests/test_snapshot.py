@@ -6,7 +6,14 @@ from unittest import mock
 import numpy as np
 
 from tools import snapshot
-from tools.snapshot import Delta, Region, find_anchors, intersect_deltas
+from tools.snapshot import (
+    Delta,
+    Region,
+    choose_anchors,
+    find_anchors,
+    find_packed_anchors,
+    intersect_deltas,
+)
 
 
 def _buf(dwords: dict[int, int], size: int = 0x200) -> np.ndarray:
@@ -17,10 +24,18 @@ def _buf(dwords: dict[int, int], size: int = 0x200) -> np.ndarray:
 
 
 class AnchorTests(unittest.TestCase):
+    def test_packed_identity_is_object_region_layer_consecutive(self) -> None:
+        # Chests.json order. Nearby 342 with 2/6 elsewhere must not win.
+        buf = _buf({0x10: 342, 0x14: 2, 0x18: 6, 0x40: 342, 0x48: 2, 0x4C: 6})
+        self.assertEqual(find_packed_anchors(buf, 342, 2, 6), [0x10])
+        self.assertEqual(choose_anchors([0x10], [0x10, 0x40], [0x10, 0x40]), ([0x10], "packed object+region+layer"))
+
     def test_object_id_needs_region_and_layer_nearby(self) -> None:
         buf = _buf({0x40: 342, 0x48: 2, 0x4C: 6, 0x100: 342, 0x180: 342, 0x184: 2})
         self.assertEqual(find_anchors(buf, 342, (2, 6)), [0x40])
         self.assertEqual(find_anchors(buf, 342, ()), [0x40, 0x100, 0x180])
+        self.assertEqual(find_packed_anchors(buf, 342, 2, 6), [])
+        self.assertEqual(choose_anchors([], [0x40], [0x40, 0x100]), ([0x40], "object+region+layer nearby"))
 
     def test_unaligned_object_id_is_ignored(self) -> None:
         raw = bytearray(0x100)

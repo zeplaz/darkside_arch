@@ -42,7 +42,7 @@ That writes `save_object`. It is not a live AP watch. LIVE VALUES only appear af
 
 The live flag comes from the **RAM DUMP** tab (closed → F8, open → F8), after the save identity exists:
 
-- **Identified row → heap.** Chest WorldObjects live on the heap, not in `.data`. The capture scans the game's private read-write memory for the ObjectID dword with the RegionID and LayerID dwords within 64 bytes (ObjectID alone is not unique; the triple is), then diffs only ±1 KB around those anchors. If the triple never occurs it falls back to ObjectID alone and says so.
+- **Identified row → heap.** Chest WorldObjects live on the heap, not in `.data`. The capture looks for the packed ObjectID+RegionID+LayerID dwords (`game_data/Chests.json` order), then the same three within 64 bytes, then ObjectID alone, and diffs ±1 KB around those anchors. Chest `.s` scripts write `Triggered` via `setSaveValue`; they are not RAM offsets.
 - **No identity → module `.data`.** 34 MB where opening a chest flips ~1,500 unrelated bytes. Chest flags are not there.
 - A candidate must be 0 in every baseline sample (5 over 4 s) and 1 in every after sample (3 over 1.5 s). Stand still for both. Each extra F8 keeps only candidates that survived every diff.
 - Saving a heap byte runs a pointer scan (depth 3) for a static chain from `darksiders1.exe`; no chain → not saved, because the heap address changes every launch.
