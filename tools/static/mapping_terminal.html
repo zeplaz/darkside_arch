@@ -100,7 +100,9 @@
     .pad { padding: 0.5rem 0.6rem; display: flex; flex-direction: column; gap: 0.45rem; flex: 0 0 auto; }
     .row { display: flex; gap: 0.3rem; flex-wrap: wrap; align-items: center; }
     .seg { display: flex; }
+    .seg.wrap { flex-wrap: wrap; }
     .seg button { flex: 1 1 auto; margin-left: -1px; }
+    .seg.wrap button { flex: 1 1 4.6rem; margin: -1px 0 0 -1px; }
     .seg button:first-child { margin-left: 0; }
     .seg button .n { color: var(--mute); margin-left: 0.3em; }
     .seg button.on .n { color: var(--ok); }
@@ -292,12 +294,29 @@
           <button type="button" data-filter="mapped" data-tip="Has a RAM offset. LocationChecks can fire.">MAPPED<span class="n"></span></button>
           <button type="button" data-filter="all">ALL<span class="n"></span></button>
         </div>
-        <div class="seg" id="kind-seg">
+        <div class="seg wrap" id="kind-seg">
           <button type="button" data-kind="all" class="on">ANY<span class="n"></span></button>
-          <button type="button" data-kind="chest">CHEST<span class="n"></span></button>
-          <button type="button" data-kind="artifact">ARTIFACT<span class="n"></span></button>
-          <button type="button" data-kind="other" data-tip="Armor pieces, chained cubes and anything else.">OTHER<span class="n"></span></button>
+          <button type="button" data-kind="chest" data-tip="Triggered persist. Health / souls / wrath / rare.">CHEST<span class="n"></span></button>
+          <button type="button" data-kind="artifact" data-tip="Soldier / champion / overlord artifacts.">ARTIFACT<span class="n"></span></button>
+          <button type="button" data-kind="armor">ARMOR<span class="n"></span></button>
+          <button type="button" data-kind="cube">CUBE<span class="n"></span></button>
+          <button type="button" data-kind="location" data-tip="Named checks that are not a chest, artifact, armor, or cube.">OTHER<span class="n"></span></button>
         </div>
+        <div class="seg wrap" id="loot-seg" hidden>
+          <button type="button" data-loot="all" class="on">LOOT ANY<span class="n"></span></button>
+          <button type="button" data-loot="health">HEALTH<span class="n"></span></button>
+          <button type="button" data-loot="currency">CURRENCY<span class="n"></span></button>
+          <button type="button" data-loot="wrath">WRATH<span class="n"></span></button>
+          <button type="button" data-loot="lifestone">LIFESTONE<span class="n"></span></button>
+          <button type="button" data-loot="key">KEY<span class="n"></span></button>
+          <button type="button" data-loot="rare">RARE<span class="n"></span></button>
+        </div>
+        <select id="sort-select" aria-label="Sort list">
+          <option value="name">SORT NAME</option>
+          <option value="ap">SORT AP ID</option>
+          <option value="status">SORT STATUS</option>
+          <option value="loot">SORT LOOT / KIND</option>
+        </select>
       </div>
       <div class="scroll" id="location-list"></div>
     </section>
@@ -346,8 +365,9 @@
               <div class="why">The .sav holds all 10 slots. war only reads autosave; this page copies the slot first.</div>
               <div class="row" style="grid-column:2 / -1">
                 <input id="sav-path" type="text" placeholder=".sav path" aria-label="Save path" style="flex:1 1 12rem">
-                <select id="slot-before" aria-label="Closed slot"></select>
-                <select id="slot-after" aria-label="Opened slot"></select>
+                <label class="note">CLOSED <select id="slot-before" aria-label="Closed slot"></select></label>
+                <label class="note">OPENED <select id="slot-after" aria-label="Opened slot"></select></label>
+                <button type="button" class="ghost" id="btn-swap-slots" data-tip="Swap CLOSED and OPENED. Use this if the table says true→absent.">SWAP</button>
                 <button type="button" class="ghost" id="btn-slots" data-tip="Re-read which slots have DSAV bytes. Fast — no war decode.">SLOTS</button>
                 <button type="button" class="ghost" id="btn-brief-all" data-tip="Decode every occupied slot via war. Shows spawn, chests, Triggered/Destroyed/Open counts. A few seconds per slot.">BRIEF ALL</button>
               </div>
@@ -383,17 +403,22 @@
                 <span class="lbl" id="save-cand-head">OBJECT FLAGS</span>
                 <span class="note" id="save-cand-note"></span>
               </div>
+              <div class="seg" id="save-view-seg">
+                <button type="button" data-view="match" class="on" data-tip="Only the persist type for the location on the left. Chest → Triggered chests.">MATCH</button>
+                <button type="button" data-view="all" data-tip="Every Triggered / Destroyed / Open / Activated change in these slots.">ALL</button>
+              </div>
+              <div class="seg wrap" id="save-key-seg"></div>
               <table>
-                <thead><tr><th></th><th>OBJECT</th><th>KEY</th><th>CHANGE</th></tr></thead>
+                <thead><tr><th></th><th>NAME</th><th>TYPE</th><th>OBJECT</th><th>KEY</th><th>CHANGE</th></tr></thead>
                 <tbody id="save-cand-rows"></tbody>
               </table>
               <p class="note" id="save-stat-note"></p>
             </div>
             <div class="step" id="step-s3">
               <div class="num">3</div>
-              <div class="what">Save the Keen identity to targets.json</div>
-              <div class="btns"><button type="button" class="go" id="btn-save-obj" data-tip="Writes save_object. Leaves offsets 0x0 so ds_client does not pretend this is a RAM watch.">SAVE IDENTITY</button></div>
-              <div class="why">One new Triggered → save it. Several → click the chest row. This does not enable LocationChecks yet.</div>
+              <div class="what" id="what-s3">Write the highlighted object onto this AP name</div>
+              <div class="btns"><button type="button" class="go" id="btn-save-obj" data-tip="Stores world + RegionID + LayerID + ObjectID. Does not turn on LocationChecks.">SAVE IDENTITY</button></div>
+              <div class="why" id="why-s3">Press SAVE IDENTITY when one matching row is highlighted. That only records which WorldObject this check is. RAM DUMP finds the live flag later.</div>
               <div class="msg" id="msg-s3"></div>
             </div>
           </div>
@@ -657,10 +682,13 @@ let pending = "";         // action in flight from this tab
 let stepMsg = {};         // step -> { cls, text }
 let pickAddr = null;
 
-const ui = loadPrefs({ region: "", status: "todo", kind: "all", pane: "checks", work: "diff", sel: "", item: "", savPath: "", slotBefore: 1, slotAfter: 2, userid: "" });
+const ui = loadPrefs({ region: "", status: "todo", kind: "all", loot: "all", sort: "name", pane: "checks", work: "diff", sel: "", item: "", savPath: "", slotBefore: 1, slotAfter: 2, userid: "" });
 let encodeResult = null;
 let saveDiff = null;
 let pickObj = null;
+let saveView = "match";
+let saveKeys = [];
+const SAVE_KEYS = ["Triggered", "Destroyed", "Open", "Activated"];
 let savSlots = [];
 let slotBriefs = {};
 let searchQ = "";
@@ -818,8 +846,38 @@ function pulse(id) {
 }
 
 /* ---------- catalog / list ---------- */
-const KIND_ORDER = ["chest", "artifact", "other"];
-function kindBucket(kind) { return kind === "chest" || kind === "artifact" ? kind : "other"; }
+const KIND_ORDER = ["chest", "artifact", "armor", "cube", "location"];
+const LOOT_ORDER = ["health", "currency", "wrath", "lifestone", "key", "rare", "chest"];
+const LOOT_LABEL = {
+  health: "HEALTH", currency: "CURRENCY", wrath: "WRATH", lifestone: "LIFESTONE",
+  key: "KEY", rare: "RARE", chest: "CHEST", artifact: "ARTIFACT", armor: "ARMOR",
+  cube: "CUBE", location: "OTHER",
+};
+function kindOf(item) { return KIND_ORDER.includes(item.kind) ? item.kind : "location"; }
+function lootOf(item) {
+  if (item.kind !== "chest") return kindOf(item);
+  const v = (item.vanilla_item || "").toLowerCase();
+  if (v.includes("health")) return "health";
+  if (v.includes("currency")) return "currency";
+  if (v.includes("wrath")) return "wrath";
+  if (v.includes("lifestone")) return "lifestone";
+  if (v.includes("beholder") || v.includes("key")) return "key";
+  if (v.includes("empty") || v.includes("hellfire")) return "rare";
+  return "chest";
+}
+function statusRank(item) { return item.mapped ? 2 : item.identified ? 1 : 0; }
+function sortItems(rows) {
+  const key = ui.sort || "name";
+  return rows.slice().sort((a, b) => {
+    if (key === "ap") return a.ap_id - b.ap_id || a.label.localeCompare(b.label);
+    if (key === "status") return statusRank(a) - statusRank(b) || a.label.localeCompare(b.label);
+    if (key === "loot") {
+      const la = LOOT_ORDER.indexOf(lootOf(a)), lb = LOOT_ORDER.indexOf(lootOf(b));
+      return (la < 0 ? 99 : la) - (lb < 0 ? 99 : lb) || a.label.localeCompare(b.label);
+    }
+    return a.label.localeCompare(b.label);
+  });
+}
 function regionNames() { return Object.keys(catalog.regions).sort((a, b) => a.localeCompare(b)); }
 function findLoc(id) {
   for (const r of Object.values(catalog.regions)) {
@@ -829,14 +887,16 @@ function findLoc(id) {
   return null;
 }
 function selected() { return ui.sel ? findLoc(ui.sel) : null; }
-function matches(item, { status = ui.status, kind = ui.kind } = {}) {
+function matches(item, { status = ui.status, kind = ui.kind, loot = ui.loot } = {}) {
   if (status === "todo" && (item.mapped || item.identified)) return false;
   if (status === "identified" && (!item.identified || item.mapped)) return false;
   if (status === "mapped" && !item.mapped) return false;
-  if (kind !== "all" && kindBucket(item.kind) !== kind) return false;
+  if (kind !== "all" && kindOf(item) !== kind) return false;
+  if (loot !== "all" && lootOf(item) !== loot) return false;
   const q = searchQ.trim().toLowerCase();
   if (!q) return true;
-  return item.label.toLowerCase().includes(q) || String(item.ap_id).includes(q) || item.id.includes(q);
+  const hay = [item.label, String(item.ap_id), item.id, item.vanilla_item, item.kind].join(" ").toLowerCase();
+  return hay.includes(q);
 }
 function regionItems() { return catalog.regions[ui.region] || []; }
 
@@ -858,24 +918,37 @@ function renderFilterCounts() {
   });
   document.querySelectorAll("#kind-seg button").forEach(b => {
     b.classList.toggle("on", b.dataset.kind === ui.kind);
-    b.querySelector(".n").textContent = items.filter(i => matches(i, { kind: b.dataset.kind })).length;
+    b.querySelector(".n").textContent = items.filter(i => matches(i, { kind: b.dataset.kind, loot: "all" })).length;
   });
+  const lootSeg = $("loot-seg");
+  const showLoot = ui.kind === "all" || ui.kind === "chest";
+  lootSeg.hidden = !showLoot;
+  if (showLoot) {
+    document.querySelectorAll("#loot-seg button").forEach(b => {
+      b.classList.toggle("on", b.dataset.loot === ui.loot);
+      b.querySelector(".n").textContent = items.filter(i => matches(i, { loot: b.dataset.loot })).length;
+    });
+  }
+  const sort = $("sort-select");
+  if (sort) sort.value = ui.sort || "name";
 }
 
 function renderList() {
   if (ui.pane === "items") return renderItemList();
   renderFilterCounts();
   const box = $("location-list");
-  const items = regionItems().filter(i => matches(i));
+  const items = sortItems(regionItems().filter(i => matches(i)));
   if (!items.length) {
-    const hint = ui.status === "todo" && regionItems().length ? "Everything here is mapped — try MAPPED or ALL." : "Nothing matches. Clear the search or pick ANY / ALL.";
+    const hint = ui.status === "todo" && regionItems().length ? "Everything here is identified or mapped — try IDENTIFIED / MAPPED / ALL." : "Nothing matches. Clear the search or pick ANY / ALL.";
     box.innerHTML = `<div class="empty">${hint}</div>`;
     return;
   }
   const cap = st?.capture;
-  const groups = KIND_ORDER.map(k => ({ k, rows: items.filter(i => kindBucket(i.kind) === k) })).filter(g => g.rows.length);
+  const groupKeys = ui.kind === "chest" && ui.loot === "all" ? LOOT_ORDER : KIND_ORDER;
+  const groupOf = ui.kind === "chest" && ui.loot === "all" ? lootOf : kindOf;
+  const groups = groupKeys.map(k => ({ k, rows: items.filter(i => groupOf(i) === k) })).filter(g => g.rows.length);
   box.innerHTML = groups.map(g => {
-    const head = groups.length > 1 ? `<div class="grp">${g.k.toUpperCase()} · ${g.rows.length}</div>` : "";
+    const head = groups.length > 1 ? `<div class="grp">${(LOOT_LABEL[g.k] || g.k).toUpperCase()} · ${g.rows.length}</div>` : "";
     return head + g.rows.map(item => {
       const sel = item.id === ui.sel;
       const capturing = cap && cap.stage !== "idle" && cap.id === item.id;
@@ -887,7 +960,7 @@ function renderList() {
       else if (item.identified) tag = `<span class="tag key">IDENTIFIED</span>`;
       return `<button type="button" data-id="${esc(item.id)}" class="fact${sel ? " sel" : ""}${capturing ? " capturing" : ""}" title="${esc(item.label)}">
         <div class="line"><span class="name">${esc(short)}</span>${tag}</div>
-        <div class="meta"><span>AP ${item.ap_id}</span><span>${item.mapped ? esc(item.offset.split(" + ").pop()) : (item.save_key ? esc(item.save_key) : "")}</span></div>
+        <div class="meta"><span>AP ${item.ap_id} · ${LOOT_LABEL[lootOf(item)] || item.kind}</span><span>${item.mapped ? esc(item.offset.split(" + ").pop()) : (item.save_key ? esc(item.save_key) : "")}</span></div>
       </button>`;
     }).join("");
   }).join("");
@@ -1121,6 +1194,26 @@ function slotLabel(n) {
 function objKey(d) {
   return [d.world, d.region_id, d.layer_id, d.object_id, d.value_key].join("|");
 }
+function locKindLabel(loc) {
+  return ({ chest: "chest", artifact: "artifact", armor: "armor", cube: "cube" }[loc?.kind] || "object");
+}
+function flagKind(d) { return d.class_kind || (d.value_key === "Destroyed" ? "breakable" : d.value_key === "Open" ? "door" : ""); }
+function matchFlags(flags, loc) {
+  const kind = loc?.kind || "";
+  if (!["chest", "artifact", "armor", "cube"].includes(kind)) return flags;
+  let shown = flags.filter(d => d.value_key === "Triggered");
+  if (kind === "chest" || kind === "artifact") {
+    const typed = shown.filter(d => flagKind(d) === kind);
+    if (typed.length) shown = typed;
+  }
+  return shown;
+}
+function visibleFlags(loc) {
+  const all = saveDiff?.flags || [];
+  if (saveView === "all") return all;
+  if (saveView === "custom") return all.filter(d => saveKeys.includes(d.value_key));
+  return matchFlags(all, loc);
+}
 function fillSlotSelects() {
   const nums = savSlots.length ? savSlots : [-1, 0, 1, 2, 3, 4];
   const opts = nums.map(n => {
@@ -1197,19 +1290,47 @@ function renderSaveDiffPanel(loc) {
   }
   renderSlotBriefs();
   const box = $("save-cand-box");
-  const flags = hasDiff ? (saveDiff.flags || []) : [];
+  const all = hasDiff ? (saveDiff.flags || []) : [];
+  const flags = hasDiff ? visibleFlags(loc) : [];
+  const hidden = Math.max(0, all.length - flags.length);
   box.hidden = !hasDiff;
   if (hasDiff) {
-    $("save-cand-head").textContent = flags.length + " OBJECT FLAG" + (flags.length === 1 ? "" : "S");
-    $("save-cand-note").textContent = "Triggered = chest · Destroyed = breakable · Open = door";
+    const kind = locKindLabel(loc);
+    $("save-cand-head").textContent = flags.length + " / " + all.length + " FLAG" + (all.length === 1 ? "" : "S");
+    const bits = [];
+    if (saveView === "match") bits.push("match " + kind);
+    if (saveDiff.placed) bits.push("dump " + saveDiff.placed.name);
+    if (hidden) bits.push(hidden + " hidden — ALL or DESTROYED / OPEN");
+    if (saveDiff.reversed) bits.push("slots look open→closed — SWAP or still save");
+    $("save-cand-note").textContent = bits.join(" · ") || ("only " + kind + " rows");
+    document.querySelectorAll("#save-view-seg button").forEach(b => {
+      b.classList.toggle("on", b.dataset.view === (saveView === "custom" ? "" : saveView));
+    });
+    const matchKeys = new Set(matchFlags(all, loc).map(d => d.value_key));
+    const onKeys = saveView === "all" ? new Set(SAVE_KEYS) : saveView === "custom" ? new Set(saveKeys) : matchKeys;
+    setHTML($("save-key-seg"), SAVE_KEYS.map(key => {
+      const n = all.filter(d => d.value_key === key).length;
+      const on = onKeys.has(key);
+      return `<button type="button" data-key="${key}" class="${on ? "on" : ""}" ${n ? "" : "disabled"}>${key.toUpperCase()}<span class="n">${n}</span></button>`;
+    }).join(""));
     const pickKey = pick ? objKey(pick) : "";
     setHTML($("save-cand-rows"), flags.length
       ? flags.map(d => `<tr class="cand${objKey(d) === pickKey ? " pick" : ""}" data-obj="${esc(objKey(d))}">
           <td>${objKey(d) === pickKey ? "●" : "○"}</td>
+          <td>${esc(d.name || "—")}</td>
+          <td>${esc(flagKind(d) || "—")}</td>
           <td>${esc(d.world)} r=${d.region_id} L=${d.layer_id} obj=${d.object_id}</td>
           <td>${esc(d.value_key)}</td>
           <td>${esc(d.old)}→${esc(d.new)}</td></tr>`).join("")
-      : `<tr><td colspan="4" class="empty">No Triggered / Destroyed / Open change.</td></tr>`);
+      : `<tr><td colspan="6" class="empty">${hidden ? ("No " + kind + " row in MATCH. " + hidden + " other flags — click ALL or a type.") : "No Triggered / Destroyed / Open change in these slots."}</td></tr>`);
+    const what = $("what-s3");
+    if (what) what.textContent = "Write the highlighted " + kind + " onto this AP name";
+    const why = $("why-s3");
+    if (why) {
+      why.textContent = pick
+        ? ("Highlighted: " + (pick.name || ("obj " + pick.object_id)) + " · " + (flagKind(pick) || pick.value_key) + ". SAVE IDENTITY stores that on this AP name. It does not turn on LocationChecks.")
+        : ("Click the " + kind + " row, then SAVE IDENTITY. Other types stay hidden until you unhide them.");
+    }
     $("save-stat-note").textContent = (saveDiff.stats || []).map(s => s.field + " " + s.old + " → " + s.new).join(" · ");
   }
 }
@@ -1408,18 +1529,22 @@ function renderCapture() {
     setNext("action", "Pick the location you just opened",
       "Save while it is closed, open it, save again. Then pick its exact AP name.");
   } else if (saveDiff && saveDiff.id === loc.id) {
-    const flags = saveDiff.flags || [];
+    const flags = visibleFlags(loc);
+    const hidden = (saveDiff.flags || []).length - flags.length;
     const pick = pickObj || saveDiff.pick;
+    const kind = locKindLabel(loc);
     if (!flags.length) {
-      setNext("warn", "No Triggered / Destroyed / Open change",
-        "Those slots may be the same, or the chest did not write a WorldObject.");
+      setNext("warn", hidden ? ("No " + kind + " row — " + hidden + " other flags hidden") : "No Triggered / Destroyed / Open change",
+        hidden ? "MATCH hides doors and breakables. Click ALL or DESTROYED / OPEN to inspect them." : "Those slots may be the same, or the object did not write a WorldObject.");
     } else if (pick) {
-      setNext("ok", "Keen object — save the identity",
-        esc(loc.label) + " → <code>" + esc(pick.world + " r=" + pick.region_id + " L=" + pick.layer_id + " obj=" + pick.object_id + " " + pick.value_key) + "</code>",
+      setNext("ok", "Press SAVE IDENTITY",
+        esc(loc.label) + " is <code>" + esc((pick.name ? pick.name + " · " : "") + pick.world + " r=" + pick.region_id + " L=" + pick.layer_id + " obj=" + pick.object_id) + "</code>"
+          + (hidden ? ". " + hidden + " other flags hidden." : ".")
+          + (saveDiff.reversed ? " Slots look reversed — SWAP if you meant closed→open." : ""),
         [{ label: "SAVE IDENTITY", cls: "go", run: () => $("btn-save-obj").click() }]);
     } else {
-      setNext("warn", flags.length + " object flags — pick the chest",
-        "Usually a new <code>Triggered</code> row. Breakables are Destroyed.");
+      setNext("warn", flags.length + " " + kind + " row(s) — click one",
+        "MATCH shows " + kind + " persist only. ALL unhides Destroyed / Open. Then SAVE IDENTITY.");
     }
   } else if (loc.identified && !loc.mapped) {
     setNext("ok", "Keen identity saved",
@@ -1480,6 +1605,34 @@ $("save-cand-rows").addEventListener("click", e => {
   const tr = e.target.closest("tr[data-obj]");
   if (!tr || !saveDiff) return;
   pickObj = (saveDiff.flags || []).find(d => objKey(d) === tr.dataset.obj) || null;
+  renderCapture();
+});
+$("save-view-seg").addEventListener("click", e => {
+  const b = e.target.closest("button[data-view]");
+  if (!b) return;
+  saveView = b.dataset.view;
+  saveKeys = [];
+  renderCapture();
+});
+$("save-key-seg").addEventListener("click", e => {
+  const b = e.target.closest("button[data-key]");
+  if (!b || b.disabled) return;
+  const key = b.dataset.key;
+  if (saveView === "match") {
+    const cur = [...new Set(visibleFlags(selected()).map(d => d.value_key))];
+    if (cur.includes(key)) return;
+    saveView = "custom";
+    saveKeys = cur.concat(key);
+  } else if (saveView === "all") {
+    saveView = "custom";
+    saveKeys = [key];
+  } else {
+    saveKeys = saveKeys.includes(key) ? saveKeys.filter(k => k !== key) : saveKeys.concat(key);
+    if (!saveKeys.length || SAVE_KEYS.every(k => saveKeys.includes(k))) {
+      saveView = "all";
+      saveKeys = [];
+    }
+  }
   renderCapture();
 });
 function currentSav() {
@@ -1632,6 +1785,15 @@ $("sav-path").addEventListener("change", () => {
 });
 $("slot-before").addEventListener("change", () => { ui.slotBefore = Number($("slot-before").value); savePrefs(); });
 $("slot-after").addEventListener("change", () => { ui.slotAfter = Number($("slot-after").value); savePrefs(); });
+$("btn-swap-slots").onclick = () => {
+  const b = $("slot-before"), a = $("slot-after");
+  const tmp = b.value;
+  b.value = a.value;
+  a.value = tmp;
+  ui.slotBefore = Number(b.value);
+  ui.slotAfter = Number(a.value);
+  savePrefs();
+};
 $("btn-save-diff").onclick = () => {
   const loc = selected();
   if (!loc) return;
@@ -1645,9 +1807,15 @@ $("btn-save-diff").onclick = () => {
     });
     saveDiff = data;
     pickObj = data.pick || null;
-    const n = (data.flags || []).length;
-    setMsg("s2", n ? "ok" : "warn", n ? n + " object flag(s)." : "No object flag change.");
-    log("STEP", "save-diff · " + loc.label + " · slots " + ui.slotBefore + "→" + ui.slotAfter + " · " + n + " flags");
+    saveView = "match";
+    saveKeys = [];
+    const all = (data.flags || []).length;
+    const n = (data.match || matchFlags(data.flags || [], loc)).length;
+    const hid = all > n ? " · " + (all - n) + " hidden" : "";
+    const rev = data.reversed ? " · slots open→closed" : "";
+    const name = data.pick && data.pick.name ? " · " + data.pick.name : "";
+    setMsg("s2", n ? "ok" : "warn", n ? n + " " + locKindLabel(loc) + " row(s)" + name + hid + rev : "No " + locKindLabel(loc) + " change. " + all + " other flags.");
+    log("STEP", "save-diff · " + loc.label + " · slots " + ui.slotBefore + "→" + ui.slotAfter + " · " + n + "/" + all + hid + rev);
   });
 };
 $("btn-save-obj").onclick = () => {
@@ -1850,8 +2018,14 @@ document.querySelectorAll("#status-seg button").forEach(b => b.onclick = () => {
   ui.status = b.dataset.filter; savePrefs(); renderList();
 });
 document.querySelectorAll("#kind-seg button").forEach(b => b.onclick = () => {
-  ui.kind = b.dataset.kind; savePrefs(); renderList();
+  ui.kind = b.dataset.kind;
+  if (ui.kind !== "all" && ui.kind !== "chest") ui.loot = "all";
+  savePrefs(); renderList();
 });
+document.querySelectorAll("#loot-seg button").forEach(b => b.onclick = () => {
+  ui.loot = b.dataset.loot; savePrefs(); renderList();
+});
+$("sort-select").onchange = () => { ui.sort = $("sort-select").value; savePrefs(); renderList(); };
 $("refresh-btn").onclick = async () => {
   try { await loadCatalog(); log("FILE", "catalog + targets.json reloaded"); }
   catch (e) { log("ERR", e.message); }

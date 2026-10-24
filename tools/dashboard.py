@@ -63,9 +63,9 @@ from tools.save_object import (
     find_default_sav,
     format_save_object,
     identify_location,
-    occupied_slots,
     parse_save_object,
 )
+from tools.save_patch import occupied_slots
 from tools.targets import build_target_entry, find_row, is_identified, is_template, raw_targets, save_target
 from tools.world_catalog import is_mapped, load_catalog
 
@@ -1094,7 +1094,7 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                     if loc is None:
                         raise ValueError("pick a location first")
                     sav = _sav_from(body.get("path"))
-                    result = diff_sav_slots(sav, int(body.get("before")), int(body.get("after")))
+                    result = diff_sav_slots(sav, int(body.get("before")), int(body.get("after")), loc)
                     result["id"] = loc.slug
                     result["label"] = loc.name
                     _json_response(self, result)

@@ -31,6 +31,6 @@ The AP client is written. **A seed is not playable yet:** no RAM offsets are map
 
 | Commit | Leave local (gitignored) |
 |--------|-------------|
-| `ds_client/`, `tools/`, `tests/`, `docs/`, `targets.json`, `ap_config.example.json`, `requirements*.txt` | `ap_config.json`, `ap_state.db`, `darksiders_debug.db`, `snapshots/`, `saves/`, `world/`, `.venv/` |
+| `ds_client/`, `tools/`, `docs/`, `targets.json`, `ap_config.example.json`, `requirements*.txt` | `ap_config.json`, `ap_state.db`, `darksiders_debug.db`, `snapshots/`, `saves/`, `world/`, `.venv/` |
 
 World: https://github.com/Sachaqc/Archipelago-Darksiders

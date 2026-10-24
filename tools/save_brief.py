@@ -22,6 +22,22 @@ def _val(node: Any) -> Any:
     return None
 
 
+def load_save(path: Path, slot: Optional[int] = None) -> dict:
+    """Decode a Keen JSON dump, or one slot of a ``.sav``."""
+    if not path.exists():
+        raise FileNotFoundError(path)
+    if path.suffix.lower() == ".sav":
+        from tools.save_patch import decode_sav_slot
+
+        return decode_sav_slot(path, -1 if slot is None else slot)
+    if slot is not None:
+        raise ValueError("slot only applies to .sav files")
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError(f"{path} is not a Keen object dump")
+    return data
+
+
 def _walk_classnames(node: Any, into: list[str]) -> None:
     if isinstance(node, dict):
         name = node.get("classname")
@@ -52,7 +68,9 @@ def _save_values(node: Any) -> list[tuple[str, str]]:
 
 
 def _flag_counts(flags: list[tuple[str, str]]) -> dict[str, int]:
-    counts = {"Triggered": 0, "Destroyed": 0, "Open": 0, "Activated": 0}
+    from tools.game_data import FLAG_KEYS
+
+    counts = {k: 0 for k in FLAG_KEYS}
     for key, val in flags:
         if key in counts and str(val).lower() == "true":
             counts[key] += 1
@@ -106,25 +124,13 @@ def brief_from_data(
 
 
 def brief_save(path: Path, slot: Optional[int] = None) -> dict[str, Any]:
-    if path.suffix.lower() == ".sav":
-        from tools.save_patch import decode_sav_slot
-
-        data = decode_sav_slot(path, -1 if slot is None else slot)
-        return brief_from_data(data, file=str(path), slot=-1 if slot is None else slot)
-    if slot is not None:
-        raise ValueError("--slot only applies to .sav files")
-    data = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(data, dict):
-        raise ValueError(f"{path} is not a Keen object dump")
-    return brief_from_data(data, file=str(path), slot=slot)
+    resolved = -1 if path.suffix.lower() == ".sav" and slot is None else slot
+    return brief_from_data(load_save(path, slot), file=str(path), slot=resolved)
 
 
 def export_slot_json(sav: Path, slot: int, dest: Path) -> Path:
-    from tools.save_patch import decode_sav_slot
-
-    data = decode_sav_slot(sav, slot)
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    dest.write_text(json.dumps(load_save(sav, slot), indent=2) + "\n", encoding="utf-8")
     return dest
 
 
@@ -198,7 +204,7 @@ def main(argv: Optional[list[str]] = None) -> int:
             if args.path.suffix.lower() != ".sav":
                 print("[ERROR] --all requires a .sav")
                 return 2
-            from tools.save_object import occupied_slots
+            from tools.save_patch import occupied_slots
 
             for slot in occupied_slots(args.path):
                 info = brief_save(args.path, slot)

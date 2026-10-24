@@ -381,33 +381,10 @@ def main_capture(argv: Optional[list[str]] = None) -> int:
     if loc is None:
         return 1
     if args.sav or args.slots:
-        from tools.save_object import diff_sav_slots, find_default_sav, identify_location
+        from tools.save_object import write_identity_from_slots
 
-        sav = args.sav or find_default_sav()
-        if sav is None:
-            print("[ERROR] No .sav. Pass --sav PATH")
-            return 1
-        if not args.slots:
-            print("[ERROR] --slots BEFORE AFTER is required with --sav")
-            return 2
-        print(f"[*] {loc.name}  save-diff  {sav}  slots {args.slots[0]} -> {args.slots[1]}")
-        try:
-            result = diff_sav_slots(sav, args.slots[0], args.slots[1])
-        except (OSError, ValueError, json.JSONDecodeError) as exc:
-            print(f"[-] {exc}")
-            return 1
-        pick = result.get("pick")
-        if parse_save_object(pick) is None:
-            print("[-] Need exactly one Triggered/Destroyed/Open delta. Rows:")
-            for d in result["flags"]:
-                print(f"    {d['world']} r={d['region_id']} L={d['layer_id']} obj={d['object_id']} {d['value_key']}: {d['old']} -> {d['new']}")
-            return 1
-        if args.dry_run:
-            print(json.dumps(pick, indent=2))
-            return 0
-        action, entry = identify_location(loc, pick)
-        print(f"[OK] {action} {entry['id']} Keen {entry['save_object']}")
-        return 0
+        before, after = args.slots if args.slots else (None, None)
+        return write_identity_from_slots(loc, args.sav, before, after, dry_run=args.dry_run)
 
     save_object = parse_save_object((find_row(loc.name) or {}).get("save_object"))
     print(

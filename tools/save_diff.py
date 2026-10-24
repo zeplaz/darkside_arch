@@ -11,22 +11,7 @@ import json
 from pathlib import Path
 from typing import Optional
 
-from tools.save_brief import _props, _val
-
-
-def _load(path: Path, slot: Optional[int] = None) -> dict:
-    if not path.exists():
-        raise FileNotFoundError(path)
-    if path.suffix.lower() == ".sav":
-        from tools.save_patch import decode_sav_slot
-
-        return decode_sav_slot(path, -1 if slot is None else slot)
-    if slot is not None:
-        raise ValueError("--slots only applies to .sav files")
-    data = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(data, dict):
-        raise ValueError(f"{path} is not a Keen object dump")
-    return data
+from tools.save_brief import _props, _val, load_save
 
 
 def flatten_save(data: dict) -> dict[tuple[str, ...], str]:
@@ -155,8 +140,8 @@ def main(argv: Optional[list[str]] = None) -> int:
             return 2
         after_path = args.after or args.before
     try:
-        before = _load(args.before, before_slot)
-        after = _load(after_path, after_slot)
+        before = load_save(args.before, before_slot)
+        after = load_save(after_path, after_slot)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"[ERROR] {exc}")
         return 1
@@ -176,16 +161,12 @@ def main(argv: Optional[list[str]] = None) -> int:
         "Object records appear only after they have state."
     )
     if args.location:
-        from tools.save_object import identify_location, object_flag_deltas, pick_flag_delta
+        from tools.save_object import filter_flags, object_flag_deltas, pick_flag_delta, write_identity
         from tools.world_catalog import resolve_location
 
         loc = resolve_location(location=args.location)
         if loc is None:
             return 1
-        pick = pick_flag_delta(object_flag_deltas(rows))
-        if pick is None:
-            print("[-] Not saved: need exactly one Triggered/Destroyed/Open delta, or pass the dashboard to pick.")
-            return 1
-        action, entry = identify_location(loc, pick)
-        print(f"[OK] {action} {entry['id']} Keen {entry['save_object']}")
+        flags, _hidden, _rev = filter_flags(object_flag_deltas(rows), loc)
+        return write_identity(loc, pick_flag_delta(flags, loc), flags=flags)
     return 0
