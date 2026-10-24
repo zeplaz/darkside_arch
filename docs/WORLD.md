@@ -66,6 +66,6 @@ Hotel is a local/proposed patch: [proposed/Seraphim Hotel.json](proposed/Seraphi
 | `Crossroads Secret Chest Destroy Fire Hydrants` | AP 608 |
 | `Crossroads Soldier Artifact in Subway Station` | AP 609 |
 
-Identify with two in-game save slots → dashboard **DIFF SAVES** ([tools](../tools/README.md)). That is not a RAM watch.
+Identify with two in-game save slots → dashboard **DIFF SAVES** ([DASHBOARD.md](DASHBOARD.md)). That is not a RAM watch.
 
 Later `0x0` templates: inventory `Beholder Key` (id 60), `Heart of the Chosen` (id 90), `Progressive Chaoseater` (id 100, cap 4), `Progressive Scythe` (id 110, cap 4), `Progressive Gauntlet` (id 113, cap 4), `Armageddon Blade Shards` (id 103), `Armageddon Blade` (id 102); stat `Soul_Count`; goal `Abaddon Destroyer defeated`.

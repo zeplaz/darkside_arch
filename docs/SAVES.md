@@ -1,5 +1,7 @@
 # Keen saves
 
+Map from the dashboard first: `python -m tools dashboard` — [DASHBOARD.md](DASHBOARD.md). This page is the save-file layout behind **SAVE DIFF** and the **SAVES** tab.
+
 Same slot, two files. JSON is a schema dump, not a memory map. Gitignored under `saves/`. Keep raw and patched apart:
 
 | Folder | |
@@ -42,18 +44,12 @@ ObjectID is not global — never search RAM for `342` or `16` alone; the RAM cap
 
 `war sav decode` only reads the autosave slot (`-1`). Manual slots 0–9 sit in the same `.sav`; `save-diff --slots` copies a slot onto autosave before decode.
 
-A closed→open slot pair identifies the chest. Dashboard **DIFF SAVES** / `scan --sav` writes `save_object` onto that AP name. The live flag then comes from the **RAM DUMP** tab, which scans the heap around that identity ([tools](../tools/README.md#dashboard)); `.data` does not hold chest flags.
-
-Dashboard is a workspace. Center tabs: **SAVE DIFF** (mapping), **RAM DUMP** (live flag after identity, heap capture; F8 still works while hidden), **SAVES** (inspect, encode UserId to `saves/edited/`, then **INSTALL TO STEAM**). INSTALL refuses while the game is attached, refuses a live Steam source, and requires typing `INSTALL`. Encode dest must stay under `saves/edited/`. war only rewrites autosave. LIVE VALUES stay on the right.
+A closed→open slot pair identifies the chest. Use the dashboard (**DIFF SAVES**, then **RAM DUMP**). CLI equivalents:
 
 ```powershell
 python -m tools dashboard
-python -m tools save-brief --slot 1 FILE.sav
 python -m tools save-brief --all FILE.sav
-python -m tools save-brief --slot 1 --export FILE.sav
 python -m tools save-diff --slots 1 2 --location "Seraphim Hotel Life Chest 1" FILE.sav
-python -m tools scan --sav FILE.sav --slots 1 2 --item "Seraphim Hotel Life Chest 1"
-python -m tools save-diff BEFORE.json AFTER.json
 ```
 
 ## AP skip-intro — not captured yet
