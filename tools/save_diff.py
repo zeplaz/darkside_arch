@@ -161,12 +161,12 @@ def main(argv: Optional[list[str]] = None) -> int:
         "Object records appear only after they have state."
     )
     if args.location:
-        from tools.save_object import object_flag_deltas, pick_flag_delta, write_identity
+        from tools.save_object import filter_flags, object_flag_deltas, pick_flag_delta, write_identity
         from tools.world_catalog import resolve_location
 
         loc = resolve_location(location=args.location)
         if loc is None:
             return 1
-        flags = object_flag_deltas(rows)
-        return write_identity(loc, pick_flag_delta(flags), flags=flags)
+        flags, _hidden, _rev = filter_flags(object_flag_deltas(rows), loc)
+        return write_identity(loc, pick_flag_delta(flags, loc), flags=flags)
     return 0

@@ -52,22 +52,52 @@ def _objects() -> list[dict[str, Any]]:
     return objs
 
 
+def class_kind(classname: str) -> str:
+    low = classname.lower()
+    if "chest" in low:
+        return "chest"
+    if "door" in low:
+        return "door"
+    if "artifact" in low:
+        return "artifact"
+    return ""
+
+
+def _placed(obj: dict[str, Any]) -> Optional[dict[str, Any]]:
+    props = obj.get("properties") or {}
+    try:
+        classname = str(obj.get("classname") or "")
+        return {
+            "name": str(props.get("Name") or ""),
+            "classname": classname,
+            "class_kind": class_kind(classname),
+            "world": "overworld",
+            "region_id": int(props["RegionID"]),
+            "layer_id": int(props["LayerID"]),
+            "object_id": int(props["ObjectID"]),
+        }
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
 def find_object(name: str) -> Optional[dict[str, Any]]:
     for obj in _objects():
         props = obj.get("properties") or {}
-        if props.get("Name") != name:
-            continue
-        try:
-            return {
-                "name": name,
-                "classname": str(obj.get("classname") or ""),
-                "world": "overworld",
-                "region_id": int(props["RegionID"]),
-                "layer_id": int(props["LayerID"]),
-                "object_id": int(props["ObjectID"]),
-            }
-        except (KeyError, TypeError, ValueError):
-            return None
+        if props.get("Name") == name:
+            return _placed(obj)
+    return None
+
+
+def find_by_ids(region_id: int, layer_id: int, object_id: int) -> Optional[dict[str, Any]]:
+    for obj in _objects():
+        placed = _placed(obj)
+        if (
+            placed
+            and placed["region_id"] == region_id
+            and placed["layer_id"] == layer_id
+            and placed["object_id"] == object_id
+        ):
+            return placed
     return None
 
 

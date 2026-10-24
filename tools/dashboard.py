@@ -1094,7 +1094,7 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                     if loc is None:
                         raise ValueError("pick a location first")
                     sav = _sav_from(body.get("path"))
-                    result = diff_sav_slots(sav, int(body.get("before")), int(body.get("after")))
+                    result = diff_sav_slots(sav, int(body.get("before")), int(body.get("after")), loc)
                     result["id"] = loc.slug
                     result["label"] = loc.name
                     _json_response(self, result)
