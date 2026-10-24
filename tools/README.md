@@ -1,16 +1,18 @@
 # tools
 
-`python -m tools <command>` — map chests and items into [targets.json](../targets.json). [ds_client](../ds_client/README.md) hot-reloads that file.
+**Entry: `python -m tools dashboard`** → `http://127.0.0.1:8765/`
+
+That browser is how you map. How to use it: [docs/DASHBOARD.md](../docs/DASHBOARD.md) and the [repo README](../README.md#mapping-dashboard). Commands below are CLI backups. They write the same [targets.json](../targets.json); [ds_client](../ds_client/README.md) hot-reloads it.
 
 ```powershell
-python -m tools                 # print this list
-python -m tools dashboard       # start here  →  http://127.0.0.1:8765/
+python -m tools dashboard       # start here
+python -m tools                 # this list
 python -m tools <command> --help
 ```
 
 | Run | Use |
 |-----|-----|
-| [`dashboard`](#dashboard) | Browser. Identify from two save slots, then RAM DUMP for the live flag. |
+| [`dashboard`](#dashboard) | **Main entry.** Identify from two save slots, then RAM DUMP. |
 | [`capture`](#capture) | Same identify / RAM dump in the terminal. |
 | [`scan`](#scan) | HUD numbers (souls, weapon levels). Add `--sav --slots` only for a chest identity. |
 | [`locations`](#locations) | List checks: open / identified / mapped. |
@@ -33,40 +35,16 @@ Need `pip install -r requirements-dev.txt` once. Slots are `-1` autosave, `0`–
 
 ## `dashboard`
 
+Full how-to: [docs/DASHBOARD.md](../docs/DASHBOARD.md).
+
 ```powershell
 python -m tools dashboard                 # http://127.0.0.1:8765/
 python -m tools dashboard --port 8765 --no-browser
 ```
 
-Flags: `--host` (default `127.0.0.1`), `--port` (`8765`), `--db`, `--no-browser`.
+`--host` (default `127.0.0.1`), `--port` (`8765`), `--db`, `--no-browser`.
 
-**Left:** region, search, OPEN / IDENTIFIED / MAPPED, kind (chest / artifact / armor / cube / other), chest loot, sort.
-
-**Center tabs:** SAVE DIFF (identity) · RAM DUMP (live flag) · SAVES (encode UserId, then INSTALL). **?** on the page is the full guide. This page never writes process memory and never talks to AP.
-
-### SAVE DIFF — identify a chest
-
-Game can be closed.
-
-1. Pause. **Save** while the object is still closed (note the slot).
-2. Open it. **Save** in a different slot.
-3. **BRIEF ALL** if you are not sure which slot is closed vs open.
-4. Pick the AP name on the left. Set CLOSED / OPENED. **DIFF SAVES**.
-5. **MATCH** keeps the persist type for that row (chest → `Triggered` chests). **ALL** or **DESTROYED** / **OPEN** / **ACTIVATED** unhides the rest. Breakables are `Destroyed`. Doors are `Open`.
-6. Highlight the row. **SAVE IDENTITY**.
-
-That writes `save_object` (`world` + RegionID + LayerID + ObjectID + key). LocationChecks still need a RAM offset.
-
-**EXPORT … JSON** writes `saves/_scratch/slots/`. **SAVES** tab: ENCODE TO EDITED (`saves/edited/`, autosave only) then INSTALL TO STEAM (type `INSTALL`; refused while the game is attached).
-
-### RAM DUMP — live flag (after identity)
-
-1. Load a save where the chest is still closed. Stand next to it.
-2. **RAM DUMP** tab. **F8** (or BASELINE) — 4 s, stand still.
-3. Open the chest. **F8** (or DIFF) — 1.5 s.
-4. Pick the 0→1 row if more than one remains. **SAVE RAM**.
-
-Identified rows scan the heap for the packed ObjectID+RegionID+LayerID triple, then nearby, then ObjectID alone, and diff around those anchors. No identity diffs 34 MB of `.data`, where chest flags are not. A heap byte is saved only if a static pointer chain from `darksiders1.exe` exists. Extra F8 keeps only candidates that survived every diff. Last capture: `snapshots/last_capture.npz`.
+**SAVE DIFF** → Keen `save_object` (identity, not a live watch). **RAM DUMP** → RAM offset (LocationChecks). **SAVES** → UserId encode / Steam install. **?** on the page repeats the guide.
 
 ---
 
