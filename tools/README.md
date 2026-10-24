@@ -1,33 +1,33 @@
 # tools
 
-Mapper-only. Identifies Keen WorldObjects from two save slots, then finds the live RAM flag. Writes [targets.json](../targets.json); [ds_client](../ds_client/README.md) hot-reloads it. Labels must match Sacha’s `worlds/darksiders/data/*.json` exactly ([WORLD.md](../docs/WORLD.md)) — pick them from the catalog, never type them.
-
-Sacha’s `data/` = AP names + ids + vanilla item. This repo = Keen `save_object` + RAM offsets. Do not put RVAs in the world package. Join key is the location name.
-
-`save_object` is not a live watch. RAM capture turns the row on. `ds_client` skips `offsets: ["0x0"]`.
+`python -m tools <command>` — map chests and items into [targets.json](../targets.json). [ds_client](../ds_client/README.md) hot-reloads that file.
 
 ```powershell
-pip install -r requirements-dev.txt
-python -m tools              # this list
-python -m tools CMD --help   # flags for one command
+python -m tools                 # print this list
+python -m tools dashboard       # start here  →  http://127.0.0.1:8765/
+python -m tools <command> --help
 ```
 
-## Commands
+| Run | Use |
+|-----|-----|
+| [`dashboard`](#dashboard) | Browser. Identify from two save slots, then RAM DUMP for the live flag. |
+| [`capture`](#capture) | Same identify / RAM dump in the terminal. |
+| [`scan`](#scan) | HUD numbers (souls, weapon levels). Add `--sav --slots` only for a chest identity. |
+| [`locations`](#locations) | List checks: open / identified / mapped. |
+| [`sync-world`](#sync-world) | Refresh `docs/world_*.json` from Sacha’s world package. |
+| [`export-docs`](#export-docs) | Rebuild `docs/memory_map.md`. |
+| [`save-brief`](#save-brief) | Decode a slot and print spawn / chests / flags. |
+| [`save-diff`](#save-diff) | Diff two slots (or JSON). `--location` writes the Keen identity. |
+| [`save-patch`](#save-patch) | Set `.sav` UserId (war, autosave only). Then optional `--install`. |
+| [`save-install`](#save-install) | JSON template UserId only. Not a playable `.sav`. |
 
-| Command | What it does |
-|---------|----------------|
-| [`dashboard`](#dashboard) | Browser UI. Start here. Two save slots → DIFF SAVES → SAVE IDENTITY, then RAM DUMP. |
-| [`capture`](#capture) | Same chest identity in the terminal (`--sav --slots`), or RAM dump (`--location`). |
-| [`scan`](#scan) | HUD numbers (souls, weapon levels). With `--sav --slots` it is a chest identity, not a HUD scan. |
-| [`locations`](#locations) | Print catalog checks with todo / identified / mapped. |
-| [`sync-world`](#sync-world) | Refresh `docs/world_*.json` from `worlds/darksiders/data/`. |
-| [`export-docs`](#export-docs) | Write `docs/memory_map.md` from `targets.json`. |
-| [`save-brief`](#save-brief) | Summarize one Keen slot (or every occupied slot) after a war decode. |
-| [`save-diff`](#save-diff) | Diff two slots or two JSON dumps. `--location` writes `save_object`. |
-| [`save-patch`](#save-patch) | Change `.sav` UserId via war (autosave only). Writes `saves/edited/`, optional `--install`. |
-| [`save-install`](#save-install) | JSON-only UserId rewrite for an AP skip-intro template. Does not make a playable `.sav`. |
+Need `pip install -r requirements-dev.txt` once. Slots are `-1` autosave, `0`–`9` the list. Saves: [SAVES.md](../docs/SAVES.md). Names: [WORLD.md](../docs/WORLD.md).
 
-Slots: `-1` autosave, `0`–`9` the in-game list. `war sav decode` only reads autosave; other slots are copied there first. Full save notes: [SAVES.md](../docs/SAVES.md).
+**Rules**
+
+- Pick AP names from the catalog. Never type them.
+- Sacha’s `data/` = names, AP ids, vanilla loot. This repo = Keen identity + RAM offsets. No RVAs in the world package.
+- `save_object` is the Keen id, not a live watch. RAM capture turns the row on. `["0x0"]` is ignored.
 
 ---
 
