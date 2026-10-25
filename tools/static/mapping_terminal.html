@@ -349,8 +349,8 @@
           <div class="card how" id="how-card">
             <div class="lbl">TWO IN-GAME SAVES. DIFF THE OBJECT RECORD. NOT A RAM DUMP.</div>
             <ol>
-              <li>Quit to the pause menu. <b>Save</b> while the chest is still closed (note the slot).</li>
-              <li>Open the chest. <b>Save</b> again in a different slot.</li>
+              <li id="how-li-1">Quit to the pause menu. <b>Save</b> while the object is still untouched (note the slot).</li>
+              <li id="how-li-2">Trigger the object. <b>Save</b> again in a different slot.</li>
               <li>Pick the AP name on the left. Slot numbers: -1 is autosave, 0–9 are the list.</li>
               <li><b>DIFF SAVES</b>. Chests write <code>Triggered</code>. Breakables are <code>Destroyed</code>. Doors are <code>Open</code>.</li>
               <li><b>SAVE</b> the Keen identity. That is not a live AP watch — RAM offset comes later.</li>
@@ -427,23 +427,23 @@
           <div id="work-ram" hidden>
             <div class="card how">
               <div class="lbl">AFTER SAVE DIFF — FINDS THE LIVE FLAG</div>
-              <p class="note">Identified rows (SAVE DIFF first) scan the heap for the packed ObjectID+RegionID+LayerID triple from the Keen dumps, then nearby, and diff only around those. Rows without an identity diff 34 MB of .data, where chests are not. The closed dump samples for 4 s and the open dump for 1.5 s — stand still for both. F8 still dumps while this tab is hidden.</p>
+              <p class="note" id="ram-note">Identified rows (SAVE DIFF first) scan the heap for the packed ObjectID+RegionID+LayerID triple from the Keen dumps, then nearby, and diff only around those. Rows without an identity diff 34 MB of .data, where those flags are not. The closed dump samples for 4 s and the open dump for 1.5 s — stand still for both. F8 still dumps while this tab is hidden.</p>
             </div>
             <div class="steps">
             <div class="step" id="step-1">
               <div class="num">1</div>
-              <div class="what">Pick the AP name for the chest you are facing</div>
+              <div class="what" id="what-1">Pick the AP name for the object you are facing</div>
               <div class="btns"></div>
-              <div class="why">The dump cannot see which chest it is. The name you pick is what gets written.</div>
+              <div class="why" id="why-1">The dump cannot see which object it is. The name you pick is what gets written.</div>
               <div class="msg" id="msg-1"></div>
             </div>
             <div class="step" id="step-2">
               <div class="num">2</div>
-              <div class="what" id="what-2">Dump BEFORE — chest still closed</div>
+              <div class="what" id="what-2">Dump BEFORE — object still untouched</div>
               <div class="btns">
                 <button type="button" class="primary" id="btn-baseline" data-tip="Arms a wait: dump after Darksiders stays in front 7s. Click the game, unpause (Esc), stand still. In-game F8 dumps now. Shortcut: B">BASELINE</button>
               </div>
-              <div class="why" id="why-2">Stand still. Do not open it. RETAKE only if it is still closed.</div>
+              <div class="why" id="why-2">Stand still. Do not trigger it. RETAKE only if it is still untouched.</div>
               <div class="msg" id="msg-2"></div>
             </div>
             <div class="step" id="step-3">
@@ -618,13 +618,13 @@
       <h2 id="help-h">HOW THIS WORKS</h2>
       <button type="button" id="help-close">CLOSE (Esc)</button>
     </div>
-    <p>Workspace tabs: <b>SAVE DIFF</b> (chests), <b>RAM DUMP</b> (live flag, after identity), <b>SAVES</b> (encode UserId to <code>saves/edited/</code>, then INSTALL to Steam). This page never writes process memory and never connects to AP — the runtime is <code>python -m ds_client --connect HOST:PORT --slot NAME</code>.</p>
+    <p>Workspace tabs: <b>SAVE DIFF</b> (identity), <b>RAM DUMP</b> (live flag, after identity), <b>SAVES</b> (encode UserId to <code>saves/edited/</code>, then INSTALL to Steam). This page never writes process memory and never connects to AP — the runtime is <code>python -m ds_client --connect HOST:PORT --slot NAME</code>.</p>
     <div class="help-grid">
       <div>
-        <h3>CAPTURE A CHEST</h3>
-        <p>Two in-game save slots. The chest is a Keen WorldObject (<code>Triggered</code>), same table as <code>Destroyed</code> breakables. Not a RAM 0→1.</p>
+        <h3>CAPTURE A CHECK</h3>
+        <p>Two in-game save slots. Chests / artifacts / cubes are Keen WorldObjects (<code>Triggered</code>), same table as <code>Destroyed</code> breakables. Not a RAM 0→1.</p>
         <ol>
-          <li>Save while closed. Open it. Save again in another slot.</li>
+          <li>Save while untouched. Open or collect it. Save again in another slot.</li>
           <li>Pick the AP name. Set the two slot numbers. <b>DIFF SAVES</b>.</li>
           <li><b>SAVE IDENTITY</b>. ds_client still skips it until a RAM offset exists.</li>
         </ol>
@@ -1197,6 +1197,14 @@ function objKey(d) {
 function locKindLabel(loc) {
   return ({ chest: "chest", artifact: "artifact", armor: "armor", cube: "cube" }[loc?.kind] || "object");
 }
+function locTalk(loc) {
+  const kind = locKindLabel(loc);
+  if (kind === "chest") return { kind, closed: "closed", opened: "open", openVerb: "Open", opening: "Opening" };
+  if (kind === "artifact" || kind === "armor" || kind === "cube") {
+    return { kind, closed: "untouched", opened: "collected", openVerb: "Collect", opening: "Collecting" };
+  }
+  return { kind, closed: "untriggered", opened: "triggered", openVerb: "Trigger", opening: "Triggering" };
+}
 function flagKind(d) { return d.class_kind || (d.value_key === "Destroyed" ? "breakable" : d.value_key === "Open" ? "door" : ""); }
 function matchFlags(flags, loc) {
   const kind = loc?.kind || "";
@@ -1404,18 +1412,31 @@ function renderCapture() {
   bD.textContent = busy === "diff" ? "DIFFING…"
     : wait === "diff" ? (cap.foreground ? ("IN-GAME " + hold + "s") : "GO TO GAME")
     : stage === "diffed" ? "DIFF AGAIN" : "DIFF";
+  const talk = locTalk(loc);
+  const how1 = $("how-li-1");
+  const how2 = $("how-li-2");
+  if (how1) how1.innerHTML = "Quit to the pause menu. <b>Save</b> while the " + talk.kind + " is still " + talk.closed + " (note the slot).";
+  if (how2) how2.innerHTML = talk.openVerb + " the " + talk.kind + ". <b>Save</b> again in a different slot.";
+  const ramNote = $("ram-note");
+  if (ramNote) {
+    ramNote.textContent = "Identified rows (SAVE DIFF first) scan the heap for the packed ObjectID+RegionID+LayerID triple from the Keen dumps, then nearby, and diff only around those. Rows without an identity diff 34 MB of .data, where " + talk.kind + " flags are not. The closed dump samples for 4 s and the open dump for 1.5 s — stand still for both. F8 still dumps while this tab is hidden.";
+  }
+  $("what-1").textContent = "Pick the AP name for the " + talk.kind + " you are facing";
+  $("why-1").textContent = "The dump cannot see which " + talk.kind + " it is. The name you pick is what gets written.";
+  $("btn-baseline").dataset.tip = "Arms a wait: dump after Darksiders stays in front 7s. Click the game, unpause (Esc), stand still. " + talk.kind + " still " + talk.closed + ". In-game F8 dumps now. Shortcut: B";
+  $("btn-diff").dataset.tip = talk.openVerb + " the " + talk.kind + " first, then arm AFTER. Click back, unpause, wait 7s — or press F8 in-game. Shortcut: D";
   $("what-2").textContent = stage === "idle"
-    ? "Dump BEFORE — chest still closed"
-    : "Closed dump stored — do not RETAKE unless still closed";
+    ? "Dump BEFORE — " + talk.kind + " still " + talk.closed
+    : "Closed dump stored — do not RETAKE unless still " + talk.closed;
   $("why-2").textContent = stage === "idle"
-    ? "Stand still. Do not open it. RETAKE only if it is still closed."
-    : "Closed dump is locked. Opening the chest is in-game only. RETAKE would overwrite the before-state — reload the save first.";
+    ? "Stand still. Do not " + talk.openVerb.toLowerCase() + " it. RETAKE only if it is still " + talk.closed + "."
+    : "Closed dump is locked. " + talk.opening + " the " + talk.kind + " is in-game only. RETAKE would overwrite the before-state — reload the save first.";
   $("what-3").textContent = stage === "diffed"
-    ? "Still open — dump AFTER again (same closed dump)"
-    : "Open it, wait, dump AFTER";
+    ? "Still " + talk.opened + " — dump AFTER again (same closed dump)"
+    : talk.openVerb + " it, wait, dump AFTER";
   $("why-3").textContent = stage === "diffed"
     ? "DIFF AGAIN is not a new baseline. F8 again keeps only bytes that stayed 1."
-    : "Open in-game first. Then F8 (or DIFF and go back). Still open — same closed baseline.";
+    : talk.openVerb + " in-game first. Then F8 (or DIFF and go back). Still " + talk.opened + " — same closed baseline.";
   bS.disabled = saveAddr == null || freeze;
   bS.textContent = busy === "save" ? (saveCand && saveCand.rva == null ? "POINTER SCAN…" : "SAVING…") : saveCand ? "SAVE " + offLabel(saveCand) : "SAVE";
   $("btn-reset").disabled = dumping || (cap.stage === "idle" && !wait);
@@ -1451,13 +1472,13 @@ function renderCapture() {
     if (!cap.foreground) {
       setNext("action", "Click Darksiders — dump will not run on this page",
         wait === "baseline"
-          ? "Unpause (Esc). Chest still <b>closed</b>. Stay in-game 7s, or press <b>F8</b>. START OVER cancels."
-          : "Chest must already be open. Unpause (Esc), stand still 7s, or press <b>F8</b>. Do not open it on F8.");
+          ? "Unpause (Esc). " + talk.kind + " still <b>" + talk.closed + "</b>. Stay in-game 7s, or press <b>F8</b>. START OVER cancels."
+          : talk.kind[0].toUpperCase() + talk.kind.slice(1) + " must already be " + talk.opened + ". Unpause (Esc), stand still 7s, or press <b>F8</b>. Do not " + talk.openVerb.toLowerCase() + " it on F8.");
     } else {
       setNext("action", "In-game dump in " + n + "s — or F8 now",
         wait === "baseline"
-          ? "Stay unpaused. Chest still <b>closed</b>. Don't look at this page."
-          : "Stay unpaused. Already open. Don't look at this page.");
+          ? "Stay unpaused. " + talk.kind + " still <b>" + talk.closed + "</b>. Don't look at this page."
+          : "Stay unpaused. Already " + talk.opened + ". Don't look at this page.");
     }
   } else if (busy) {
     const what = {
@@ -1492,11 +1513,11 @@ function renderCapture() {
   } else if (ui.work === "ram") {
     if (!loc) {
       setNext("action", "Pick the AP name, then dump",
-        "Pick an IDENTIFIED chest (SAVE DIFF first) so the capture can scan the heap around it. F8 still dumps while this tab is hidden.");
+        "Pick an IDENTIFIED " + talk.kind + " (SAVE DIFF first) so the capture can scan the heap around it. F8 still dumps while this tab is hidden.");
     } else if (stage === "diffed") {
       if (!cands.length) {
         setNext("warn", "No 0→1 byte found",
-          "Did the chest actually open, and were you standing still for both dumps? If yes, press <b>F8</b> again (same closed dump). " + (cap.scope || ""),
+          "Did the " + talk.kind + " actually become " + talk.opened + ", and were you standing still for both dumps? If yes, press <b>F8</b> again (same closed dump). " + (cap.scope || ""),
           [over]);
       } else if (saveCand) {
         setNext("ok", cands.length === 1 ? "One 0→1 — save it" : "Save the chosen offset",
@@ -1511,23 +1532,23 @@ function renderCapture() {
       }
     } else if (stage === "baseline") {
       if (!up) {
-        setNext("bad", "Game closed after the closed dump", "Relaunch, load the save (chest closed) and START OVER.", [over]);
+        setNext("bad", "Game closed after the closed dump", "Relaunch, load the save (" + talk.kind + " " + talk.closed + ") and START OVER.", [over]);
       } else {
-        setNext("action", "Now open it in-game, then F8",
-          "Closed dump is done. Open <b>" + esc(loc.label) + "</b>, wait, stay in the game, press <b>F8</b>.");
+        setNext("action", "Now " + talk.openVerb.toLowerCase() + " it in-game, then F8",
+          "Closed dump is done. " + talk.openVerb + " <b>" + esc(loc.label) + "</b>, wait, stay in the game, press <b>F8</b>.");
       }
     } else if (loc.mapped) {
       setNext("ok", "Already mapped", "RAM watch is under LIVE VALUES. Recapture only if it does not flip.");
     } else if (loc.identified) {
-      setNext("action", "Closed chest, stand still, F8",
-        "Heap capture around <code>" + esc(loc.save_key) + "</code>. Load a save where it is still closed, stand next to it, press <b>F8</b> (4 s sample).");
+      setNext("action", talk.kind[0].toUpperCase() + talk.kind.slice(1) + " " + talk.closed + ", stand still, F8",
+        "Heap capture around <code>" + esc(loc.save_key) + "</code>. Load a save where it is still " + talk.closed + ", stand next to it, press <b>F8</b> (4 s sample).");
     } else {
       setNext("warn", "Identify it on SAVE DIFF first",
-        "Without a Keen identity this diffs 34 MB of .data, where chest flags are not. Two save slots on SAVE DIFF, then come back.");
+        "Without a Keen identity this diffs 34 MB of .data, where " + talk.kind + " flags are not. Two save slots on SAVE DIFF, then come back.");
     }
   } else if (!loc) {
     setNext("action", "Pick the location you just opened",
-      "Save while it is closed, open it, save again. Then pick its exact AP name.");
+      "Save while it is " + talk.closed + ", " + talk.openVerb.toLowerCase() + " it, save again. Then pick its exact AP name.");
   } else if (saveDiff && saveDiff.id === loc.id) {
     const flags = visibleFlags(loc);
     const hidden = (saveDiff.flags || []).length - flags.length;
@@ -1554,7 +1575,7 @@ function renderCapture() {
       "RAM watch is under LIVE VALUES. Keen identity can still be saved from two slots.");
   } else {
     setNext("action", "Two save slots, then DIFF SAVES",
-      "Save while <b>" + esc(loc.label) + "</b> is closed. Open it. Save in another slot. Pick the slots. The game can be closed.");
+      "Save while <b>" + esc(loc.label) + "</b> is " + talk.closed + ". " + talk.openVerb + " it. Save in another slot. Pick the slots. The game can be closed.");
   }
 }
 

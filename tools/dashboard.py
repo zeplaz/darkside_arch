@@ -471,7 +471,7 @@ def _item_related(label: str) -> list[str]:
 
 
 def catalog_payload() -> dict[str, Any]:
-    locations = load_catalog()
+    locations = load_catalog(include_deferred=True)
     targets = raw_targets()
     by_id = {str(t.get("id")): t for t in targets}
     by_label = {str(t.get("label")): t for t in targets}
@@ -518,7 +518,7 @@ def catalog_payload() -> dict[str, Any]:
 
 
 def _find_catalog_loc(slug: str):
-    for loc in load_catalog():
+    for loc in load_catalog(include_deferred=True):
         if loc.slug == slug or loc.name == slug:
             return loc
     return None
