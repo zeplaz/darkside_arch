@@ -19,7 +19,7 @@
         "object_id": 342,
         "value_key": "Triggered"
       },
-      "notes": "Wiki H1 1/2. AP 200. Keen SB_G_Chest_HealthChest_01 overworld r=2 L=6 obj=342 Triggered. /overworld/CI_StartBld. Save-diff + Sacha."
+      "notes": "Wiki H1 1/2. Local test AP 2000. Keen SB_G_Chest_HealthChest_01 overworld r=2 L=6 obj=342 Triggered. /overworld/CI_StartBld. Save-diff + Sacha."
     },
     {
       "id": "chest_seraphim_hotel_life_2",
@@ -38,74 +38,38 @@
         "object_id": 16,
         "value_key": "Triggered"
       },
-      "notes": "Wiki H2 2/2. AP 201. Keen CI_SB_Exit_Chest_HealthChest overworld r=260 L=1 obj=16 Triggered. /overworld/CI_SB_Exit. Sacha minimap match — not save-diff confirmed."
+      "notes": "Wiki H2 2/2. Local test AP 2001. Keen CI_SB_Exit_Chest_HealthChest overworld r=260 L=1 obj=16 Triggered. /overworld/CI_SB_Exit. Sacha minimap match — not save-diff confirmed."
     },
     {
       "id": "chest_crossroads_currency_down_stairs",
       "enabled": false,
       "event_type": "LOCATION_CHECK",
       "category": "location_flag",
-      "label": "Crossroads Currency Chest Down Back Alley Stairs",
+      "label": "Crossroads Back Alley Downstairs Chest",
       "region": "Crossroads",
       "offsets": ["0x0"],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 600. Identify with two save slots."
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 607. Identify with two save slots."
     },
     {
       "id": "chest_crossroads_currency_south_crater",
       "enabled": false,
       "event_type": "LOCATION_CHECK",
       "category": "location_flag",
-      "label": "Crossroads Currency Chest South Crater",
+      "label": "Crossroads South Crater Chest",
       "region": "Crossroads",
       "offsets": ["0x0"],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 602."
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 600."
     },
     {
       "id": "chest_crossroads_currency_north_building",
       "enabled": false,
       "event_type": "LOCATION_CHECK",
       "category": "location_flag",
-      "label": "Crossroads Currency Chest in North Building",
-      "region": "Crossroads",
-      "offsets": ["0x0"],
-      "type": "uint8",
-      "bitmask": "0x01",
-      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 601. New in the JSON revamp."
-    },
-    {
-      "id": "chest_crossroads_currency_subway",
-      "enabled": false,
-      "event_type": "LOCATION_CHECK",
-      "category": "location_flag",
-      "label": "Crossroads Currency Chest in Subway Station",
-      "region": "Crossroads",
-      "offsets": ["0x0"],
-      "type": "uint8",
-      "bitmask": "0x01",
-      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 603."
-    },
-    {
-      "id": "chest_crossroads_life_east_crater",
-      "enabled": false,
-      "event_type": "LOCATION_CHECK",
-      "category": "location_flag",
-      "label": "Crossroads Life Chest East Crater",
-      "region": "Crossroads",
-      "offsets": ["0x0"],
-      "type": "uint8",
-      "bitmask": "0x01",
-      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 604. Replaces old Gholen/NE names."
-    },
-    {
-      "id": "chest_crossroads_life_ne_back_alley",
-      "enabled": false,
-      "event_type": "LOCATION_CHECK",
-      "category": "location_flag",
-      "label": "Crossroads Life Chest in NE Back Alley",
+      "label": "Crossroads North Building Chest",
       "region": "Crossroads",
       "offsets": ["0x0"],
       "type": "uint8",
@@ -113,11 +77,35 @@
       "notes": "TEMPLATE — Sacha data/Crossroads.json ID 605."
     },
     {
-      "id": "chest_crossroads_life_west_of_library",
+      "id": "chest_crossroads_currency_subway",
       "enabled": false,
       "event_type": "LOCATION_CHECK",
       "category": "location_flag",
-      "label": "Crossroads Life Chest West of Library",
+      "label": "Crossroads Subway Station Chest",
+      "region": "Crossroads",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 604."
+    },
+    {
+      "id": "chest_crossroads_life_east_crater",
+      "enabled": false,
+      "event_type": "LOCATION_CHECK",
+      "category": "location_flag",
+      "label": "Crossroads East Crater Chest",
+      "region": "Crossroads",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 608."
+    },
+    {
+      "id": "chest_crossroads_life_ne_back_alley",
+      "enabled": false,
+      "event_type": "LOCATION_CHECK",
+      "category": "location_flag",
+      "label": "Crossroads Back Alley Chest",
       "region": "Crossroads",
       "offsets": ["0x0"],
       "type": "uint8",
@@ -125,16 +113,28 @@
       "notes": "TEMPLATE — Sacha data/Crossroads.json ID 606."
     },
     {
-      "id": "chest_crossroads_rare_ice",
+      "id": "chest_crossroads_life_west_of_library",
       "enabled": false,
       "event_type": "LOCATION_CHECK",
       "category": "location_flag",
-      "label": "Crossroads Rare Chest Blocked by Ice",
+      "label": "Crossroads West of Library Chest",
       "region": "Crossroads",
       "offsets": ["0x0"],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — skip until ice tools"
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 601."
+    },
+    {
+      "id": "chest_crossroads_rare_ice",
+      "enabled": false,
+      "event_type": "LOCATION_CHECK",
+      "category": "location_flag",
+      "label": "Crossroads Chest Blocked by Ice",
+      "region": "Crossroads",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "bitmask": "0x01",
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 602. Skip until ice tools."
     },
     {
       "id": "chest_crossroads_secret_hydrants",
@@ -146,27 +146,27 @@
       "offsets": ["0x0"],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — python -m tools capture --region Crossroads"
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 609. Identify with two save slots."
     },
     {
       "id": "artifact_crossroads_subway",
       "enabled": false,
       "event_type": "LOCATION_CHECK",
       "category": "location_flag",
-      "label": "Crossroads Soldier Artifact in Subway Station",
+      "label": "Crossroads Subway Station Artifact",
       "region": "Crossroads",
       "offsets": ["0x0"],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — python -m tools capture --region Crossroads"
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 603."
     },
     {
       "id": "goal_abaddon_defeated",
       "enabled": false,
       "event_type": "GOAL",
       "category": "misc",
-      "label": "Abaddon Destroyer defeated",
-      "region": "Leviathan's Drift",
+      "label": "Abaddon the Destroyer defeated",
+      "region": "Leviathan's Drift Upper Area",
       "offsets": ["0x0"],
       "type": "uint8",
       "bitmask": "0x01",

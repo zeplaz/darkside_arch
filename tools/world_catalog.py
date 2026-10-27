@@ -2,6 +2,7 @@
 
 Source of truth is worlds/darksiders/data/*.json in the local clone.
 Falls back to docs/world_*.json when the clone is missing.
+docs/proposed/ is our local test overlay (hotel), not his world.
 """
 
 from __future__ import annotations
@@ -19,43 +20,11 @@ WORLD_ROOT = Path("world/Archipelago-Darksiders/worlds/darksiders")
 WORLD_DATA_DIR = WORLD_ROOT / "data"
 WORLD_LOCATIONS_PY = WORLD_ROOT / "Locations.py"
 WORLD_ITEMS_JSON = WORLD_DATA_DIR / "Items.json"
+PROPOSED_DIR = Path("docs") / "proposed"
 CATALOG_PATH = Path("docs") / "world_locations.json"
 ITEMS_CATALOG_PATH = Path("docs") / "world_items.json"
 
 _LOADED_JSON_RE = re.compile(r'create_location_table_from_json\(\s*"([^"]+\.json)"\s*\)')
-
-_REGION_PREFIXES = tuple(
-    sorted(
-        (
-            "Anvil Ford Challenge",
-            "Anvil Ford",
-            "The Ashlands Access Tunnel",
-            "The Ashlands",
-            "Broken Stair Access Tunnel",
-            "Broken Stair",
-            "Choking Grounds Access Cave",
-            "Choking Grounds",
-            "Crossroads",
-            "Drowned Pass Access Tunnel",
-            "Drowned Pass",
-            "Dry Road Access Tunnel",
-            "Dry Road",
-            "The Hollows Access Tunnel",
-            "The Hollows",
-            "Hollows Access Tunnel",
-            "Hollows",
-            "Library",
-            "Scalding Gallow",
-            "Seraphim Hotel",
-            "Serpent Hole to Anvil's Ford",
-            "Serpent Hole to Dry Road",
-            "Serpent Hole to Twilight Cathedral",
-            "Twilight Cathedral",
-        ),
-        key=len,
-        reverse=True,
-    )
-)
 
 
 @dataclass(frozen=True)
@@ -78,13 +47,6 @@ class WorldLocation:
     @property
     def slug(self) -> str:
         return re.sub(r"[^a-z0-9]+", "_", self.name.lower()).strip("_")
-
-
-def infer_region(name: str) -> str:
-    for prefix in _REGION_PREFIXES:
-        if name.startswith(prefix):
-            return prefix
-    return ""
 
 
 def infer_kind(name: str, vanilla_item: str = "") -> str:
@@ -122,6 +84,63 @@ def loaded_location_json_names(path: Path = WORLD_LOCATIONS_PY) -> set[str]:
     return names
 
 
+def _ingest_region_payload(
+    payload: object,
+    *,
+    area: str,
+    in_ap: bool,
+    seen: dict[str, WorldLocation],
+    overwrite: bool,
+) -> None:
+    if not isinstance(payload, list):
+        return
+    for region in payload:
+        if not isinstance(region, dict):
+            continue
+        region_name = str(region.get("name") or area)
+        locations = region.get("locations")
+        if isinstance(locations, dict):
+            for name, loc_data in locations.items():
+                if not isinstance(loc_data, dict):
+                    continue
+                ap_id = loc_data.get("ID")
+                if ap_id is None:
+                    continue
+                key = str(name)
+                if key in seen and not overwrite:
+                    continue
+                vanilla = str(loc_data.get("vanilla item") or loc_data.get("vanilla reward") or "")
+                seen[key] = WorldLocation(
+                    name=key,
+                    ap_id=int(ap_id),
+                    region=region_name,
+                    kind=infer_kind(key, vanilla),
+                    vanilla_item=vanilla,
+                    in_ap=in_ap,
+                    area=area,
+                )
+        events = region.get("events")
+        if not isinstance(events, dict):
+            continue
+        for name, ev_data in events.items():
+            if not isinstance(ev_data, dict):
+                continue
+            key = str(name)
+            if key in seen and not overwrite:
+                continue
+            item = str(ev_data.get("item") or "")
+            raw_id = ev_data.get("ID")
+            seen[key] = WorldLocation(
+                name=key,
+                ap_id=int(raw_id) if raw_id is not None else 0,
+                region=region_name,
+                kind="goal" if item.lower() == "victory" else "event",
+                vanilla_item=item,
+                in_ap=in_ap,
+                area=area,
+            )
+
+
 def parse_data_locations(data_dir: Path = WORLD_DATA_DIR) -> list[WorldLocation]:
     if not data_dir.is_dir():
         return []
@@ -130,38 +149,45 @@ def parse_data_locations(data_dir: Path = WORLD_DATA_DIR) -> list[WorldLocation]
     for path in sorted(data_dir.glob("*.json")):
         if path.name == "Items.json":
             continue
+        if path.name == "Seraphim Hotel.json":
+            continue
+        in_ap = path.name in loaded if loaded else True
+        if not in_ap and (PROPOSED_DIR / path.name).is_file():
+            continue
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
-        if not isinstance(payload, list):
-            continue
-        in_ap = path.name in loaded if loaded else True
-        area = path.stem
-        for region in payload:
-            if not isinstance(region, dict):
+        _ingest_region_payload(
+            payload,
+            area=path.stem,
+            in_ap=in_ap,
+            seen=seen,
+            overwrite=True,
+        )
+    if PROPOSED_DIR.is_dir():
+        for path in sorted(PROPOSED_DIR.glob("*.json")):
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
                 continue
-            region_name = str(region.get("name") or path.stem)
-            locations = region.get("locations")
-            if not isinstance(locations, dict):
-                continue
-            for name, loc_data in locations.items():
-                if not isinstance(loc_data, dict):
-                    continue
-                ap_id = loc_data.get("ID")
-                if ap_id is None:
-                    continue
-                vanilla = str(loc_data.get("vanilla item") or "")
-                seen[str(name)] = WorldLocation(
-                    name=str(name),
-                    ap_id=int(ap_id),
-                    region=region_name,
-                    kind=infer_kind(str(name), vanilla),
-                    vanilla_item=vanilla,
-                    in_ap=in_ap,
-                    area=area,
-                )
+            _ingest_region_payload(
+                payload,
+                area=path.stem,
+                in_ap=False,
+                seen=seen,
+                overwrite=True,
+            )
     return list(seen.values())
+
+
+def _duplicate_ap_ids(locations: list[WorldLocation]) -> list[tuple[int, list[str]]]:
+    by_id: dict[int, list[str]] = {}
+    for loc in locations:
+        if loc.ap_id == 0:
+            continue
+        by_id.setdefault(loc.ap_id, []).append(loc.name)
+    return sorted((ap_id, names) for ap_id, names in by_id.items() if len(names) > 1)
 
 
 def parse_items_json(path: Path = WORLD_ITEMS_JSON) -> list[WorldItem]:
@@ -223,7 +249,7 @@ def _from_cache_row(row: dict) -> WorldLocation:
     return WorldLocation(
         name=name,
         ap_id=int(row["ap_id"]),
-        region=str(row.get("region") or infer_region(name)),
+        region=str(row.get("region") or ""),
         kind=str(row.get("kind") or infer_kind(name, vanilla)),
         vanilla_item=vanilla,
         in_ap=bool(row.get("in_ap", True)),
@@ -284,7 +310,7 @@ def resolve_location(
 ) -> WorldLocation | None:
     """--location matches any check (so a wrong offset can be recaptured);
     the picker and --next only offer checks that still need an offset."""
-    catalog = load_catalog()
+    catalog = load_catalog(include_deferred=True)
     if location:
         rows = filter_locations(catalog, region=region)
         q = location.lower()
@@ -323,7 +349,7 @@ def _pick(rows: list[WorldLocation]) -> WorldLocation | None:
 
 def print_locations(*, region: str = "", unmapped: bool = False) -> int:
     try:
-        catalog = load_catalog()
+        catalog = load_catalog(include_deferred=True)
     except FileNotFoundError as exc:
         print(f"[ERROR] {exc}")
         return 1
@@ -364,6 +390,11 @@ def sync_world_catalog() -> int:
     locations = parse_data_locations()
     if not locations:
         print(f"[ERROR] No locations in {WORLD_DATA_DIR}")
+        return 1
+    clashes = _duplicate_ap_ids(locations)
+    if clashes:
+        for ap_id, names in clashes:
+            print(f"[ERROR] AP id {ap_id} used by: {', '.join(names)}")
         return 1
     path = write_catalog(locations)
     active = sum(1 for loc in locations if loc.in_ap)

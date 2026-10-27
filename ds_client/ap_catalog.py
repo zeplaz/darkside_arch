@@ -10,9 +10,6 @@ from typing import Optional
 LOCATIONS_PATH = Path("docs") / "world_locations.json"
 ITEMS_PATH = Path("docs") / "world_items.json"
 
-GOAL_LABELS = frozenset(
-    {"Abaddon Destroyer defeated", "Abaddon The Destroyer defeated", "Victory"}
-)
 SHARD_ITEM = "Armageddon Blade Shards"
 BLADE_ITEM = "Armageddon Blade"
 PROGRESSIVE_LEVEL_CAPS = {
@@ -61,7 +58,13 @@ class ApCatalog:
         return entry.name if entry else None
 
     def is_goal_label(self, name: str) -> bool:
-        return name in GOAL_LABELS
+        if name == "Victory":
+            return True
+        entry = self._locations.get(name)
+        if entry is not None and entry.kind == "goal":
+            return True
+        want = name.casefold()
+        return any(e.kind == "goal" and e.name.casefold() == want for e in self._locations.values())
 
 
 def _load_entries(path: Path, key: str) -> dict[str, CatalogEntry]:

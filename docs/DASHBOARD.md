@@ -37,12 +37,12 @@ Pick the AP name here. Never type labels — they must match [WORLD.md](WORLD.md
 
 Game can be closed. Slots: `-1` autosave, `0`–`9` the list.
 
-1. Pause. **Save** while the object is still closed. Note the slot.
-2. Open it. **Save** in a different slot.
-3. **BRIEF ALL** if you are not sure which slot is closed vs open (spawn, chests opened, Triggered count).
+1. Pause. **Save** while the object is still untouched. Note the slot.
+2. Open / collect it. **Save** in a different slot.
+3. **BRIEF ALL** if you are not sure which slot is before vs after (spawn, chests opened, Triggered count).
 4. Pick the AP name. Set CLOSED / OPENED. **DIFF SAVES**.
-5. **MATCH** keeps the persist type for that row (chest → `Triggered` chests). Click **ALL** or **DESTROYED** / **OPEN** / **ACTIVATED** to unhide doors and breakables.
-6. Highlight the chest row. **SAVE IDENTITY**.
+5. **MATCH** keeps the persist type for that row (chest / artifact → `Triggered`). Click **ALL** or **DESTROYED** / **OPEN** / **ACTIVATED** to unhide doors and breakables.
+6. Highlight the matching row. **SAVE IDENTITY**.
 
 | Keen key | Object |
 |----------|--------|
@@ -56,9 +56,9 @@ Identity is `world` + RegionID + LayerID + ObjectID + key. ObjectID is not globa
 
 ## RAM DUMP — live flag
 
-Do this after SAVE IDENTITY. Chest flags live on the heap, not in `.data`.
+Do this after SAVE IDENTITY. Those flags live on the heap, not in `.data`.
 
-1. Load a save where it is still **closed**. Stand next to it. Unpause.
+1. Load a save where it is still **untouched**. Stand next to it. Unpause.
 2. **RAM DUMP** tab. **F8** or BASELINE — 4 s, stand still.
 3. Open it. **F8** or DIFF — 1.5 s.
 4. If more than one 0→1 remains, click the row. **SAVE RAM**. Extra F8 keeps only bytes that stayed 1 in every diff.
