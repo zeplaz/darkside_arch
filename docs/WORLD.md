@@ -16,7 +16,7 @@ Bump this table after every `git pull` of the clone.
 | Field | Value |
 |-------|--------|
 | Branch | `main` |
-| Commit | `5d9abc8` — *Ashlands and Leviathan's Drift* (2026-10-25) |
+| Commit | `10d573a` — *All Locations* (2026-10-26) |
 
 ```powershell
 if (-not (Test-Path world\Archipelago-Darksiders)) {
@@ -27,9 +27,7 @@ git -C world\Archipelago-Darksiders pull --ff-only origin main
 python -m tools sync-world
 ```
 
-`sync-world` reads `data/*.json` and writes [world_locations.json](world_locations.json) and [world_items.json](world_items.json). `Locations.py` `create_location_table_from_json` decides `"in_ap"`. Catalog now: **224** names (**222** in AP, hotel **2** deferred). Oct 25 revamp shortened names and remapped several AP ids (join key is still the location **name**).
-
-`create_regular_locations` still comments Black Throne / Eden / Iron Canopy (those JSON files are empty stubs). Leviathan Drift, Serpent Holes, Ashlands, Dry Road, Hollows, Drowned Pass, Anvil Ford are live. Hotel is local only — see queue.
+`sync-world` reads `data/*.json` (plus `docs/proposed/` for names he has not loaded yet) and writes [world_locations.json](world_locations.json) and [world_items.json](world_items.json). `Locations.py` `create_location_table_from_json` decides `"in_ap"`. Catalog now: **321** names (**319** in AP, hotel **2** deferred). Join key is still the location **name**. Black Throne / Eden / Iron Canopy are live. `Seraphim Hotel.json` is in his `data/` but **not** imported in `Locations.py`. Hotel AP ids **200 / 201** now collide with Black Throne chests — he must remint those if he loads hotel.
 
 ## Contract
 
@@ -44,14 +42,14 @@ If Sacha later adds Keen keys on a location object, we ingest them. RAM offsets 
 
 | | |
 |--|--|
-| Goal | Event `Abaddon Destroyer defeated` → item `Victory` (still Python events, not JSON) |
+| Goal | Event `Abaddon the Destroyer defeated` → item `Victory` (`Leviathan Drift.json`, not a location ID) |
 | Client | AP ≥ **0.6.7**, game name `Darksiders` |
 
-Ask Sacha: a `Seraphim Hotel.json`; stop `print(location)` in `Locations.py` (still fires on import).
+Ask Sacha: load `Seraphim Hotel.json` from `Locations.py` / `Regions.py` so the two hotel chests are `in_ap`.
 
 ## Mapping queue
 
-Hotel is a local/proposed patch: [proposed/Seraphim Hotel.json](proposed/Seraphim%20Hotel.json) (AP ids **200 / 201** — 1029/1030 now belong to Hollows). Copy into `worlds/darksiders/data/` and load it from `Locations.py` / `Regions.py`. Send that file to Sacha; do not treat the ids as final until he accepts them.
+Hotel JSON is in his `data/Seraphim Hotel.json` (AP ids **200 / 201**) but `Locations.py` still does not import it, so tools mark the two chests deferred. [proposed/Seraphim Hotel.json](proposed/Seraphim%20Hotel.json) is our copy.
 
 | Location | |
 |----------|--|
@@ -70,4 +68,4 @@ Hotel is a local/proposed patch: [proposed/Seraphim Hotel.json](proposed/Seraphi
 
 Identify with two in-game save slots → dashboard **DIFF SAVES** ([DASHBOARD.md](DASHBOARD.md)). That is not a RAM watch.
 
-Later `0x0` templates: inventory `Beholder Key` (id 60), `Heart of the Chosen` (id 90), `Progressive Chaoseater` (id 100, cap 4), `Progressive Scythe` (id 110, cap 4), `Progressive Gauntlet` (id 113, cap 4), `Armageddon Blade Shards` (id 103), `Armageddon Blade` (id 102); stat `Soul_Count`; goal `Abaddon Destroyer defeated`.
+Later `0x0` templates: inventory `Beholder Key` (id 60), `Heart of the Chosen` (id 90), `Progressive Chaoseater` (id 100, cap 4), `Progressive Scythe` (id 110, cap 4), `Progressive Gauntlet` (id 113, cap 4), `Armageddon Blade Shards` (id 103), `Armageddon Blade` (id 102); stat `Soul_Count`; goal `Abaddon the Destroyer defeated`.

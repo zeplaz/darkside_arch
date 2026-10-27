@@ -162,49 +162,74 @@
       "kind": "Keys"
     },
     {
-      "name": "Abyssal Chain",
+      "name": "Heart of the Chosen",
+      "ap_id": 61,
+      "kind": "Keys"
+    },
+    {
+      "name": "Air Tremor Smash",
       "ap_id": 70,
+      "kind": "Gauntlet Combos"
+    },
+    {
+      "name": "Earthbreaker",
+      "ap_id": 71,
+      "kind": "Gauntlet Combos"
+    },
+    {
+      "name": "Meteor Launch",
+      "ap_id": 72,
+      "kind": "Gauntlet Combos"
+    },
+    {
+      "name": "Tremor Punch",
+      "ap_id": 73,
+      "kind": "Gauntlet Combos"
+    },
+    {
+      "name": "Tremor Smash",
+      "ap_id": 74,
+      "kind": "Gauntlet Combos"
+    },
+    {
+      "name": "Abyssal Chain",
+      "ap_id": 80,
       "kind": "Gear"
     },
     {
       "name": "Crossblade",
-      "ap_id": 71,
+      "ap_id": 81,
       "kind": "Gear"
     },
     {
       "name": "Earthcaller",
-      "ap_id": 72,
+      "ap_id": 82,
       "kind": "Gear"
     },
     {
       "name": "Mask of Shadows",
-      "ap_id": 73,
+      "ap_id": 83,
       "kind": "Gear"
     },
     {
       "name": "Mercy",
-      "ap_id": 74,
+      "ap_id": 84,
       "kind": "Gear"
     },
     {
       "name": "Voidwalker",
-      "ap_id": 75,
+      "ap_id": 85,
       "kind": "Gear"
     },
     {
       "name": "Lifestone",
-      "ap_id": 80,
+      "ap_id": 90,
       "kind": "Health"
     },
     {
       "name": "Lifestone Shard",
-      "ap_id": 81,
+      "ap_id": 91,
       "kind": "Health"
-    },
-    {
-      "name": "Heart of the Chosen",
-      "ap_id": 90,
-      "kind": "Keys"
     },
     {
       "name": "Progressive Chaoseater",
@@ -232,184 +257,159 @@
       "kind": "Primary Weapons"
     },
     {
-      "name": "Progressive Scythe",
-      "ap_id": 110,
-      "kind": "Secondary Weapons"
-    },
-    {
-      "name": "Harvester",
-      "ap_id": 111,
-      "kind": "Secondary Weapons"
-    },
-    {
-      "name": "Hellraiser",
-      "ap_id": 112,
-      "kind": "Secondary Weapons"
-    },
-    {
-      "name": "Progressive Gauntlet",
-      "ap_id": 113,
-      "kind": "Secondary Weapons"
-    },
-    {
-      "name": "Tremor Gauntlet",
-      "ap_id": 114,
-      "kind": "Secondary Weapons"
-    },
-    {
-      "name": "Currency",
-      "ap_id": 120,
-      "kind": "Souls"
-    },
-    {
-      "name": "Health",
-      "ap_id": 121,
-      "kind": "Souls"
-    },
-    {
-      "name": "Wrath",
-      "ap_id": 122,
-      "kind": "Souls"
-    },
-    {
-      "name": "Impact Rounds",
-      "ap_id": 130,
-      "kind": "Upgrades"
-    },
-    {
-      "name": "Progressive Ricochet",
-      "ap_id": 131,
-      "kind": "Upgrades"
-    },
-    {
-      "name": "Shredder",
-      "ap_id": 132,
-      "kind": "Upgrades"
-    },
-    {
-      "name": "Wrath Core",
-      "ap_id": 140,
-      "kind": "Wrath"
-    },
-    {
-      "name": "Wrath Shard",
-      "ap_id": 141,
-      "kind": "Wrath"
-    },
-    {
-      "name": "Affliction",
-      "ap_id": 150,
-      "kind": "Wrath Abilities"
-    },
-    {
-      "name": "Blade Geyser",
-      "ap_id": 151,
-      "kind": "Wrath Abilities"
-    },
-    {
-      "name": "Immolation",
-      "ap_id": 152,
-      "kind": "Wrath Abilities"
-    },
-    {
-      "name": "Stoneskin",
-      "ap_id": 153,
-      "kind": "Wrath Abilities"
-    },
-    {
-      "name": "180 Orbit Slash",
-      "ap_id": 160,
-      "kind": "Sword Combos"
-    },
-    {
-      "name": "Demon Edge",
-      "ap_id": 161,
-      "kind": "Sword Combos"
-    },
-    {
-      "name": "Devil's Cross",
-      "ap_id": 162,
-      "kind": "Sword Combos"
-    },
-    {
-      "name": "Flipsaw",
-      "ap_id": 163,
-      "kind": "Sword Combos"
-    },
-    {
-      "name": "Harpoon Tackle",
-      "ap_id": 164,
-      "kind": "Sword Combos"
-    },
-    {
-      "name": "Meteor Strike",
-      "ap_id": 165,
-      "kind": "Sword Combos"
-    },
-    {
-      "name": "Power Strike",
-      "ap_id": 166,
-      "kind": "Sword Combos"
-    },
-    {
-      "name": "Sword Uppercut",
-      "ap_id": 167,
-      "kind": "Sword Combos"
-    },
-    {
-      "name": "Whirl Wind Combo",
-      "ap_id": 168,
-      "kind": "Sword Combos"
-    },
-    {
       "name": "Air Reaper Blade",
-      "ap_id": 170,
+      "ap_id": 110,
       "kind": "Scythe Combos"
     },
     {
       "name": "Death's Rage",
-      "ap_id": 171,
+      "ap_id": 111,
       "kind": "Scythe Combos"
     },
     {
       "name": "Hell Razor",
-      "ap_id": 172,
+      "ap_id": 112,
       "kind": "Scythe Combos"
     },
     {
       "name": "Reaper Blade",
-      "ap_id": 173,
+      "ap_id": 113,
       "kind": "Scythe Combos"
     },
     {
       "name": "Reaper's Revenge",
-      "ap_id": 174,
+      "ap_id": 114,
       "kind": "Scythe Combos"
     },
     {
-      "name": "Air Tremor Smash",
-      "ap_id": 180,
-      "kind": "Gauntlet Combos"
+      "name": "Progressive Scythe",
+      "ap_id": 120,
+      "kind": "Secondary Weapons"
     },
     {
-      "name": "Earthbreaker",
-      "ap_id": 181,
-      "kind": "Gauntlet Combos"
+      "name": "Harvester",
+      "ap_id": 121,
+      "kind": "Secondary Weapons"
     },
     {
-      "name": "Meteor Launch",
-      "ap_id": 182,
-      "kind": "Gauntlet Combos"
+      "name": "Hellraiser",
+      "ap_id": 122,
+      "kind": "Secondary Weapons"
     },
     {
-      "name": "Tremor Punch",
-      "ap_id": 183,
-      "kind": "Gauntlet Combos"
+      "name": "Progressive Gauntlet",
+      "ap_id": 123,
+      "kind": "Secondary Weapons"
     },
     {
-      "name": "Tremor Smash",
-      "ap_id": 184,
-      "kind": "Gauntlet Combos"
+      "name": "Tremor Gauntlet",
+      "ap_id": 124,
+      "kind": "Secondary Weapons"
+    },
+    {
+      "name": "Currency",
+      "ap_id": 130,
+      "kind": "Souls"
+    },
+    {
+      "name": "Health",
+      "ap_id": 131,
+      "kind": "Souls"
+    },
+    {
+      "name": "Wrath",
+      "ap_id": 132,
+      "kind": "Souls"
+    },
+    {
+      "name": "180 Orbit Slash",
+      "ap_id": 140,
+      "kind": "Sword Combos"
+    },
+    {
+      "name": "Demon Edge",
+      "ap_id": 141,
+      "kind": "Sword Combos"
+    },
+    {
+      "name": "Devil's Cross",
+      "ap_id": 142,
+      "kind": "Sword Combos"
+    },
+    {
+      "name": "Flipsaw",
+      "ap_id": 143,
+      "kind": "Sword Combos"
+    },
+    {
+      "name": "Harpoon Tackle",
+      "ap_id": 144,
+      "kind": "Sword Combos"
+    },
+    {
+      "name": "Meteor Strike",
+      "ap_id": 145,
+      "kind": "Sword Combos"
+    },
+    {
+      "name": "Power Strike",
+      "ap_id": 146,
+      "kind": "Sword Combos"
+    },
+    {
+      "name": "Sword Uppercut",
+      "ap_id": 147,
+      "kind": "Sword Combos"
+    },
+    {
+      "name": "Whirl Wind Combo",
+      "ap_id": 148,
+      "kind": "Sword Combos"
+    },
+    {
+      "name": "Impact Rounds",
+      "ap_id": 150,
+      "kind": "Upgrades"
+    },
+    {
+      "name": "Progressive Ricochet",
+      "ap_id": 151,
+      "kind": "Upgrades"
+    },
+    {
+      "name": "Shredder",
+      "ap_id": 152,
+      "kind": "Upgrades"
+    },
+    {
+      "name": "Wrath Core",
+      "ap_id": 160,
+      "kind": "Wrath"
+    },
+    {
+      "name": "Wrath Shard",
+      "ap_id": 161,
+      "kind": "Wrath"
+    },
+    {
+      "name": "Affliction",
+      "ap_id": 170,
+      "kind": "Wrath Abilities"
+    },
+    {
+      "name": "Blade Geyser",
+      "ap_id": 171,
+      "kind": "Wrath Abilities"
+    },
+    {
+      "name": "Immolation",
+      "ap_id": 172,
+      "kind": "Wrath Abilities"
+    },
+    {
+      "name": "Stoneskin",
+      "ap_id": 173,
+      "kind": "Wrath Abilities"
     }
   ]
 }

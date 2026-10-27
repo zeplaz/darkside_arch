@@ -12,6 +12,15 @@
       "area": "Anvil Ford"
     },
     {
+      "name": "Anvil's Ford Reforge the Blade",
+      "ap_id": 3,
+      "region": "Anvil's Ford",
+      "kind": "location",
+      "vanilla_item": "Armageddon Blade",
+      "in_ap": true,
+      "area": "Anvil Ford"
+    },
+    {
       "name": "Anvil's Ford Access Tunnel Chest Blocked by Ice",
       "ap_id": 1,
       "region": "Anvil's Ford Access Tunnel",
@@ -22,15 +31,6 @@
     },
     {
       "name": "Anvil's Ford Challenge Area Chest Blocked by Ice near Entrance",
-      "ap_id": 3,
-      "region": "Anvil's Ford Challenge Area",
-      "kind": "chest",
-      "vanilla_item": "Health",
-      "in_ap": true,
-      "area": "Anvil Ford"
-    },
-    {
-      "name": "Anvil's Ford Challenge Area Chest before Toss",
       "ap_id": 4,
       "region": "Anvil's Ford Challenge Area",
       "kind": "chest",
@@ -39,7 +39,7 @@
       "area": "Anvil Ford"
     },
     {
-      "name": "Anvil's Ford Challenge Area Chest after Toss",
+      "name": "Anvil's Ford Challenge Area Chest before Toss",
       "ap_id": 5,
       "region": "Anvil's Ford Challenge Area",
       "kind": "chest",
@@ -48,7 +48,7 @@
       "area": "Anvil Ford"
     },
     {
-      "name": "Anvil's Ford Challenge Area Chest Elevator Shaft",
+      "name": "Anvil's Ford Challenge Area Chest after Toss",
       "ap_id": 6,
       "region": "Anvil's Ford Challenge Area",
       "kind": "chest",
@@ -57,8 +57,17 @@
       "area": "Anvil Ford"
     },
     {
-      "name": "Anvil's Ford Challenge Area Central Chest after Demonic Growth",
+      "name": "Anvil's Ford Challenge Area Chest Elevator Shaft",
       "ap_id": 7,
+      "region": "Anvil's Ford Challenge Area",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Anvil Ford"
+    },
+    {
+      "name": "Anvil's Ford Challenge Area Central Chest after Demonic Growth",
+      "ap_id": 8,
       "region": "Anvil's Ford Challenge Area",
       "kind": "chest",
       "vanilla_item": "Currency",
@@ -67,15 +76,6 @@
     },
     {
       "name": "Anvil's Ford Challenge Area West Chest after Demonic Growth",
-      "ap_id": 8,
-      "region": "Anvil's Ford Challenge Area",
-      "kind": "chest",
-      "vanilla_item": "Wrath Shard",
-      "in_ap": true,
-      "area": "Anvil Ford"
-    },
-    {
-      "name": "Anvil's Ford Challenge Area West Platform Chest",
       "ap_id": 9,
       "region": "Anvil's Ford Challenge Area",
       "kind": "chest",
@@ -84,8 +84,17 @@
       "area": "Anvil Ford"
     },
     {
-      "name": "Anvil's Ford Challenge Area Chest Blocked by Ice near Uriel",
+      "name": "Anvil's Ford Challenge Area West Platform Chest",
       "ap_id": 10,
+      "region": "Anvil's Ford Challenge Area",
+      "kind": "chest",
+      "vanilla_item": "Wrath Shard",
+      "in_ap": true,
+      "area": "Anvil Ford"
+    },
+    {
+      "name": "Anvil's Ford Challenge Area Chest Blocked by Ice near Uriel",
+      "ap_id": 11,
       "region": "Anvil's Ford Challenge Area",
       "kind": "chest",
       "vanilla_item": "Health",
@@ -94,15 +103,6 @@
     },
     {
       "name": "Anvil's Ford Challenge Area Ulthane outscored",
-      "ap_id": 11,
-      "region": "Anvil's Ford Challenge Area",
-      "kind": "location",
-      "vanilla_item": "",
-      "in_ap": true,
-      "area": "Anvil Ford"
-    },
-    {
-      "name": "Anvil's Ford Challenge Area Uriel defeated",
       "ap_id": 12,
       "region": "Anvil's Ford Challenge Area",
       "kind": "location",
@@ -111,8 +111,17 @@
       "area": "Anvil Ford"
     },
     {
-      "name": "Anvil's Ford Challenge Area Uriel Arena Fountain Chest",
+      "name": "Anvil's Ford Challenge Area Uriel defeated",
       "ap_id": 13,
+      "region": "Anvil's Ford Challenge Area",
+      "kind": "location",
+      "vanilla_item": "",
+      "in_ap": true,
+      "area": "Anvil Ford"
+    },
+    {
+      "name": "Anvil's Ford Challenge Area Uriel Arena Fountain Chest",
+      "ap_id": 14,
       "region": "Anvil's Ford Challenge Area",
       "kind": "chest",
       "vanilla_item": "Health",
@@ -381,6 +390,15 @@
       "area": "Ashlands"
     },
     {
+      "name": "Ashlands Armaggedon Blade Shard",
+      "ap_id": 131,
+      "region": "Ashlands West Cliff",
+      "kind": "location",
+      "vanilla_item": "Armageddon Blade Shard",
+      "in_ap": true,
+      "area": "Ashlands"
+    },
+    {
       "name": "Ashlands West Tower Middle Floor Chest",
       "ap_id": 105,
       "region": "Ashlands West Tower Area",
@@ -397,6 +415,384 @@
       "vanilla_item": "Overlord Artifact",
       "in_ap": true,
       "area": "Ashlands"
+    },
+    {
+      "name": "Black Throne Below Central Hub Chest",
+      "ap_id": 237,
+      "region": "Black Throne Boss Room",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Straga defeated Item reward",
+      "ap_id": 238,
+      "region": "Black Throne Boss Room",
+      "kind": "location",
+      "vanilla_item": "Lifestone",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne East Beam",
+      "ap_id": 0,
+      "region": "Black Throne East Guardian Fifth Floor",
+      "kind": "event",
+      "vanilla_item": "East Beam",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne East Guardian Exterior Left Chest",
+      "ap_id": 202,
+      "region": "Black Throne East Guardian First Floor",
+      "kind": "chest",
+      "vanilla_item": "Wrath",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne East Guardian Exterior Right Chest",
+      "ap_id": 203,
+      "region": "Black Throne East Guardian First Floor",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne Chained Cube Area Left of Entrance Chest",
+      "ap_id": 204,
+      "region": "Black Throne East Guardian First Floor",
+      "kind": "cube",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne Chained Cube Area Right of Entrance Chest",
+      "ap_id": 205,
+      "region": "Black Throne East Guardian First Floor",
+      "kind": "cube",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne Chained Cube",
+      "ap_id": 206,
+      "region": "Black Throne East Guardian First Floor",
+      "kind": "cube",
+      "vanilla_item": "Void Walker",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne before East Guardian Left Chest",
+      "ap_id": 209,
+      "region": "Black Throne East Guardian Fourth Floor",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne before East Guardian Right Chest",
+      "ap_id": 210,
+      "region": "Black Throne East Guardian Fourth Floor",
+      "kind": "chest",
+      "vanilla_item": "Wrath",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne Over the Portal Chest",
+      "ap_id": 207,
+      "region": "Black Throne East Guardian Second Floor",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne Third Floor Chest",
+      "ap_id": 208,
+      "region": "Black Throne East Guardian Third Floor",
+      "kind": "chest",
+      "vanilla_item": "Fury's Embrace",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne East Path above Entrance Chest",
+      "ap_id": 200,
+      "region": "Black Throne East Path",
+      "kind": "chest",
+      "vanilla_item": "Map",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne East Path End of First Room Chest",
+      "ap_id": 201,
+      "region": "Black Throne End of First Room",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne Last Beam",
+      "ap_id": 0,
+      "region": "Black Throne Last Guardian",
+      "kind": "event",
+      "vanilla_item": "Last Beam",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne Last Guardian Exterior Left Chest",
+      "ap_id": 233,
+      "region": "Black Throne Last Guardian",
+      "kind": "chest",
+      "vanilla_item": "Wrath",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne Last Guardian Exterior Right Chest",
+      "ap_id": 234,
+      "region": "Black Throne Last Guardian",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne Last Guardian Entrance Chest",
+      "ap_id": 235,
+      "region": "Black Throne Last Guardian",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne Last Guardian Artifact",
+      "ap_id": 236,
+      "region": "Black Throne Last Guardian",
+      "kind": "artifact",
+      "vanilla_item": "Soldier Artifact",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne Last Path Gauntlet Left Chest",
+      "ap_id": 228,
+      "region": "Black Throne Last Path",
+      "kind": "chest",
+      "vanilla_item": "Wrath",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne Last Path Gauntlet Right Chest",
+      "ap_id": 229,
+      "region": "Black Throne Last Path",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne Last Path Gauntlet Artifact",
+      "ap_id": 230,
+      "region": "Black Throne Last Path",
+      "kind": "artifact",
+      "vanilla_item": "Champion Artifact",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne Last Path West Chest above Gauntlet",
+      "ap_id": 231,
+      "region": "Black Throne Last Path",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne Last Path South Chest above Gauntlet",
+      "ap_id": 232,
+      "region": "Black Throne Last Path",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne North Beam",
+      "ap_id": 0,
+      "region": "Black Throne North Guardian",
+      "kind": "event",
+      "vanilla_item": "North Beam",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne North Guardian Alcove Chest",
+      "ap_id": 219,
+      "region": "Black Throne North Guardian",
+      "kind": "chest",
+      "vanilla_item": "Lifestone Shard",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne North Guardian Alcove Blocked by Ice Chest",
+      "ap_id": 220,
+      "region": "Black Throne North Guardian",
+      "kind": "chest",
+      "vanilla_item": "Hoardseeker",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne North Guardian High Above Chest",
+      "ap_id": 221,
+      "region": "Black Throne North Guardian",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne North Guardian Downstairs Chest",
+      "ap_id": 222,
+      "region": "Black Throne North Guardian",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne North Path West Alcove Chest",
+      "ap_id": 211,
+      "region": "Black Throne North Path",
+      "kind": "chest",
+      "vanilla_item": "Wrath Shard",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne North Path Central Platform Chest",
+      "ap_id": 212,
+      "region": "Black Throne North Path",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne North Guardian Exterior Left Chest",
+      "ap_id": 213,
+      "region": "Black Throne North Path",
+      "kind": "chest",
+      "vanilla_item": "Wrath",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne North Guardian Exterior Middle Chest",
+      "ap_id": 214,
+      "region": "Black Throne North Path",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne North Guardian Exterior Right Chest",
+      "ap_id": 215,
+      "region": "Black Throne North Path",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne North Guardian Collapsible Pit Chest",
+      "ap_id": 216,
+      "region": "Black Throne North Path",
+      "kind": "chest",
+      "vanilla_item": "Beholder Key",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne North Guardian Left of Beholder Chest",
+      "ap_id": 217,
+      "region": "Black Throne North Path",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne North Guardian Right of Beholder Chest",
+      "ap_id": 218,
+      "region": "Black Throne North Path",
+      "kind": "chest",
+      "vanilla_item": "Wrath",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne SW Loop Left of Entrance Chest",
+      "ap_id": 223,
+      "region": "Black Throne SW Loop",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne SW Loop Artifact",
+      "ap_id": 224,
+      "region": "Black Throne SW Loop",
+      "kind": "artifact",
+      "vanilla_item": "Soldier Artifact",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne SW Loop High above Chest",
+      "ap_id": 225,
+      "region": "Black Throne SW Loop",
+      "kind": "chest",
+      "vanilla_item": "Beholder Key",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne SW Loop West Alcove Chest",
+      "ap_id": 226,
+      "region": "Black Throne SW Loop",
+      "kind": "chest",
+      "vanilla_item": "Abyssal Armor Piece",
+      "in_ap": true,
+      "area": "Black Throne"
+    },
+    {
+      "name": "Black Throne SW Loop after Portals Chest",
+      "ap_id": 227,
+      "region": "Black Throne SW Loop",
+      "kind": "chest",
+      "vanilla_item": "Wrath",
+      "in_ap": true,
+      "area": "Black Throne"
     },
     {
       "name": "Broken Stair Chest after Waterway",
@@ -467,6 +863,15 @@
       "region": "Broken Stair 2",
       "kind": "chest",
       "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Broken Stairs"
+    },
+    {
+      "name": "Broken Stair Armageddon Blade Shard",
+      "ap_id": 410,
+      "region": "Broken Stair 2",
+      "kind": "location",
+      "vanilla_item": "Armageddon Blade Shard",
       "in_ap": true,
       "area": "Broken Stairs"
     },
@@ -741,6 +1146,15 @@
       "area": "Crossroads"
     },
     {
+      "name": "Crossroads Armageddon Blade Shard",
+      "ap_id": 610,
+      "region": "Crossroads",
+      "kind": "location",
+      "vanilla_item": "Armageddon Blade Shard",
+      "in_ap": true,
+      "area": "Crossroads"
+    },
+    {
       "name": "Drowned Pass Cave Under Waterfall Artifact",
       "ap_id": 703,
       "region": "Drowned Pass",
@@ -921,6 +1335,15 @@
       "area": "Dry Road"
     },
     {
+      "name": "Dry Road Armaggedon Blade Shard",
+      "ap_id": 809,
+      "region": "Dry Road",
+      "kind": "location",
+      "vanilla_item": "Armaggedon Blade Shard",
+      "in_ap": true,
+      "area": "Dry Road"
+    },
+    {
       "name": "Dry Road Access Tunnel South of Entrance Chest",
       "ap_id": 800,
       "region": "Dry Road Access Tunnel 1",
@@ -966,6 +1389,42 @@
       "area": "Dry Road"
     },
     {
+      "name": "Eden Spawn Chest",
+      "ap_id": 900,
+      "region": "Eden",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Eden"
+    },
+    {
+      "name": "Eden before Shadow War Left Chest",
+      "ap_id": 901,
+      "region": "Eden",
+      "kind": "chest",
+      "vanilla_item": "Wrath",
+      "in_ap": true,
+      "area": "Eden"
+    },
+    {
+      "name": "Eden before Shadow War Right Chest",
+      "ap_id": 902,
+      "region": "Eden",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Eden"
+    },
+    {
+      "name": "Eden Shadow War defeated",
+      "ap_id": 903,
+      "region": "Eden",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Eden"
+    },
+    {
       "name": "Hollows Access Tunnel Waterfall Chest",
       "ap_id": 1000,
       "region": "Hollows Access Tunnel",
@@ -988,7 +1447,7 @@
       "ap_id": 1033,
       "region": "Hollows Boss Room",
       "kind": "location",
-      "vanilla_item": "",
+      "vanilla_item": "Heart of Chosen",
       "in_ap": true,
       "area": "Hollows"
     },
@@ -1272,13 +1731,346 @@
       "area": "Hollows"
     },
     {
-      "name": "Hollows Currency Chest between Ice Blocks",
+      "name": "Hollows Stalactite Fell",
+      "ap_id": 0,
+      "region": "Hollows above Flooded Room",
+      "kind": "event",
+      "vanilla_item": "Stalactite Fell",
+      "in_ap": true,
+      "area": "Hollows"
+    },
+    {
+      "name": "Hollows Chest between Ice Blocks",
       "ap_id": 1026,
       "region": "Hollows above Flooded Room",
       "kind": "chest",
       "vanilla_item": "Currency",
       "in_ap": true,
       "area": "Hollows"
+    },
+    {
+      "name": "Iron Canopy Broodmother defeated",
+      "ap_id": 0,
+      "region": "Iron Canopy Broodmother Area",
+      "kind": "event",
+      "vanilla_item": "Spider defeated",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy before Broodmother Chest",
+      "ap_id": 1125,
+      "region": "Iron Canopy Broodmother Area",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Broodmother Area Sewer Chest",
+      "ap_id": 1126,
+      "region": "Iron Canopy Broodmother Area",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Broodmother Area Above Gauntlet Chest",
+      "ap_id": 1127,
+      "region": "Iron Canopy Broodmother Area",
+      "kind": "chest",
+      "vanilla_item": "War's Glory",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Chained Cube Spider defeated",
+      "ap_id": 0,
+      "region": "Iron Canopy Chained Cube Area",
+      "kind": "event",
+      "vanilla_item": "Spider defeated",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Chained Cube Area past Collapsible Floor Chest",
+      "ap_id": 1118,
+      "region": "Iron Canopy Chained Cube Area",
+      "kind": "cube",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Chained Cube Area Down Stairs Chest",
+      "ap_id": 1119,
+      "region": "Iron Canopy Chained Cube Area",
+      "kind": "cube",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Chained Cube",
+      "ap_id": 1120,
+      "region": "Iron Canopy Chained Cube Area",
+      "kind": "cube",
+      "vanilla_item": "Abyssal Chain",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Chained Cube Area Back Room Chest",
+      "ap_id": 1121,
+      "region": "Iron Canopy Chained Cube Area",
+      "kind": "cube",
+      "vanilla_item": "Wrath",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Cocoon Area Spider defeated",
+      "ap_id": 0,
+      "region": "Iron Canopy Cocoon Area",
+      "kind": "event",
+      "vanilla_item": "Spider defeated",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Cocoon Area Chest behind Rubbles",
+      "ap_id": 1100,
+      "region": "Iron Canopy Cocoon Area",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Cocoon Area South Platform Left Chest",
+      "ap_id": 1101,
+      "region": "Iron Canopy Cocoon Area",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Cocoon Area South Platform Middle Chest",
+      "ap_id": 1102,
+      "region": "Iron Canopy Cocoon Area",
+      "kind": "chest",
+      "vanilla_item": "Wrath",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Cocoon Area South Platform Right Chest",
+      "ap_id": 1103,
+      "region": "Iron Canopy Cocoon Area",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy before Infested Building behind Wooden Fence First Chest",
+      "ap_id": 1105,
+      "region": "Iron Canopy Infested Building",
+      "kind": "chest",
+      "vanilla_item": "Wrath Shard",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy before Infested Building behind Wooden Fence Second Chest",
+      "ap_id": 1106,
+      "region": "Iron Canopy Infested Building",
+      "kind": "chest",
+      "vanilla_item": "Wrath",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Infested Building Top Floor Chest",
+      "ap_id": 1107,
+      "region": "Iron Canopy Infested Building",
+      "kind": "chest",
+      "vanilla_item": "Beholder Key",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Infested Building Middle Floor Chest",
+      "ap_id": 1108,
+      "region": "Iron Canopy Infested Building",
+      "kind": "chest",
+      "vanilla_item": "Map",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Infested Building Bottom Floor Chest",
+      "ap_id": 1109,
+      "region": "Iron Canopy Infested Building",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Past the Spider Area Up on the Roof Chest",
+      "ap_id": 1104,
+      "region": "Iron Canopy Past the Spider Area",
+      "kind": "chest",
+      "vanilla_item": "Possession",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Silitha's Loom Chest before Boss Fight",
+      "ap_id": 1128,
+      "region": "Iron Canopy Silitha's Loom",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Silitha defeated",
+      "ap_id": 1129,
+      "region": "Iron Canopy Silitha's Loom",
+      "kind": "location",
+      "vanilla_item": "Heart of the Chosen",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Silitha Item Reward",
+      "ap_id": 1130,
+      "region": "Iron Canopy Silitha's Loom",
+      "kind": "location",
+      "vanilla_item": "Lifestone",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy South Alley Artifact",
+      "ap_id": 1111,
+      "region": "Iron Canopy South Alley",
+      "kind": "artifact",
+      "vanilla_item": "Soldier Artifact",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy West Building Left Chest",
+      "ap_id": 1112,
+      "region": "Iron Canopy South Alley",
+      "kind": "chest",
+      "vanilla_item": "Hoardseeker",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy West Building Middle Chest",
+      "ap_id": 1113,
+      "region": "Iron Canopy South Alley",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy West Building Right Chest",
+      "ap_id": 1114,
+      "region": "Iron Canopy South Alley",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Webbed Floor Building Spider defeated",
+      "ap_id": 0,
+      "region": "Iron Canopy Webbed Floor Building",
+      "kind": "event",
+      "vanilla_item": "Spider defeated",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Webbed Floor Building West Balcony Chest",
+      "ap_id": 1110,
+      "region": "Iron Canopy Webbed Floor Building",
+      "kind": "chest",
+      "vanilla_item": "Wrath Shard",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Top Floor Spider defeated",
+      "ap_id": 0,
+      "region": "Iron Canopy Webbed Floor Building Top Floors",
+      "kind": "event",
+      "vanilla_item": "Spider defeated",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Webbed Floor Building Top Floors Back Room Chest",
+      "ap_id": 1115,
+      "region": "Iron Canopy Webbed Floor Building Top Floors",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Webbed Floor Building Top Floors Artifact",
+      "ap_id": 1116,
+      "region": "Iron Canopy Webbed Floor Building Top Floors",
+      "kind": "artifact",
+      "vanilla_item": "Champion Artifact",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy Webbed Floor Building Top Floors under Silitha's Loom Chest",
+      "ap_id": 1117,
+      "region": "Iron Canopy Webbed Floor Building Top Floors",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy above Chained Cube Area above Chronomancer Room Chest",
+      "ap_id": 1122,
+      "region": "Iron Canopy above Chained Cube Area",
+      "kind": "cube",
+      "vanilla_item": "Abyssal Armor Piece",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy above Chained Cube Area First Chest beyond Goremaws",
+      "ap_id": 1123,
+      "region": "Iron Canopy above Chained Cube Area",
+      "kind": "cube",
+      "vanilla_item": "Beholder Key",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Iron Canopy above Chained Cube Area Second Chest beyond Goremaws",
+      "ap_id": 1124,
+      "region": "Iron Canopy above Chained Cube Area",
+      "kind": "cube",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Iron Canopy"
     },
     {
       "name": "Leviathan's Drift Chest before Boss Fight",
@@ -1303,7 +2095,7 @@
       "ap_id": 1202,
       "region": "Leviathan's Drift",
       "kind": "location",
-      "vanilla_item": "",
+      "vanilla_item": "Heart of Chosen",
       "in_ap": true,
       "area": "Leviathan Drift"
     },
@@ -1313,6 +2105,15 @@
       "region": "Leviathan's Drift",
       "kind": "location",
       "vanilla_item": "Lifestone",
+      "in_ap": true,
+      "area": "Leviathan Drift"
+    },
+    {
+      "name": "Abaddon the Destroyer defeated",
+      "ap_id": 0,
+      "region": "Leviathan's Drift Upper Area",
+      "kind": "goal",
+      "vanilla_item": "Victory",
       "in_ap": true,
       "area": "Leviathan Drift"
     },
@@ -1524,6 +2325,42 @@
       "area": "Serpent Holes"
     },
     {
+      "name": "Tree of Knowledge behind Head Statue Chest",
+      "ap_id": 904,
+      "region": "Tree of Knowledge",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Eden"
+    },
+    {
+      "name": "Tree of Knowledge Eastmost Chest",
+      "ap_id": 905,
+      "region": "Tree of Knowledge",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Eden"
+    },
+    {
+      "name": "Tree of Knowledge behind Waterfall Chest",
+      "ap_id": 906,
+      "region": "Tree of Knowledge",
+      "kind": "chest",
+      "vanilla_item": "Abyssal Armor Piece",
+      "in_ap": true,
+      "area": "Eden"
+    },
+    {
+      "name": "Tree of Knowledge underneath Stairs Chest",
+      "ap_id": 907,
+      "region": "Tree of Knowledge",
+      "kind": "chest",
+      "vanilla_item": "Wrath Shard",
+      "in_ap": true,
+      "area": "Eden"
+    },
+    {
       "name": "Twilight Cathedral Abyssal Armor Chest",
       "ap_id": 1716,
       "region": "Twilight Cathedral Abyssal Chest Area",
@@ -1555,7 +2392,7 @@
       "ap_id": 1735,
       "region": "Twilight Cathedral Boss Room",
       "kind": "location",
-      "vanilla_item": "",
+      "vanilla_item": "Heart of the Chosen",
       "in_ap": true,
       "area": "Twilight Cathedral"
     },
@@ -1583,6 +2420,15 @@
       "region": "Twilight Cathedral Chained Cube Area",
       "kind": "cube",
       "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Twilight Cathedral"
+    },
+    {
+      "name": "Twilight Cathedral Conscript Crystal Blade",
+      "ap_id": 0,
+      "region": "Twilight Cathedral Conscript Room",
+      "kind": "event",
+      "vanilla_item": "Crystal Blade",
       "in_ap": true,
       "area": "Twilight Cathedral"
     },
@@ -1668,6 +2514,15 @@
       "area": "Twilight Cathedral"
     },
     {
+      "name": "Twilight Cathedral North Crystal Blade",
+      "ap_id": 0,
+      "region": "Twilight Cathedral North Blade Path",
+      "kind": "event",
+      "vanilla_item": "North Crystal Blade",
+      "in_ap": true,
+      "area": "Twilight Cathedral"
+    },
+    {
       "name": "Twilight Cathedral North Blade Path Platform Room Chest",
       "ap_id": 1725,
       "region": "Twilight Cathedral North Blade Path",
@@ -1691,6 +2546,15 @@
       "region": "Twilight Cathedral North Wing",
       "kind": "chest",
       "vanilla_item": "Lifestone Shard",
+      "in_ap": true,
+      "area": "Twilight Cathedral"
+    },
+    {
+      "name": "Twilight Cathedral South Crystal Blade",
+      "ap_id": 0,
+      "region": "Twilight Cathedral South Blade Path",
+      "kind": "event",
+      "vanilla_item": "South Crystal Blade",
       "in_ap": true,
       "area": "Twilight Cathedral"
     },
@@ -1830,6 +2694,15 @@
       "area": "Twilight Cathedral"
     },
     {
+      "name": "Twilight Cathedral West Crystal Blade",
+      "ap_id": 0,
+      "region": "Twilight Cathedral West Blade Path",
+      "kind": "event",
+      "vanilla_item": "West Crystal Blade",
+      "in_ap": true,
+      "area": "Twilight Cathedral"
+    },
+    {
       "name": "Twilight Cathedral Bridge Room Artifact",
       "ap_id": 1722,
       "region": "Twilight Cathedral West Blade Path",
@@ -1861,7 +2734,7 @@
       "ap_id": 1600,
       "region": "Vulgrim's Shop",
       "kind": "artifact",
-      "vanilla_item": "",
+      "vanilla_item": "Lifestone Shard",
       "in_ap": true,
       "area": "Serpent Holes"
     },
@@ -1870,7 +2743,7 @@
       "ap_id": 1601,
       "region": "Vulgrim's Shop",
       "kind": "artifact",
-      "vanilla_item": "",
+      "vanilla_item": "Lifestone Shard",
       "in_ap": true,
       "area": "Serpent Holes"
     },
@@ -1879,7 +2752,7 @@
       "ap_id": 1602,
       "region": "Vulgrim's Shop",
       "kind": "artifact",
-      "vanilla_item": "",
+      "vanilla_item": "Wrath Core",
       "in_ap": true,
       "area": "Serpent Holes"
     },

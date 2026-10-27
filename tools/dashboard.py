@@ -29,7 +29,6 @@ import psutil
 from ds_client import win32
 from ds_client.ap_catalog import (
     BLADE_ITEM,
-    GOAL_LABELS,
     PROGRESSIVE_LEVEL_CAPS,
     SHARD_ITEM,
     ApCatalog,
@@ -348,8 +347,7 @@ def inventory_facts() -> list[dict[str, Any]]:
 def _is_item_write_row(raw: dict[str, Any]) -> bool:
     cat = str(raw.get("category") or "")
     event = str(raw.get("event_type") or "")
-    label = str(raw.get("label") or "")
-    return cat in {"inventory", "stat"} or event == "GOAL" or label in GOAL_LABELS
+    return cat in {"inventory", "stat"} or event == "GOAL"
 
 
 def _inventory_fact(raw: dict[str, Any], catalog: ApCatalog) -> dict[str, Any]:
@@ -389,7 +387,7 @@ def _item_write_kind(
     cap: Optional[int],
     bitmask: object,
 ) -> str:
-    if event == "GOAL" or label in GOAL_LABELS:
+    if event == "GOAL":
         return "goal"
     if cap is not None:
         return "level"
