@@ -2,6 +2,7 @@
 
 Source of truth is worlds/darksiders/data/*.json in the local clone.
 Falls back to docs/world_*.json when the clone is missing.
+docs/proposed/ is our local test overlay (hotel), not his world.
 """
 
 from __future__ import annotations
@@ -148,11 +149,15 @@ def parse_data_locations(data_dir: Path = WORLD_DATA_DIR) -> list[WorldLocation]
     for path in sorted(data_dir.glob("*.json")):
         if path.name == "Items.json":
             continue
+        if path.name == "Seraphim Hotel.json":
+            continue
+        in_ap = path.name in loaded if loaded else True
+        if not in_ap and (PROPOSED_DIR / path.name).is_file():
+            continue
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
-        in_ap = path.name in loaded if loaded else True
         _ingest_region_payload(
             payload,
             area=path.stem,
@@ -171,9 +176,18 @@ def parse_data_locations(data_dir: Path = WORLD_DATA_DIR) -> list[WorldLocation]
                 area=path.stem,
                 in_ap=False,
                 seen=seen,
-                overwrite=False,
+                overwrite=True,
             )
     return list(seen.values())
+
+
+def _duplicate_ap_ids(locations: list[WorldLocation]) -> list[tuple[int, list[str]]]:
+    by_id: dict[int, list[str]] = {}
+    for loc in locations:
+        if loc.ap_id == 0:
+            continue
+        by_id.setdefault(loc.ap_id, []).append(loc.name)
+    return sorted((ap_id, names) for ap_id, names in by_id.items() if len(names) > 1)
 
 
 def parse_items_json(path: Path = WORLD_ITEMS_JSON) -> list[WorldItem]:
@@ -376,6 +390,11 @@ def sync_world_catalog() -> int:
     locations = parse_data_locations()
     if not locations:
         print(f"[ERROR] No locations in {WORLD_DATA_DIR}")
+        return 1
+    clashes = _duplicate_ap_ids(locations)
+    if clashes:
+        for ap_id, names in clashes:
+            print(f"[ERROR] AP id {ap_id} used by: {', '.join(names)}")
         return 1
     path = write_catalog(locations)
     active = sum(1 for loc in locations if loc.in_ap)

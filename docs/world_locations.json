@@ -2281,7 +2281,7 @@
     },
     {
       "name": "Seraphim Hotel Life Chest 1",
-      "ap_id": 200,
+      "ap_id": 2000,
       "region": "Seraphim Hotel",
       "kind": "chest",
       "vanilla_item": "Health",
@@ -2290,7 +2290,7 @@
     },
     {
       "name": "Seraphim Hotel Life Chest 2",
-      "ap_id": 201,
+      "ap_id": 2001,
       "region": "Seraphim Hotel",
       "kind": "chest",
       "vanilla_item": "Health",

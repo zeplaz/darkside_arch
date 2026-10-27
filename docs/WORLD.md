@@ -27,7 +27,7 @@ git -C world\Archipelago-Darksiders pull --ff-only origin main
 python -m tools sync-world
 ```
 
-`sync-world` reads `data/*.json` (plus `docs/proposed/` for names he has not loaded yet) and writes [world_locations.json](world_locations.json) and [world_items.json](world_items.json). `Locations.py` `create_location_table_from_json` decides `"in_ap"`. Catalog now: **321** names (**319** in AP, hotel **2** deferred). Join key is still the location **name**. Black Throne / Eden / Iron Canopy are live. `Seraphim Hotel.json` is in his `data/` but **not** imported in `Locations.py`. Hotel AP ids **200 / 201** now collide with Black Throne chests — he must remint those if he loads hotel.
+`sync-world` reads `data/*.json` and writes [world_locations.json](world_locations.json) and [world_items.json](world_items.json). `Locations.py` `create_location_table_from_json` decides `"in_ap"`. Catalog now: **321** names (**319** in AP, **2** local hotel tests). Join key is still the location **name**. Black Throne / Eden / Iron Canopy are live. [proposed/Seraphim Hotel.json](proposed/Seraphim%20Hotel.json) is **our test file only** (ids **2000 / 2001**) — not for his world, never reuse his ids.
 
 ## Contract
 
@@ -45,16 +45,14 @@ If Sacha later adds Keen keys on a location object, we ingest them. RAM offsets 
 | Goal | Event `Abaddon the Destroyer defeated` → item `Victory` (`Leviathan Drift.json`, not a location ID) |
 | Client | AP ≥ **0.6.7**, game name `Darksiders` |
 
-Ask Sacha: load `Seraphim Hotel.json` from `Locations.py` / `Regions.py` so the two hotel chests are `in_ap`.
-
 ## Mapping queue
 
-Hotel JSON is in his `data/Seraphim Hotel.json` (AP ids **200 / 201**) but `Locations.py` still does not import it, so tools mark the two chests deferred. [proposed/Seraphim Hotel.json](proposed/Seraphim%20Hotel.json) is our copy.
+Hotel is **our** mapping test, not a world location. Do not send it to Sacha. [proposed/Seraphim Hotel.json](proposed/Seraphim%20Hotel.json) ids **2000 / 2001**.
 
 | Location | |
 |----------|--|
-| `Seraphim Hotel Life Chest 1` | AP 200. Keen `SB_G_Chest_HealthChest_01` `overworld` r=2 L=6 obj=342 `Triggered` (`/overworld/CI_StartBld`) |
-| `Seraphim Hotel Life Chest 2` | AP 201. Keen `CI_SB_Exit_Chest_HealthChest` `overworld` r=260 L=1 obj=16 `Triggered` (`/overworld/CI_SB_Exit`). Different region than chest 1. |
+| `Seraphim Hotel Life Chest 1` | Local AP **2000**. Keen `SB_G_Chest_HealthChest_01` `overworld` r=2 L=6 obj=342 `Triggered` (`/overworld/CI_StartBld`) |
+| `Seraphim Hotel Life Chest 2` | Local AP **2001**. Keen `CI_SB_Exit_Chest_HealthChest` `overworld` r=260 L=1 obj=16 `Triggered` (`/overworld/CI_SB_Exit`). Different region than chest 1. |
 | `Crossroads South Crater Chest` | AP 600 Currency |
 | `Crossroads West of Library Chest` | AP 601 Health |
 | `Crossroads Chest Blocked by Ice` | AP 602 Hellfire — skip until ice tools |

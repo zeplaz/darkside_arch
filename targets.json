@@ -19,7 +19,7 @@
         "object_id": 342,
         "value_key": "Triggered"
       },
-      "notes": "Wiki H1 1/2. AP 200. Keen SB_G_Chest_HealthChest_01 overworld r=2 L=6 obj=342 Triggered. /overworld/CI_StartBld. Save-diff + Sacha."
+      "notes": "Wiki H1 1/2. Local test AP 2000. Keen SB_G_Chest_HealthChest_01 overworld r=2 L=6 obj=342 Triggered. /overworld/CI_StartBld. Save-diff + Sacha."
     },
     {
       "id": "chest_seraphim_hotel_life_2",
@@ -38,7 +38,7 @@
         "object_id": 16,
         "value_key": "Triggered"
       },
-      "notes": "Wiki H2 2/2. AP 201. Keen CI_SB_Exit_Chest_HealthChest overworld r=260 L=1 obj=16 Triggered. /overworld/CI_SB_Exit. Sacha minimap match — not save-diff confirmed."
+      "notes": "Wiki H2 2/2. Local test AP 2001. Keen CI_SB_Exit_Chest_HealthChest overworld r=260 L=1 obj=16 Triggered. /overworld/CI_SB_Exit. Sacha minimap match — not save-diff confirmed."
     },
     {
       "id": "chest_crossroads_currency_down_stairs",
