@@ -55,19 +55,28 @@ def _as_bool(value: Any) -> bool:
     return bool(value)
 
 
-def parse_connect_target(raw: str) -> tuple[str, Optional[int], bool]:
+def default_use_wss(host: str) -> bool:
+    """Website-hosted rooms (archipelago.gg:PORT) are TLS-only."""
+    name = host.strip().lower().rstrip(".")
+    return name == "archipelago.gg" or name.endswith(".archipelago.gg")
+
+
+def parse_connect_target(raw: str) -> tuple[str, Optional[int], Optional[bool]]:
     """Parse host[:port], ws://, wss://, or archipelago:// into (host, port, use_wss).
 
     ``port`` is None when the text has none, so callers keep the saved port.
+    ``use_wss`` is None when the scheme is omitted (or ``archipelago://``);
+    callers then infer from host / saved config.
     """
     text = raw.strip()
-    use_wss = False
+    use_wss: Optional[bool] = None
     if text.startswith("archipelago://"):
-        text = "ws://" + text[len("archipelago://") :]
+        text = text[len("archipelago://") :]
     if text.startswith("wss://"):
         use_wss = True
         text = text[len("wss://") :]
     elif text.startswith("ws://"):
+        use_wss = False
         text = text[len("ws://") :]
     if "/" in text:
         text = text.split("/", 1)[0]
@@ -107,15 +116,20 @@ def read_config(path: Path = CONFIG_FILE) -> ApConfig:
 
     # Accept "host:port" / "wss://host:port" pasted into the host field.
     host, host_port, host_wss = parse_connect_target(str(data.get("host") or "localhost"))
+    host = host or "localhost"
+    if host_wss is not None:
+        use_wss = host_wss
+    else:
+        use_wss = _as_bool(data.get("use_wss", False)) or default_use_wss(host)
     tags_raw = data.get("tags") or _DEFAULTS["tags"]
     tags = tuple(str(t) for t in tags_raw)
     return ApConfig(
-        host=host or "localhost",
+        host=host,
         port=host_port or int(data.get("port") or 38281),
         slot=str(data.get("slot") or "").strip(),
         password=str(data.get("password") or ""),
         game=str(data.get("game") or "Darksiders").strip() or "Darksiders",
-        use_wss=host_wss or _as_bool(data.get("use_wss", False)),
+        use_wss=use_wss,
         tags=tags or ("Darksiders",),
         request_goal=_as_bool(data.get("request_goal", False)),
         uuid=str(data.get("uuid") or "").strip(),

@@ -6,6 +6,7 @@ import asyncio
 import queue
 import ssl
 import threading
+from dataclasses import replace
 from typing import Any, Optional
 
 import websockets
@@ -28,6 +29,7 @@ from ds_client.ap_state import ApState, ReceivedRow
 
 STARTING_BACKOFF_S = 1.0
 MAX_BACKOFF_S = 60.0
+DEBUG_AFTER_FAILS = 3
 
 
 class ApRuntime:
@@ -150,6 +152,8 @@ class ApClient:
         self._backoff = STARTING_BACKOFF_S
 
     async def run_forever(self, stop: threading.Event) -> None:
+        fail_streak = 0
+        last_cfg: Optional[ApConfig] = None
         while not stop.is_set():
             try:
                 cfg = (
@@ -157,27 +161,54 @@ class ApClient:
                     if self.runtime.config_path
                     else load_config()
                 )
+                last_cfg = cfg
                 if not cfg.slot:
                     await _sleep_or_stop(stop, 1.0)
                     continue
                 await self._session(cfg, stop)
+                fail_streak = 0
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
-                print(f"[AP] connection error: {exc}")
+                fail_streak += 1
+                print(f"[AP] connection error: {exc}", flush=True)
+                if fail_streak >= DEBUG_AFTER_FAILS and last_cfg is not None:
+                    _print_connect_debug(last_cfg, exc, fail_streak)
             if stop.is_set():
                 return
             delay = self._backoff
-            print(f"[AP] reconnect in {delay:.0f}s")
+            print(f"[AP] reconnect in {delay:.0f}s", flush=True)
             await _sleep_or_stop(stop, delay)
             self._backoff = min(self._backoff * 2.0, MAX_BACKOFF_S)
 
     async def _session(self, cfg: ApConfig, stop: threading.Event) -> None:
+        try:
+            await self._run_socket(cfg, stop)
+            return
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            if cfg.use_wss or not _handshake_looks_like_tls(exc):
+                raise
+            print(f"[AP] {exc}", flush=True)
+            print(
+                f"[AP] handshake on {cfg.uri()} failed; retrying "
+                f"wss://{cfg.host}:{cfg.port} (website rooms are TLS)",
+                flush=True,
+            )
+            upgraded = replace(cfg, use_wss=True)
+            try:
+                patch_config(cfg.path, use_wss=True)
+            except OSError as save_exc:
+                print(f"[AP] could not save use_wss=true: {save_exc}", flush=True)
+            await self._run_socket(upgraded, stop)
+
+    async def _run_socket(self, cfg: ApConfig, stop: threading.Event) -> None:
         uri = cfg.uri()
         ssl_ctx: Optional[ssl.SSLContext] = None
         if cfg.use_wss:
             ssl_ctx = ssl.create_default_context()
-        print(f"[AP] connecting {uri} as {cfg.slot!r}")
+        print(f"[AP] connecting {uri} as {cfg.slot!r}", flush=True)
         async with websockets.connect(
             uri,
             ssl=ssl_ctx,
@@ -274,7 +305,7 @@ class ApClient:
         self._connected = True
         self._backoff = STARTING_BACKOFF_S
         self.runtime.enqueue_pending_from_db()
-        print(f"[AP] Connected team={team} slot={slot} seed={seed!r}")
+        print(f"[AP] Connected team={team} slot={slot} seed={seed!r}", flush=True)
         if cfg.request_goal:
             patch_config(cfg.path, request_goal=False)
 
@@ -306,6 +337,30 @@ class ApClient:
         blade = maybe_synthetic_blade(self.runtime.state, self.runtime.catalog, *ident)
         if blade is not None:
             self.runtime.enqueue_apply(blade)
+
+
+def _handshake_looks_like_tls(exc: BaseException) -> bool:
+    """True when a plaintext WS handshake hit a TLS (or otherwise non-HTTP) socket.
+
+    Official CommonClient retries wss:// on websockets.InvalidMessage for this.
+    """
+    name = type(exc).__name__.lower()
+    if "invalidmessage" in name or "invalidhandshake" in name:
+        return True
+    text = str(exc).lower()
+    return "valid http" in text or "invalid handshake" in text
+
+
+def _print_connect_debug(cfg: ApConfig, exc: BaseException, fail_streak: int) -> None:
+    print(
+        f"[AP] {fail_streak} failed connects; extra debug:\n"
+        f"[AP]   uri={cfg.uri()}  use_wss={cfg.use_wss}  "
+        f"host={cfg.host!r} port={cfg.port} slot={cfg.slot!r}\n"
+        f"[AP]   error_type={type(exc).__name__}  error={exc}\n"
+        f"[AP]   hint: archipelago.gg rooms speak TLS. Use "
+        f"wss://{cfg.host}:{cfg.port} or --connect wss://{cfg.host}:{cfg.port}",
+        flush=True,
+    )
 
 
 def _config_identity_changed(cfg: ApConfig) -> bool:

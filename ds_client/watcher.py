@@ -16,7 +16,7 @@ import psutil
 from ds_client.ap_apply import drain_apply_queue
 from ds_client.ap_catalog import load_catalog
 from ds_client.ap_client import ApRuntime
-from ds_client.ap_config import parse_connect_target, patch_config
+from ds_client.ap_config import default_use_wss, parse_connect_target, patch_config
 from ds_client.ap_sink import ApLocationSink
 from ds_client.ap_state import open_state
 from ds_client.models import (
@@ -336,9 +336,14 @@ def main(argv: Optional[list[str]] = None) -> int:
         changes = {}
         if args.connect:
             host, port, use_wss = parse_connect_target(args.connect)
-            changes.update({"host": host, "use_wss": use_wss})
+            changes["host"] = host
             if port is not None:
                 changes["port"] = port
+            # Bare host:port used to write use_wss=false and then never retry TLS.
+            # archipelago.gg rooms are wss-only; an explicit ws:// still wins.
+            if use_wss is None:
+                use_wss = default_use_wss(host)
+            changes["use_wss"] = use_wss
         if args.slot:
             changes["slot"] = args.slot
         if args.password:
