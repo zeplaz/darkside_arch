@@ -9,9 +9,11 @@ pip install -r requirements.txt
 python -m ds_client --connect archipelago.gg:38281 --slot War
 ```
 
+`archipelago.gg` defaults to `wss://`. A plaintext handshake that gets "did not receive a valid HTTP response" is retried as TLS (same as the official client). After 3 failed connects the client prints the URI / TLS flag / exception.
+
 | Flag | |
 |------|--|
-| `--connect HOST[:PORT]` | Also `ws://…` / `wss://…`. Saved to `ap_config.json`; a missing port keeps the saved one |
+| `--connect HOST[:PORT]` | Also `ws://…` / `wss://…`. Saved to `ap_config.json`; a missing port keeps the saved one. Bare `archipelago.gg` enables TLS. |
 | `--slot` / `--password` | Saved to `ap_config.json` (plain text, gitignored) |
 | `--send-goal` | Send `CLIENT_GOAL` on the next Connect (debug; the Abaddon flag is not mapped yet) |
 | `--no-ap` | RAM watcher only |
@@ -24,7 +26,7 @@ Created on first run (from `ap_config.example.json` if present) with a generated
 |-----|---------|--|
 | `host` | `localhost` | `host:port` or `wss://host:port` also accepted |
 | `port` | `38281` | |
-| `use_wss` | `false` | |
+| `use_wss` | `false` (true for `archipelago.gg`) | Website rooms are TLS-only; localhost stays plain `ws://` |
 | `slot` / `password` | | Room login; nothing connects while `slot` is empty |
 | `game` / `tags` | `Darksiders` | Keep as is |
 | `request_goal` | `false` | Set by `--send-goal`, cleared after sending |
