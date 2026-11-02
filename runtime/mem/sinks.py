@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, Protocol, Sequence
 
-from ds_client.models import WatchTarget, Event
+from runtime.mem.models import WatchTarget, Event
 
 DB_FILE = Path("darksiders_debug.db")
 FLUSH_EVERY_EVENTS = 32

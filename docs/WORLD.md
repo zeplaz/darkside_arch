@@ -38,7 +38,7 @@ python -m tools sync-world
 | Keen **object** | This repo `save_object` | `world` + RegionID + LayerID + ObjectID + `Triggered`/`Destroyed`/`Open` |
 | RAM **offset** | This repo `targets.json` only | Warmastered / ASLR. Never write RVAs into the world |
 
-If Sacha later adds Keen keys on a location object, we ingest them. RAM offsets stay here. `ds_client` only watches RAM.
+If Sacha later adds Keen keys on a location object, we ingest them. RAM offsets stay here. `runtime.mem` watches RAM; `runtime.dll` joins on `save_object` after hooks.
 
 | | |
 |--|--|

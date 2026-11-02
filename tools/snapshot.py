@@ -29,9 +29,9 @@ from typing import Any, Callable, Iterator, Optional
 
 import numpy as np
 
-from ds_client import win32
-from ds_client.models import PROCESS_NAME
-from ds_client.watcher import find_process
+from runtime.mem import win32
+from runtime.mem.models import PROCESS_NAME
+from runtime.mem.watcher import find_process
 
 SNAPSHOT_DIR = Path("snapshots")
 DEBUG_DUMP = SNAPSHOT_DIR / "last_capture.npz"
@@ -430,5 +430,5 @@ def main_capture(argv: Optional[list[str]] = None) -> int:
         print(json.dumps(entry, indent=2))
         return 0
     action, entry = save_target(entry)
-    print(f"[OK] {action} {entry['id']} @ {' -> '.join(entry['offsets'])}  (ds_client hot-reloads it)")
+    print(f"[OK] {action} {entry['id']} @ {' -> '.join(entry['offsets'])}  (runtime.mem hot-reloads it)")
     return 0

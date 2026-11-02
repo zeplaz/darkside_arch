@@ -13,20 +13,20 @@ from typing import Optional
 
 import psutil
 
-from ds_client.ap_apply import drain_apply_queue
-from ds_client.ap_catalog import load_catalog
-from ds_client.ap_client import ApRuntime
-from ds_client.ap_config import default_use_wss, parse_connect_target, patch_config
-from ds_client.ap_sink import ApLocationSink
-from ds_client.ap_state import open_state
-from ds_client.models import (
+from runtime.mem.apply import drain_apply_queue
+from ap.catalog import load_catalog
+from ap.client import ApRuntime
+from ap.config import default_use_wss, parse_connect_target, patch_config
+from runtime.mem.location_sink import ApLocationSink
+from ap.state import open_state
+from runtime.mem.models import (
     PROCESS_NAME,
     TARGETS_FILE,
     Event,
     WatchTarget,
     load_targets,
 )
-from ds_client.sinks import (
+from runtime.mem.sinks import (
     EventBus,
     SqliteSink,
     TerminalSink,
@@ -36,7 +36,7 @@ from ds_client.sinks import (
     sync_memory_map_from_targets,
     upsert_memory_map_from_target,
 )
-from ds_client import win32
+from runtime.mem import win32
 
 POLL_PROCESS_SECONDS = 1.5
 
@@ -308,9 +308,9 @@ def run_watch_loop(*, enable_ap: bool = True) -> int:
 def main(argv: Optional[list[str]] = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     parser = argparse.ArgumentParser(
-        prog="python -m ds_client",
+        prog="python -m runtime.mem",
         description=(
-            "Runtime memory watcher and Archipelago client for "
+            "Mem-path RAM watcher and Archipelago client for "
             "Darksiders Warmastered (x64)."
         ),
     )

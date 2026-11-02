@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Optional, Protocol
 
-from ds_client.ap_catalog import ApCatalog
-from ds_client.models import CATEGORY_LOCATION, Event
+from ap.catalog import ApCatalog
+from runtime.mem.models import CATEGORY_LOCATION, Event
 
 
 class LocationCheckSubmitter(Protocol):

@@ -2,7 +2,7 @@
 
 **Entry: `python -m tools dashboard`** → `http://127.0.0.1:8765/`
 
-That browser is how you map. How to use it: [docs/DASHBOARD.md](../docs/DASHBOARD.md) and the [repo README](../README.md#mapping-dashboard). Commands below are CLI backups. They write the same [targets.json](../targets.json); [ds_client](../ds_client/README.md) hot-reloads it.
+That browser is how you map. How to use it: [docs/DASHBOARD.md](../docs/DASHBOARD.md) and the [repo README](../README.md#mapping-dashboard). Commands below are CLI backups. They write the same [targets.json](../targets.json); [runtime.mem](../runtime/mem/README.md) hot-reloads it.
 
 ```powershell
 python -m tools dashboard       # start here

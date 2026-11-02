@@ -1,0 +1,3 @@
+[build]
+# Keep artifacts inside this crate tree (ignore sandbox CARGO_TARGET_DIR).
+target-dir = "target"

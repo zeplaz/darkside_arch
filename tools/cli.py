@@ -18,6 +18,7 @@ COMMANDS: dict[str, tuple[str, str]] = {
     "save-diff": ("tools.save_diff:main", "Diff two Keen slots or JSON dumps; --location writes save_object"),
     "save-install": ("tools.save_install:main", "Rewrite the Steam UserId on an AP template save"),
     "save-patch": ("tools.save_patch:main", "Change .sav UserId via whatisaphone/war decode-encode"),
+    "dll-inject": ("tools.dll_inject:main", "Inject darkside_arch.dll into a running darksiders1.exe"),
 }
 
 

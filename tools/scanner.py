@@ -13,8 +13,8 @@ import sys
 from pathlib import Path
 from typing import Optional, Sequence
 
-from ds_client.models import PROCESS_NAME, TYPE_SPECS
-from ds_client.watcher import find_process
+from runtime.mem.models import PROCESS_NAME, TYPE_SPECS
+from runtime.mem.watcher import find_process
 from tools.targets import build_target_entry, find_row, raw_targets, save_target
 
 SOULS_LABEL = "Soul_Count"

@@ -9,7 +9,7 @@ python -m tools dashboard
 
 Opens `http://127.0.0.1:8765/`. Flags: `--host`, `--port` (default `8765`), `--db`, `--no-browser`.
 
-It is a workspace for writing [targets.json](../targets.json). It does **not** attach as an AP client and does **not** poke `darksiders1.exe`. [ds_client](../ds_client/README.md) is the runtime.
+It is a workspace for writing [targets.json](../targets.json). It does **not** attach as an AP client and does **not** poke `darksiders1.exe`. [runtime.mem](../runtime/mem/README.md) is the runtime.
 
 | Tab | Does | Writes |
 |-----|------|--------|
@@ -17,7 +17,7 @@ It is a workspace for writing [targets.json](../targets.json). It does **not** a
 | **RAM DUMP** | Closed then open F8 → live 0→1 byte | RAM `offsets`. This is what LocationChecks need. |
 | **SAVES** | Decode / encode UserId, copy into Steam | Files under `saves/edited/`, then Steam remote. |
 
-`save_object` is not a live watch. `ds_client` skips `offsets: ["0x0"]` until RAM DUMP saves a real one.
+`save_object` is not a live watch. `runtime.mem` skips `offsets: ["0x0"]` until RAM DUMP saves a real one.
 
 Press **?** on the page for the same guide.
 
@@ -75,4 +75,4 @@ Same CLI: `python -m tools save-patch … --out saves\edited\FILE.sav --install`
 
 ## After you save a row
 
-`targets.json` updates. `ds_client` hot-reloads. Rebuild the published table with `python -m tools export-docs` → [memory_map.md](memory_map.md).
+`targets.json` updates. `runtime.mem` hot-reloads. Rebuild the published table with `python -m tools export-docs` → [memory_map.md](memory_map.md).
