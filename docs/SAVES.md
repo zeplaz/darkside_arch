@@ -38,7 +38,7 @@ Keen world objects live in `PlayerSaveData.WorldData[].Regions[].Layers[].WorldO
 
 `Seraphim Hotel Life Chest 1` is `overworld` / RegionID `2` / LayerID `6` / ObjectID `342` / `Triggered` (`SB_G_Chest_HealthChest_01`, `/overworld/CI_StartBld`). Slot 1 = closed, slot 2 = open (`NumberOfChestsOpened` 0→1, Health 81→200).
 
-`Seraphim Hotel Life Chest 2` is `overworld` / RegionID `260` / LayerID `1` / ObjectID `16` / `Triggered` (`CI_SB_Exit_Chest_HealthChest`, `/overworld/CI_SB_Exit`). Sacha matched the name to the minimap; not yet save-diff confirmed. Same hotel, different Keen region — do not look for obj 343 on layer 6.
+`Seraphim Hotel Life Chest 2` is `overworld` / RegionID `260` / LayerID `1` / ObjectID `16` / `Triggered` (`CI_SB_Exit_Chest_HealthChest`, `/overworld/CI_SB_Exit`). Save-diff confirmed on newest svd_fmt slots 2→3 (closed→open). Same hotel, different Keen region — do not look for obj 343 on layer 6.
 
 ObjectID is not global — never search RAM for `342` or `16` alone; the RAM capture anchors on ObjectID + RegionID + LayerID together.
 
@@ -62,6 +62,6 @@ cargo install --path tools/vendor/war/crates/war-cli
 python -m tools save-patch --sav saves\sacha_raw\keen_savegame_0_0.sav --userid YOUR_STEAM_ID --out saves\edited\keen_savegame_0_0.sav --install
 ```
 
-`save-patch` runs `war sav decode`, sets `SaveGameInfo.UserId`, then `war sav encode`. war only rewrites the **autosave** slot. `--install` copies into `remote\` and `remote\autocloud\save\` as both `svd_fmt_0_0.sav` and `keen_savegame_0_0.sav`. Quit the game and launch from Steam.
+`save-patch` runs `war sav decode`, sets `SaveGameInfo.UserId`, then `war sav encode`. war only rewrites the **autosave** slot. `--install` copies into `remote\` and `remote\autocloud\save\` as both `svd_fmt_0_0.sav` and `keen_savegame_0_0.sav`. Quit the game and launch from Steam. Backups are timestamped (`*.sav.YYYYMMDD-HHMMSS.bak`) so a second install cannot eat the only copy.
 
 `save-install` is JSON-only / late-game gate. It does not rewrite a playable `.sav`.

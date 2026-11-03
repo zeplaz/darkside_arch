@@ -38,7 +38,7 @@
         "object_id": 16,
         "value_key": "Triggered"
       },
-      "notes": "Wiki H2 2/2. Local test AP 2001. Keen CI_SB_Exit_Chest_HealthChest overworld r=260 L=1 obj=16 Triggered. /overworld/CI_SB_Exit. Sacha minimap match — not save-diff confirmed."
+      "notes": "Wiki H2 2/2. Local test AP 2001. Keen CI_SB_Exit_Chest_HealthChest overworld r=260 L=1 obj=16 Triggered. /overworld/CI_SB_Exit. Save-diff confirmed on newest svd_fmt slots 2->3 (closed->open)."
     },
     {
       "id": "chest_crossroads_currency_down_stairs",

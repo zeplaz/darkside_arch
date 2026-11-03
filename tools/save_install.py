@@ -8,6 +8,7 @@ import os
 import shutil
 import struct
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
@@ -70,12 +71,17 @@ def patch_sav_userid(path: Path, old_id: int, new_id: int, dest: Optional[Path] 
     return count
 
 
-def backup(path: Path) -> None:
-    """Keep one ``<name>.bak`` copy before a file is overwritten."""
-    if path.exists():
-        bak = path.with_name(path.name + ".bak")
-        shutil.copy2(path, bak)
-        print(f"[OK] backup {bak}")
+def backup(path: Path) -> Optional[Path]:
+    """Copy ``path`` aside before overwrite. Timestamped so a second write cannot eat the only backup."""
+    if not path.exists():
+        return None
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    stamped = path.with_name(f"{path.name}.{stamp}.bak")
+    shutil.copy2(path, stamped)
+    latest = path.with_name(path.name + ".bak")
+    shutil.copy2(path, latest)
+    print(f"[OK] backup {stamped}")
+    return stamped
 
 
 def is_late_game_save(info: dict[str, Any]) -> list[str]:
