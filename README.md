@@ -8,7 +8,7 @@ Archipelago tooling for **Darksiders Warmastered** (`darksiders1.exe`, Steam x64
 | Runtime **mem** | Players | `pip install -r requirements.txt` | `python -m runtime.mem` |
 | Runtime **dll** | Players | same + Rust DLL | `python -m runtime.dll` |
 
-Mem path needs location RAM offsets (0 / 132 today). DLL path aims to report opens via hook identity instead — see [runtime/README.md](runtime/README.md) and [docs/runtime.md](docs/runtime.md). Checklist: [runtime/mem/README.md](runtime/mem/README.md#checklist).
+Mem path needs location RAM offsets (0 / 132 today). DLL path uses `save_object` + inject — **how-to:** [runtime/dll/README.md](runtime/dll/README.md). Mem checklist: [runtime/mem/README.md](runtime/mem/README.md#checklist).
 
 ---
 
@@ -44,7 +44,7 @@ Game can be closed. Slots: `-1` autosave, `0`–`9` the list.
 5. **MATCH** shows chest `Triggered` rows. **DESTROYED** / **OPEN** / **ALL** unhide breakables and doors if you need them.
 6. Highlight the chest. **SAVE IDENTITY**.
 
-Hotel chest 1 is already identified (`overworld` r=2 L=6 obj=342). It still needs RAM DUMP.
+Hotel chest 1 is already identified (`overworld` r=2 L=6 obj=342). Mem path still needs RAM DUMP; DLL LAB can use identity alone.
 
 ### Live flag (RAM DUMP)
 
@@ -68,10 +68,10 @@ Filter by OPEN / IDENTIFIED / MAPPED, kind (chest, artifact, armor, cube), chest
 ```powershell
 pip install -r requirements.txt
 python -m runtime.mem --connect HOST:PORT --slot NAME
-# or: python -m runtime.dll --connect HOST:PORT --slot NAME
+# DLL: see runtime/dll/README.md (host + inject; or dashboard DLL LAB)
 ```
 
-Mem path: until offsets exist this only connects. DLL path: Phase 1 connects + pipe; LocationChecks need the chest hook (Phase 2). Config: `ap_config.json` (gitignored). Details: [runtime/README.md](runtime/README.md).
+Mem: until offsets exist this only connects. DLL: [runtime/dll/README.md](runtime/dll/README.md). Config: `ap_config.json` (gitignored).
 
 ---
 
@@ -84,7 +84,8 @@ Mem path: until offsets exist this only connects. DLL path: Phase 1 connects + p
 | [docs/SAVES.md](docs/SAVES.md) | Keen `.sav` slots, ObjectIDs, war / UserId |
 | [docs/memory_map.md](docs/memory_map.md) | Generated RAM table (`export-docs`) |
 | [tools/README.md](tools/README.md) | Every `python -m tools` command |
-| [runtime/README.md](runtime/README.md) | Mem vs DLL deploy |
+| [runtime/dll/README.md](runtime/dll/README.md) | **DLL how-to** (TEST/LIVE) |
+| [runtime/README.md](runtime/README.md) | Mem vs DLL index |
 | [docs/runtime.md](docs/runtime.md) | Dual-path contract |
 | [runtime/mem/README.md](runtime/mem/README.md) | Mem client flags / checklist |
 | [docs/README.md](docs/README.md) | Index of `docs/` |

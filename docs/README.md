@@ -2,8 +2,9 @@
 
 | Doc | Owns |
 |-----|------|
-| [runtime.md](runtime.md) | Mem vs DLL player runtimes. |
-| [DASHBOARD.md](DASHBOARD.md) | Mapping entry. What the browser does, SAVE DIFF, RAM DUMP, SAVES. |
+| [../runtime/dll/README.md](../runtime/dll/README.md) | **DLL how-to** (TEST/LIVE, dashboard + CLI). |
+| [runtime.md](runtime.md) | Mem vs DLL architecture overview. |
+| [DASHBOARD.md](DASHBOARD.md) | Mapping entry: SAVE DIFF, RAM DUMP, SAVES, DLL LAB pointer. |
 | [WORLD.md](WORLD.md) | Sacha fork pin, two-JSON split, hotel / Crossroads queue. |
 | [SAVES.md](SAVES.md) | Keen `.sav` slots, ObjectIDs, war, UserId install. |
 | [memory_map.md](memory_map.md) | Generated RAM table. Never edit by hand (`python -m tools export-docs`). |

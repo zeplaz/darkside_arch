@@ -1,45 +1,86 @@
-# DLL runtime
+# DLL runtime — how to run
 
-Rust inject DLL + Python AP host. Location checks join on `save_object`; items still use RPM writes.
+**This is the DLL how-to.** Inject after the game starts. Do **not** replace Steam/`version.dll` in the game folder (that is sideload; we do not use it).
 
-## Run
+Needs: rows with `save_object` in [`targets.json`](../../targets.json) (hotel chests 1–2 already have them). No per-chest RAM offset for location checks.
 
-**Easiest POC (no AP):** dashboard → **DLL LAB** tab → START HOST → BUILD → SIMULATE → launch game → INJECT → open hotel chest 1. See [docs/DASHBOARD.md](../../docs/DASHBOARD.md).
+IPC: `tcp://127.0.0.1:27111`
+
+---
+
+## Fastest: dashboard DLL LAB
 
 ```powershell
-# CLI equivalent (no AP)
-python -m runtime.dll --no-ap
-# other terminal: cargo build --release in runtime/dll/native
-# launch game, then:
-python -m tools dll-inject
-
-# With AP later
-python -m runtime.dll --connect HOST:PORT --slot NAME
+pip install -r requirements-dev.txt
+python -m tools dashboard
 ```
 
-IPC: `tcp://127.0.0.1:27111` (line-delimited JSON).
+Open **DLL LAB**. Pick mode, then follow the checklist on the page.
 
-### What the DLL does
+| Mode | Host | What to do |
+|------|------|------------|
+| **TEST** | `--no-ap` | START HOST → BUILD → **SIMULATE** → launch game → **INJECT** → optional open chest |
+| **LIVE** | `ap_config.json` | set slot → START HOST → BUILD → launch game → **INJECT** → open chest in-game |
 
-1. Connects to the host and receives every `targets.json` row that has a Keen `save_object`.
-2. Scans this process for packed `ObjectID|RegionID|LayerID` (Chests.json order).
-3. When a nearby byte flips `0→1`, sends `{"op":"open",...}`.
-4. Host maps that identity → AP `LocationChecks`.
+Stop the host before switching TEST ↔ LIVE. Mapping tabs still own SAVE DIFF / RAM DUMP; this tab only drives host + inject.
 
-### Host extras
+---
+
+## CLI
+
+```powershell
+# TEST (no Archipelago)
+python -m runtime.dll --no-ap
+
+# other terminal — build once
+cd runtime/dll/native
+cargo build --release
+cd ../../..
+
+# launch Darksiders normally, then:
+python -m tools dll-inject
+
+# LIVE (AP)
+python -m runtime.dll --connect HOST:PORT --slot NAME
+# then same: launch game → dll-inject
+```
+
+Dry identity check without inject:
+
+```powershell
+python -m runtime.dll --no-ap --simulate-open "{\"region_id\":2,\"layer_id\":6,\"object_id\":342}"
+```
+
+→ expect `CHECK Seraphim Hotel Life Chest 1`.
 
 | Flag | |
 |------|--|
-| `--simulate-open '{"region_id":2,"layer_id":6,"object_id":342}'` | Test LocationChecks without the game |
+| `--no-ap` | Host only (TEST) |
 | `--no-apply` | Skip RPM item writes |
-| `--no-ap` | IPC / simulate only |
+| `--simulate-open '{...}'` | One fake open, then exit |
 
-Hotel chests 1–2 already have `save_object` and work for DLL checks without RAM offsets.
+---
+
+## What success looks like
+
+1. Host log: TCP up, then after inject `hello` / `watches=N`
+2. TEST SIMULATE or in-game open: `CHECK …` / `op=open`
+3. LIVE: same, plus LocationChecks on the AP socket
+
+## What the DLL does
+
+1. Connects to the host; receives every `save_object` watch
+2. Scans this process for packed `ObjectID|RegionID|LayerID`
+3. Nearby byte `0→1` → `{"op":"open",...}`
+4. Host joins identity → catalog → LocationChecks (LIVE) or log (TEST)
 
 ## Layout
 
 ```
-runtime/dll/host/     Python AP + TCP server + RPM apply
+runtime/dll/host/     Python host (AP + TCP + item apply)
 runtime/dll/native/   darkside_arch.dll (Rust)
 tools/dll_inject.py   LoadLibraryW injector
+tools/dll_lab.py      Dashboard DLL LAB backend
 ```
+
+Architecture (mem vs dll): [docs/runtime.md](../../docs/runtime.md). Dashboard overview: [docs/DASHBOARD.md](../../docs/DASHBOARD.md).

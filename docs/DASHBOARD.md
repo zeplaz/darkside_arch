@@ -9,27 +9,20 @@ python -m tools dashboard
 
 Opens `http://127.0.0.1:8765/`. Flags: `--host`, `--port` (default `8765`), `--db`, `--no-browser`.
 
-It is a workspace for writing [targets.json](../targets.json). It does **not** attach as an AP client and does **not** poke `darksiders1.exe`. [runtime.mem](../runtime/mem/README.md) is the runtime.
+It is a workspace for writing [targets.json](../targets.json). Player runtimes are separate: [runtime.mem](../runtime/mem/README.md) or [runtime.dll](../runtime/dll/README.md).
 
 | Tab | Does | Writes |
 |-----|------|--------|
 | **SAVE DIFF** | Two in-game slots → which Keen WorldObject this AP name is | `save_object` only. Row stays disabled. |
-| **RAM DUMP** | Closed then open F8 → live 0→1 byte | RAM `offsets`. This is what LocationChecks need. |
+| **RAM DUMP** | Closed then open F8 → live 0→1 byte | RAM `offsets` (mem path). |
 | **SAVES** | Decode / encode UserId, copy into Steam | Files under `saves/edited/`, then Steam remote. |
-| **DLL LAB** | **TEST** (`--no-ap`) or **LIVE** (`ap_config.json`) host + inject | Nothing in `targets.json` from this tab. |
+| **DLL LAB** | **TEST** / **LIVE** host + build + inject | Nothing in `targets.json` from this tab. |
 
-### DLL LAB — TEST vs LIVE
+### DLL LAB
 
-| | **TEST** | **LIVE** |
-|--|--|--|
-| Host | `runtime.dll --no-ap` | `runtime.dll` + `ap_config.json` |
-| SIMULATE OPEN | Yes (hotel chest 1 identity) | Disabled — open chests in-game |
-| Goal | Prove host / inject / identity join | Send real LocationChecks |
+Step-by-step (TEST vs LIVE, CLI, success checks): **[runtime/dll/README.md](../runtime/dll/README.md)**.
 
-**TEST:** START HOST → BUILD → SIMULATE → launch game → INJECT → optional in-game open.  
-**LIVE:** set slot in `ap_config.json` → START HOST → BUILD → launch game → INJECT → open identified chest.
-
-Stop the host before switching modes. Not sideload — inject after launch. See [runtime.md](runtime.md).
+Short: open **DLL LAB** → pick TEST or LIVE → follow the on-page checklist. Stop the host before switching modes. Inject after launch — not sideload.
 
 `save_object` is not a live watch. `runtime.mem` skips `offsets: ["0x0"]` until RAM DUMP saves a real one.
 
