@@ -329,7 +329,7 @@
           <button type="button" class="on" id="work-tab-diff" data-tip="Two in-game slots → object Triggered/Destroyed/Open. Primary chest method.">SAVE DIFF</button>
           <button type="button" id="work-tab-ram" data-tip="Finds the live flag for LocationChecks. Identified rows scan the heap around their Keen object; others diff .data.">RAM DUMP</button>
           <button type="button" id="work-tab-saves" data-tip="Brief / export JSON / encode UserId to saves/edited/ / install to Steam. Encode is not mapping.">SAVES</button>
-          <button type="button" id="work-tab-dll" data-tip="Local DLL inject proof-of-concept. No Archipelago server. Host + inject + simulate.">DLL LAB</button>
+          <button type="button" id="work-tab-dll" data-tip="DLL inject: TEST (no AP) or LIVE (ap_config.json). Host + inject — not sideload.">DLL LAB</button>
         </div>
         <span class="sub" id="center-sub">two save slots → Keen identity</span>
       </div>
@@ -481,25 +481,31 @@
 
           <div id="work-dll" hidden>
             <div class="card how">
-              <div class="lbl">DLL LAB — LOCAL PROOF OF CONCEPT (NO AP SERVER)</div>
-              <ol>
-                <li><b>START HOST</b> — <code>runtime.dll --no-ap</code> (TCP 27111).</li>
-                <li><b>BUILD DLL</b> if needed — <code>darkside_arch.dll</code>.</li>
-                <li><b>SIMULATE</b> hotel chest 1 — proves identity → CHECK without the game.</li>
-                <li>Launch Darksiders normally (do <b>not</b> sideload / replace Steam DLLs).</li>
-                <li><b>INJECT</b> — host log should show hello / watches.</li>
-                <li>Open hotel chest 1 in-game — host log should show <code>op=open</code> / CHECK.</li>
+              <div class="lbl">DLL LAB — TEST vs LIVE</div>
+              <p class="note" style="margin-top:0.35rem"><b>TEST</b> — no Archipelago. Prove host + identity + inject. <b>LIVE</b> — same inject path, host connects with <code>ap_config.json</code> and sends LocationChecks.</p>
+              <ol id="dll-how-list">
+                <li>Pick <b>TEST</b> or <b>LIVE</b> below.</li>
+                <li><b>START HOST</b> (STOP first if switching modes).</li>
+                <li><b>BUILD</b> / launch game / <b>INJECT</b> — not sideload.</li>
+                <li>TEST: <b>SIMULATE</b> then optional in-game open. LIVE: open chest in-game only.</li>
               </ol>
-              <p class="note">Not sideloading. Inject after the game is running. Mem path still uses RAM DUMP.</p>
+            </div>
+            <div class="card">
+              <div class="lbl">MODE</div>
+              <div class="seg" id="dll-mode-seg" role="tablist" style="margin-top:0.4rem">
+                <button type="button" class="on" id="dll-mode-test" data-mode="test" data-tip="--no-ap local POC. SIMULATE allowed.">TEST</button>
+                <button type="button" id="dll-mode-live" data-mode="live" data-tip="Uses ap_config.json slot. Real LocationChecks. No SIMULATE.">LIVE</button>
+              </div>
+              <p class="note" id="dll-mode-note" style="margin-top:0.4rem"></p>
             </div>
             <div class="card">
               <div class="lbl">STATUS</div>
               <div class="loc-meta" id="dll-status-line">…</div>
               <div class="row" style="margin-top:0.5rem;flex-wrap:wrap;gap:0.35rem">
-                <button type="button" class="primary" id="btn-dll-start" data-tip="python -m runtime.dll --no-ap">START HOST</button>
+                <button type="button" class="primary" id="btn-dll-start" data-tip="Start host for the selected mode">START HOST</button>
                 <button type="button" class="ghost" id="btn-dll-stop">STOP HOST</button>
                 <button type="button" class="ghost" id="btn-dll-build" data-tip="cargo build --release">BUILD DLL</button>
-                <button type="button" class="primary" id="btn-dll-simulate" data-tip="Hotel chest 1 identity without the game">SIMULATE OPEN</button>
+                <button type="button" class="primary" id="btn-dll-simulate" data-tip="TEST only — hotel chest 1 identity without the game">SIMULATE OPEN</button>
                 <button type="button" class="primary" id="btn-dll-inject" data-tip="LoadLibraryW into darksiders1.exe">INJECT</button>
               </div>
               <p class="note" id="dll-action-note"></p>
@@ -1962,13 +1968,27 @@ function renderWatches() {
 /* ---------- DLL LAB ---------- */
 function renderDllStatus(s) {
   if (!s) return;
+  const mode = s.mode || "test";
+  $("dll-mode-test").classList.toggle("on", mode === "test");
+  $("dll-mode-live").classList.toggle("on", mode === "live");
+  $("btn-dll-simulate").disabled = mode === "live";
+  $("btn-dll-simulate").style.opacity = mode === "live" ? "0.45" : "";
+  const ap = s.ap || {};
+  setHTML(
+    $("dll-mode-note"),
+    mode === "live"
+      ? "LIVE → " + esc(ap.detail || "set ap_config.json") + ". SIMULATE disabled; open chests in-game."
+      : "TEST → no AP. Use SIMULATE to prove identity join, then optional inject."
+  );
   const bits = [
+    "MODE " + mode.toUpperCase() + (s.host_mode ? " (host=" + s.host_mode + ")" : ""),
     s.host_running ? "HOST up pid=" + s.host_pid : "HOST down",
     s.tcp_open ? "TCP " + s.tcp : "TCP closed",
     s.game_running ? "GAME pid=" + s.game_pid : "GAME off",
     s.dll_exists ? "DLL built" : "DLL missing",
     (s.identities || 0) + " save_object(s)",
   ];
+  if (mode === "live") bits.push(ap.ok ? "AP " + ap.detail : "AP slot missing");
   if (s.building) bits.push("building…");
   if (s.last_check) bits.push("last: " + s.last_check);
   setHTML($("dll-status-line"), esc(bits.join(" · ")));
@@ -2134,7 +2154,12 @@ $("work-tab-diff").onclick = () => setWork("diff");
 $("work-tab-ram").onclick = () => setWork("ram");
 $("work-tab-saves").onclick = () => setWork("saves");
 $("work-tab-dll").onclick = () => setWork("dll");
-$("btn-dll-start").onclick = () => dllAction("/api/dll/start");
+$("dll-mode-test").onclick = () => dllAction("/api/dll/mode", { mode: "test" });
+$("dll-mode-live").onclick = () => dllAction("/api/dll/mode", { mode: "live" });
+$("btn-dll-start").onclick = () => {
+  const live = $("dll-mode-live").classList.contains("on");
+  dllAction("/api/dll/start", { mode: live ? "live" : "test" });
+};
 $("btn-dll-stop").onclick = () => dllAction("/api/dll/stop");
 $("btn-dll-build").onclick = () => dllAction("/api/dll/build");
 $("btn-dll-inject").onclick = () => dllAction("/api/dll/inject");

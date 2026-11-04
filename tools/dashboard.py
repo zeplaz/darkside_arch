@@ -1163,8 +1163,15 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                         },
                     )
                     return
+                if path == "/api/dll/mode":
+                    _json_response(self, LAB.set_mode(str(body.get("mode") or "")))
+                    return
                 if path == "/api/dll/start":
-                    _json_response(self, LAB.start_host())
+                    mode = body.get("mode")
+                    _json_response(
+                        self,
+                        LAB.start_host(str(mode) if mode else None),
+                    )
                     return
                 if path == "/api/dll/stop":
                     _json_response(self, LAB.stop_host())

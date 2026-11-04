@@ -16,18 +16,20 @@ It is a workspace for writing [targets.json](../targets.json). It does **not** a
 | **SAVE DIFF** | Two in-game slots → which Keen WorldObject this AP name is | `save_object` only. Row stays disabled. |
 | **RAM DUMP** | Closed then open F8 → live 0→1 byte | RAM `offsets`. This is what LocationChecks need. |
 | **SAVES** | Decode / encode UserId, copy into Steam | Files under `saves/edited/`, then Steam remote. |
-| **DLL LAB** | Local inject POC: start host (`--no-ap`), build/inject DLL, simulate open | Nothing in `targets.json`. Debug confirmations only. |
+| **DLL LAB** | **TEST** (`--no-ap`) or **LIVE** (`ap_config.json`) host + inject | Nothing in `targets.json` from this tab. |
 
-### DLL LAB — proof of concept (no AP world)
+### DLL LAB — TEST vs LIVE
 
-1. Open **DLL LAB**. **START HOST** (TCP `127.0.0.1:27111`).
-2. **BUILD DLL** if status says missing.
-3. **SIMULATE OPEN** — should log `CHECK Seraphim Hotel Life Chest 1` (identity join works).
-4. Launch Darksiders normally (no sideload / no replacing Steam DLLs).
-5. **INJECT** — host log should show hello / watches.
-6. Open hotel chest 1 in-game — look for `op=open` / CHECK in the host log.
+| | **TEST** | **LIVE** |
+|--|--|--|
+| Host | `runtime.dll --no-ap` | `runtime.dll` + `ap_config.json` |
+| SIMULATE OPEN | Yes (hotel chest 1 identity) | Disabled — open chests in-game |
+| Goal | Prove host / inject / identity join | Send real LocationChecks |
 
-Not the Guided-Hacking proxy-DLL method. Inject after the game is running. See [runtime.md](runtime.md).
+**TEST:** START HOST → BUILD → SIMULATE → launch game → INJECT → optional in-game open.  
+**LIVE:** set slot in `ap_config.json` → START HOST → BUILD → launch game → INJECT → open identified chest.
+
+Stop the host before switching modes. Not sideload — inject after launch. See [runtime.md](runtime.md).
 
 `save_object` is not a live watch. `runtime.mem` skips `offsets: ["0x0"]` until RAM DUMP saves a real one.
 

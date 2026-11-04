@@ -1,7 +1,8 @@
-"""Local DLL proof-of-concept controller for the mapping dashboard.
+"""DLL lab controller for the mapping dashboard.
 
-No Archipelago server. Starts ``python -m runtime.dll --no-ap``, injects
-``darkside_arch.dll``, and can simulate an open from ``save_object`` identities.
+Modes:
+- **test** — ``python -m runtime.dll --no-ap`` (local POC, no Archipelago)
+- **live** — ``python -m runtime.dll`` using ``ap_config.json`` (real LocationChecks)
 """
 
 from __future__ import annotations
@@ -17,6 +18,7 @@ from collections import deque
 from pathlib import Path
 from typing import Any, Optional
 
+from ap.config import read_config
 from runtime.dll.host.handler import OpenHandler
 from runtime.dll.host.ipc import TCP_HOST, TCP_PORT
 from runtime.dll.host.targets_index import load_location_identities
@@ -28,6 +30,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DLL_PATH = REPO_ROOT / "runtime" / "dll" / "native" / "target" / "release" / "darkside_arch.dll"
 NATIVE_DIR = REPO_ROOT / "runtime" / "dll" / "native"
 MAX_LOG = 400
+MODES = frozenset({"test", "live"})
 
 # Hotel chest 1 — already identified in targets.json
 DEFAULT_SIM = {"region_id": 2, "layer_id": 6, "object_id": 342, "value_key": "Triggered"}
@@ -43,6 +46,8 @@ class DllLab:
         self._last_check: Optional[str] = None
         self._last_inject: Optional[str] = None
         self._building = False
+        self._mode = "test"  # UI selection
+        self._host_mode: Optional[str] = None  # mode the running host was started with
 
     def _append(self, source: str, text: str) -> None:
         text = text.rstrip()
@@ -75,6 +80,32 @@ class DllLab:
         except OSError:
             return False
 
+    def _ap_summary(self) -> dict[str, Any]:
+        try:
+            cfg = read_config()
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            return {"ok": False, "detail": "ap_config.json unreadable"}
+        slot = (cfg.slot or "").strip()
+        return {
+            "ok": bool(slot),
+            "slot": slot or "(empty)",
+            "uri": cfg.uri(),
+            "detail": f"{slot}@{cfg.uri()}" if slot else "set slot in ap_config.json",
+        }
+
+    def set_mode(self, mode: str) -> dict[str, Any]:
+        mode = (mode or "").strip().lower()
+        if mode not in MODES:
+            raise ValueError("mode must be 'test' or 'live'")
+        with self._lock:
+            if self._proc is not None and self._proc.poll() is None and self._host_mode != mode:
+                raise RuntimeError(
+                    f"host is running in {self._host_mode} mode — STOP HOST before switching to {mode}"
+                )
+            self._mode = mode
+        self._append("lab", f"mode={mode}")
+        return {"ok": True, **self.status()}
+
     def status(self) -> dict[str, Any]:
         with self._lock:
             proc = self._proc
@@ -82,10 +113,16 @@ class DllLab:
             last_inject = self._last_inject
             building = self._building
             log_id = self._log_id
+            mode = self._mode
+            host_mode = self._host_mode
         alive = proc is not None and proc.poll() is None
         pid = find_process(PROCESS_NAME)
         idents = load_location_identities()
+        ap = self._ap_summary()
         return {
+            "mode": mode,
+            "host_mode": host_mode if alive else None,
+            "ap": ap,
             "host_running": alive,
             "host_pid": proc.pid if alive and proc else None,
             "tcp_open": self._port_open(),
@@ -99,17 +136,65 @@ class DllLab:
             "last_inject": last_inject,
             "building": building,
             "log_id": log_id,
-            "steps": self._steps(alive, pid),
+            "steps": self._steps(mode, host_mode if alive else None, alive, pid, ap),
         }
 
-    def _steps(self, host_alive: bool, game_pid: Optional[int]) -> list[dict[str, Any]]:
+    def _steps(
+        self,
+        mode: str,
+        host_mode: Optional[str],
+        host_alive: bool,
+        game_pid: Optional[int],
+        ap: dict[str, Any],
+    ) -> list[dict[str, Any]]:
         dll_ok = DLL_PATH.is_file()
+        injected = bool(self._last_inject and "ok" in (self._last_inject or "").lower())
+        tcp = self._port_open()
+        if mode == "live":
+            return [
+                {
+                    "id": 1,
+                    "title": "ap_config.json has a slot",
+                    "ok": bool(ap.get("ok")),
+                    "hint": ap.get("detail") or "Edit ap_config.json (host/port/slot).",
+                },
+                {
+                    "id": 2,
+                    "title": "Start DLL host (live AP)",
+                    "ok": host_alive and tcp and host_mode == "live",
+                    "hint": "START HOST — websocket to Archipelago + TCP for the DLL.",
+                },
+                {
+                    "id": 3,
+                    "title": "Build darkside_arch.dll",
+                    "ok": dll_ok,
+                    "hint": "BUILD DLL if missing.",
+                },
+                {
+                    "id": 4,
+                    "title": "Launch Darksiders (vanilla)",
+                    "ok": game_pid is not None,
+                    "hint": "Normal Steam launch — no sideload.",
+                },
+                {
+                    "id": 5,
+                    "title": "Inject darkside_arch.dll",
+                    "ok": injected,
+                    "hint": "INJECT — host log should show hello / watches.",
+                },
+                {
+                    "id": 6,
+                    "title": "Open identified chest → LocationChecks",
+                    "ok": False,
+                    "hint": "In-game open. Host/AP should report the check (not SIMULATE).",
+                },
+            ]
         return [
             {
                 "id": 1,
-                "title": "Start DLL host (--no-ap)",
-                "ok": host_alive and self._port_open(),
-                "hint": "START HOST — listens for the inject DLL; no Archipelago.",
+                "title": "Start DLL host (test / --no-ap)",
+                "ok": host_alive and tcp and host_mode == "test",
+                "hint": "START HOST — local only; no Archipelago.",
             },
             {
                 "id": 2,
@@ -132,7 +217,7 @@ class DllLab:
             {
                 "id": 5,
                 "title": "Inject darkside_arch.dll",
-                "ok": bool(self._last_inject and "ok" in (self._last_inject or "").lower()),
+                "ok": injected,
                 "hint": "INJECT after the game is running. Host should log hello / watches.",
             },
             {
@@ -147,10 +232,20 @@ class DllLab:
         with self._lock:
             return [e for e in self._logs if e["id"] > since]
 
-    def start_host(self) -> dict[str, Any]:
+    def start_host(self, mode: Optional[str] = None) -> dict[str, Any]:
+        if mode is not None:
+            self.set_mode(mode)
         with self._lock:
+            want = self._mode
             if self._proc is not None and self._proc.poll() is None:
-                return {"ok": True, "note": "host already running", **self.status()}
+                note = f"host already running ({self._host_mode})"
+                return {"ok": True, "note": note, **self.status()}
+        if want == "live":
+            ap = self._ap_summary()
+            if not ap.get("ok"):
+                raise RuntimeError(
+                    "live mode needs a slot in ap_config.json — switch to TEST or set slot first"
+                )
         if self._port_open():
             raise RuntimeError(
                 f"port {TCP_PORT} already in use — stop the other runtime.dll host first"
@@ -158,8 +253,11 @@ class DllLab:
         creationflags = 0
         if sys.platform == "win32":
             creationflags = subprocess.CREATE_NO_WINDOW  # type: ignore[attr-defined]
+        cmd = [sys.executable, "-m", "runtime.dll"]
+        if want == "test":
+            cmd.append("--no-ap")
         proc = subprocess.Popen(
-            [sys.executable, "-m", "runtime.dll", "--no-ap"],
+            cmd,
             cwd=str(REPO_ROOT),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -170,10 +268,11 @@ class DllLab:
         )
         with self._lock:
             self._proc = proc
+            self._host_mode = want
         self._reader = threading.Thread(target=self._read_stdout, args=(proc,), daemon=True)
         self._reader.start()
-        self._append("lab", f"started host pid={proc.pid} (--no-ap)")
-        # wait briefly for bind
+        tag = "--no-ap" if want == "test" else "live AP"
+        self._append("lab", f"started host pid={proc.pid} ({tag})")
         for _ in range(20):
             if self._port_open():
                 break
@@ -186,6 +285,7 @@ class DllLab:
         with self._lock:
             proc = self._proc
             self._proc = None
+            self._host_mode = None
         if proc is None:
             return {"ok": True, "note": "no host", **self.status()}
         proc.terminate()
@@ -220,6 +320,17 @@ class DllLab:
         value_key: str = "Triggered",
     ) -> dict[str, Any]:
         from ap.catalog import load_catalog
+
+        with self._lock:
+            mode = self._mode
+        if mode == "live":
+            self._append(
+                "lab",
+                "SIMULATE is test-mode only — in LIVE, open the chest in-game so the host sends LocationChecks",
+            )
+            raise RuntimeError(
+                "SIMULATE is for TEST mode. In LIVE, inject and open a chest in-game."
+            )
 
         catalog = load_catalog()
         captured: list[str] = []
