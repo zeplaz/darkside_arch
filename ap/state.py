@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Sequence
 
-from ds_client.ap_protocol import NetworkItem
+from ap.protocol import NetworkItem
 
 DB_FILE = Path("ap_state.db")
 

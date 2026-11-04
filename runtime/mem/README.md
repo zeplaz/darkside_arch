@@ -1,12 +1,12 @@
-# ds_client
+# runtime.mem (mem path)
 
-Player runtime: RAM watcher + Archipelago 0.6.7 client. Mapping lives in [tools](../tools/README.md). A `save_object` on a row is Keen identity only — this process ignores it until `offsets` is a real watch.
+Mem-path player runtime: RAM watcher + Archipelago 0.6.7 client. Sibling: `python -m runtime.dll`. Mapping lives in [tools](../tools/README.md). A `save_object` on a row is Keen identity only — this process ignores it until `offsets` is a real watch.
 
 Two independent loops: the AP socket and the `darksiders1.exe` attach. Closing the game does not drop AP; an AP reconnect does not detach RAM. `Ctrl+C` stops both.
 
 ```powershell
 pip install -r requirements.txt
-python -m ds_client --connect archipelago.gg:38281 --slot War
+python -m runtime.mem --connect archipelago.gg:38281 --slot War
 ```
 
 `archipelago.gg` defaults to `wss://`. A plaintext handshake that gets "did not receive a valid HTTP response" is retried as TLS (same as the official client). After 3 failed connects the client prints the URI / TLS flag / exception.

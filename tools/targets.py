@@ -10,8 +10,8 @@ import json
 from pathlib import Path
 from typing import Sequence
 
-from ds_client.models import PROCESS_NAME, TARGETS_FILE, load_targets
-from ds_client.sinks import DB_FILE, init_db, sync_memory_map_from_targets
+from runtime.mem.models import PROCESS_NAME, TARGETS_FILE, load_targets
+from runtime.mem.sinks import DB_FILE, init_db, sync_memory_map_from_targets
 
 
 def raw_targets(path: Path = TARGETS_FILE) -> list[dict]:

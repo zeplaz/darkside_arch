@@ -329,6 +329,7 @@
           <button type="button" class="on" id="work-tab-diff" data-tip="Two in-game slots → object Triggered/Destroyed/Open. Primary chest method.">SAVE DIFF</button>
           <button type="button" id="work-tab-ram" data-tip="Finds the live flag for LocationChecks. Identified rows scan the heap around their Keen object; others diff .data.">RAM DUMP</button>
           <button type="button" id="work-tab-saves" data-tip="Brief / export JSON / encode UserId to saves/edited/ / install to Steam. Encode is not mapping.">SAVES</button>
+          <button type="button" id="work-tab-dll" data-tip="DLL inject: TEST (no AP) or LIVE (ap_config.json). Host + inject — not sideload.">DLL LAB</button>
         </div>
         <span class="sub" id="center-sub">two save slots → Keen identity</span>
       </div>
@@ -478,6 +479,50 @@
             </div>
           </div>
 
+          <div id="work-dll" hidden>
+            <div class="card how">
+              <div class="lbl">DLL LAB — TEST vs LIVE</div>
+              <p class="note" style="margin-top:0.35rem"><b>TEST</b> — no Archipelago. Prove host + identity + inject. <b>LIVE</b> — same inject path, host connects with <code>ap_config.json</code> and sends LocationChecks.</p>
+              <ol id="dll-how-list">
+                <li>Pick <b>TEST</b> or <b>LIVE</b> below.</li>
+                <li><b>START HOST</b> (STOP first if switching modes).</li>
+                <li><b>BUILD</b> / launch game / <b>INJECT</b> — not sideload.</li>
+                <li>TEST: <b>SIMULATE</b> then optional in-game open. LIVE: open chest in-game only.</li>
+              </ol>
+            </div>
+            <div class="card">
+              <div class="lbl">MODE</div>
+              <div class="seg" id="dll-mode-seg" role="tablist" style="margin-top:0.4rem">
+                <button type="button" class="on" id="dll-mode-test" data-mode="test" data-tip="--no-ap local POC. SIMULATE allowed.">TEST</button>
+                <button type="button" id="dll-mode-live" data-mode="live" data-tip="Uses ap_config.json slot. Real LocationChecks. No SIMULATE.">LIVE</button>
+              </div>
+              <p class="note" id="dll-mode-note" style="margin-top:0.4rem"></p>
+            </div>
+            <div class="card">
+              <div class="lbl">STATUS</div>
+              <div class="loc-meta" id="dll-status-line">…</div>
+              <div class="row" style="margin-top:0.5rem;flex-wrap:wrap;gap:0.35rem">
+                <button type="button" class="primary" id="btn-dll-start" data-tip="Start host for the selected mode">START HOST</button>
+                <button type="button" class="ghost" id="btn-dll-stop">STOP HOST</button>
+                <button type="button" class="ghost" id="btn-dll-build" data-tip="cargo build --release">BUILD DLL</button>
+                <button type="button" class="primary" id="btn-dll-simulate" data-tip="TEST only — hotel chest 1 identity without the game">SIMULATE OPEN</button>
+                <button type="button" class="primary" id="btn-dll-inject" data-tip="LoadLibraryW into darksiders1.exe">INJECT</button>
+              </div>
+              <p class="note" id="dll-action-note"></p>
+            </div>
+            <div class="card">
+              <div class="lbl">CHECKLIST</div>
+              <ol id="dll-steps" style="margin:0.4rem 0 0;padding-left:1.2rem"></ol>
+            </div>
+            <div class="card">
+              <div class="row" style="justify-content:space-between;align-items:center">
+                <span class="lbl">HOST / LAB LOG</span>
+                <button type="button" class="ghost" id="btn-dll-log-clear" style="font-size:0.95em;padding:0 0.4em">CLEAR VIEW</button>
+              </div>
+              <pre id="dll-log" style="max-height:14rem;overflow:auto;font-size:0.85em;margin:0.4rem 0 0;white-space:pre-wrap;word-break:break-word"></pre>
+            </div>
+          </div>
+
           <div id="work-saves" hidden>
             <div class="card how">
               <div class="lbl">ENCODE / INSTALL — SEPARATE FROM MAPPING</div>
@@ -618,7 +663,7 @@
       <h2 id="help-h">HOW THIS WORKS</h2>
       <button type="button" id="help-close">CLOSE (Esc)</button>
     </div>
-    <p>Workspace tabs: <b>SAVE DIFF</b> (identity), <b>RAM DUMP</b> (live flag, after identity), <b>SAVES</b> (encode UserId to <code>saves/edited/</code>, then INSTALL to Steam). This page never writes process memory and never connects to AP — the runtime is <code>python -m ds_client --connect HOST:PORT --slot NAME</code>.</p>
+    <p>Workspace tabs: <b>SAVE DIFF</b> (identity), <b>RAM DUMP</b> (live flag), <b>SAVES</b> (encode/install), <b>DLL LAB</b> (local inject POC, no AP server). Runtimes: <code>python -m runtime.mem</code> or <code>python -m runtime.dll</code> + inject — not this page for live seeds.</p>
     <div class="help-grid">
       <div>
         <h3>CAPTURE A CHECK</h3>
@@ -692,6 +737,8 @@ const SAVE_KEYS = ["Triggered", "Destroyed", "Open", "Activated"];
 let savSlots = [];
 let slotBriefs = {};
 let searchQ = "";
+let dllLogSince = 0;
+let dllLogLines = [];
 
 const $ = id => document.getElementById(id);
 // The poll re-renders every 500 ms; only touch the DOM when markup really changes,
@@ -1115,7 +1162,7 @@ function setPane(name) {
       savePrefs();
     }
   } else {
-    setWork(ui.work === "ram" || ui.work === "saves" ? ui.work : "diff");
+    setWork(["ram", "saves", "dll"].includes(ui.work) ? ui.work : "diff");
   }
   renderList();
   if (name === "items") renderItemCard(); else renderCapture();
@@ -1126,18 +1173,23 @@ function setWork(name) {
   $("work-tab-diff").classList.toggle("on", name === "diff");
   $("work-tab-ram").classList.toggle("on", name === "ram");
   $("work-tab-saves").classList.toggle("on", name === "saves");
+  $("work-tab-dll").classList.toggle("on", name === "dll");
   $("work-diff").hidden = name !== "diff";
   $("work-ram").hidden = name !== "ram";
   $("work-saves").hidden = name !== "saves";
+  $("work-dll").hidden = name !== "dll";
   $("center-sub").textContent = name === "diff"
     ? "two save slots → Keen identity"
     : name === "ram"
       ? "live flag · heap around the Keen object · F8 in-game"
-      : "encode autosave to edited/ · then INSTALL";
-  $("row-box").hidden = name === "saves";
-  $("files-box").hidden = name === "saves";
+      : name === "dll"
+        ? "local inject POC · no AP server · host → inject → open"
+        : "encode autosave to edited/ · then INSTALL";
+  $("row-box").hidden = name === "saves" || name === "dll";
+  $("files-box").hidden = name === "saves" || name === "dll";
   syncSavFields();
   if (name === "saves") previewInstall();
+  if (name === "dll") refreshDllLab(true);
   if (ui.pane === "checks") renderCapture();
 }
 
@@ -1913,6 +1965,79 @@ function renderWatches() {
   }).join(""));
 }
 
+/* ---------- DLL LAB ---------- */
+function renderDllStatus(s) {
+  if (!s) return;
+  const mode = s.mode || "test";
+  $("dll-mode-test").classList.toggle("on", mode === "test");
+  $("dll-mode-live").classList.toggle("on", mode === "live");
+  $("btn-dll-simulate").disabled = mode === "live";
+  $("btn-dll-simulate").style.opacity = mode === "live" ? "0.45" : "";
+  const ap = s.ap || {};
+  setHTML(
+    $("dll-mode-note"),
+    mode === "live"
+      ? "LIVE → " + esc(ap.detail || "set ap_config.json") + ". SIMULATE disabled; open chests in-game."
+      : "TEST → no AP. Use SIMULATE to prove identity join, then optional inject."
+  );
+  const bits = [
+    "MODE " + mode.toUpperCase() + (s.host_mode ? " (host=" + s.host_mode + ")" : ""),
+    s.host_running ? "HOST up pid=" + s.host_pid : "HOST down",
+    s.tcp_open ? "TCP " + s.tcp : "TCP closed",
+    s.game_running ? "GAME pid=" + s.game_pid : "GAME off",
+    s.dll_exists ? "DLL built" : "DLL missing",
+    (s.identities || 0) + " save_object(s)",
+  ];
+  if (mode === "live") bits.push(ap.ok ? "AP " + ap.detail : "AP slot missing");
+  if (s.building) bits.push("building…");
+  if (s.last_check) bits.push("last: " + s.last_check);
+  setHTML($("dll-status-line"), esc(bits.join(" · ")));
+  const steps = (s.steps || []).map(st => {
+    const mark = st.ok ? "✓" : "○";
+    return `<li style="margin:0.25rem 0"><b>${mark} ${esc(st.title)}</b><div class="note">${esc(st.hint)}</div></li>`;
+  }).join("");
+  setHTML($("dll-steps"), steps || "<li class=\"note\">…</li>");
+}
+function appendDllLogs(logs) {
+  if (!logs || !logs.length) return;
+  for (const e of logs) {
+    dllLogSince = Math.max(dllLogSince, e.id);
+    dllLogLines.push(`[${e.ts}] ${e.source}: ${e.text}`);
+  }
+  if (dllLogLines.length > 300) dllLogLines = dllLogLines.slice(-300);
+  $("dll-log").textContent = dllLogLines.join("\n");
+  $("dll-log").scrollTop = $("dll-log").scrollHeight;
+}
+async function refreshDllLab(full) {
+  try {
+    const data = await api("/api/dll/logs?since=" + (full ? 0 : dllLogSince), {
+      signal: AbortSignal.timeout(POLL_TIMEOUT_MS),
+    });
+    if (full) {
+      dllLogSince = 0;
+      dllLogLines = [];
+      $("dll-log").textContent = "";
+    }
+    renderDllStatus(data.status);
+    appendDllLogs(data.logs || []);
+  } catch (e) {
+    $("dll-action-note").textContent = e.message;
+  }
+}
+async function dllAction(path, body) {
+  $("dll-action-note").textContent = "…";
+  try {
+    const data = await post(path, body || {});
+    renderDllStatus(data);
+    $("dll-action-note").textContent = data.note || data.last_check || data.last_inject || "ok";
+    log("DLL", $("dll-action-note").textContent);
+    await refreshDllLab(false);
+  } catch (e) {
+    $("dll-action-note").textContent = e.message;
+    log("ERR", "dll: " + e.message);
+  }
+}
+
 /* ---------- polling ---------- */
 async function poll() {
   try {
@@ -1922,6 +2047,7 @@ async function poll() {
     link = { ok: true, fails: 0 };
     const prev = st;
     st = data;
+    if (data.dll) renderDllStatus(data.dll);
     // capture may have moved in another tab / after reload
     const capKey = c => c ? [c.id, c.stage, c.busy, c.wait, c.delta_count, c.zero_to_one].join("|") : "";
     if (prev && pending === "" && capKey(prev.capture) !== capKey(data.capture)) renderList();
@@ -1953,6 +2079,7 @@ async function poll() {
   renderPills();
   renderWatches();
   renderCapture();
+  if (ui.work === "dll") refreshDllLab(false);
   setTimeout(poll, POLL_MS);
 }
 
@@ -2026,6 +2153,21 @@ $("pane-items").onclick = () => setPane("items");
 $("work-tab-diff").onclick = () => setWork("diff");
 $("work-tab-ram").onclick = () => setWork("ram");
 $("work-tab-saves").onclick = () => setWork("saves");
+$("work-tab-dll").onclick = () => setWork("dll");
+$("dll-mode-test").onclick = () => dllAction("/api/dll/mode", { mode: "test" });
+$("dll-mode-live").onclick = () => dllAction("/api/dll/mode", { mode: "live" });
+$("btn-dll-start").onclick = () => {
+  const live = $("dll-mode-live").classList.contains("on");
+  dllAction("/api/dll/start", { mode: live ? "live" : "test" });
+};
+$("btn-dll-stop").onclick = () => dllAction("/api/dll/stop");
+$("btn-dll-build").onclick = () => dllAction("/api/dll/build");
+$("btn-dll-inject").onclick = () => dllAction("/api/dll/inject");
+$("btn-dll-simulate").onclick = () => dllAction("/api/dll/simulate", {});
+$("btn-dll-log-clear").onclick = () => {
+  dllLogLines = [];
+  $("dll-log").textContent = "";
+};
 $("region-select").addEventListener("change", e => {
   ui.region = e.target.value;
   savePrefs();

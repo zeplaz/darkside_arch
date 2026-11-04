@@ -1,4 +1,4 @@
-"""Runtime Darksiders Warmastered client: RAM watcher + AP 0.6.7 sink.
+"""Compatibility shim. Prefer `runtime.mem` / `python -m runtime.mem`.
 
-Mapping scanners live in ``tools``.
+Also: `python -m runtime.dll` for the inject path.
 """

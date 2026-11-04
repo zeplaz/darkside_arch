@@ -1,6 +1,6 @@
 """Mapping dashboard: catalog, guided chest capture, live watch values.
 
-Serves tools/static/mapping_terminal.html. Not the AP runtime (that is ds_client).
+Serves tools/static/mapping_terminal.html. Not the AP runtime (that is runtime.mem / runtime.dll).
 
 A background GameMonitor owns process attach/detach and read-only live reads,
 so HTTP requests never scan the process list. The page polls /api/state.
@@ -26,18 +26,18 @@ from urllib.parse import parse_qs, urlparse
 
 import psutil
 
-from ds_client import win32
-from ds_client.ap_catalog import (
+from runtime.mem import win32
+from ap.catalog import (
     BLADE_ITEM,
     PROGRESSIVE_LEVEL_CAPS,
     SHARD_ITEM,
     ApCatalog,
     load_catalog as load_ap_catalog,
 )
-from ds_client.ap_config import read_config
-from ds_client.models import PROCESS_NAME, TARGETS_FILE, WatchTarget, load_targets
-from ds_client.sinks import DB_FILE, init_db
-from ds_client.watcher import find_process
+from ap.config import read_config
+from runtime.mem.models import PROCESS_NAME, TARGETS_FILE, WatchTarget, load_targets
+from runtime.mem.sinks import DB_FILE, init_db
+from runtime.mem.watcher import find_process
 from tools.export_docs import DOCS_PATH, export_docs
 from tools.snapshot import (
     Delta,
@@ -66,6 +66,7 @@ from tools.save_object import (
 )
 from tools.save_patch import occupied_slots
 from tools.targets import build_target_entry, find_row, is_identified, is_template, raw_targets, save_target
+from tools.dll_lab import LAB, DEFAULT_SIM
 from tools.world_catalog import is_mapped, load_catalog
 
 DEFAULT_HOST = "127.0.0.1"
@@ -400,7 +401,7 @@ def _item_write_kind(
 
 def _item_apply(label: str, write: str, cap: Optional[int], dtype: str) -> str:
     if write == "goal":
-        return "Watch 0→1 sends CLIENT_GOAL. Until this row is mapped, python -m ds_client --send-goal."
+        return "Watch 0→1 sends CLIENT_GOAL. Until this row is mapped, python -m runtime.mem --send-goal."
     if write == "level":
         return f"Received count becomes this weapon's Level ({dtype}) 1..{cap}. Extra copies past the cap do nothing."
     if write == "flag" and label == BLADE_ITEM:
@@ -420,7 +421,7 @@ def _item_how(label: str, write: str, dtype: str) -> list[str]:
     if write == "goal":
         return [
             "This is a 0→1 watch, not a HUD number. Do not scan it as souls.",
-            "Until a real Abaddon flag exists: python -m ds_client --send-goal.",
+            "Until a real Abaddon flag exists: python -m runtime.mem --send-goal.",
             "After a real 0→1, save the offset onto this row (RAM DUMP last resort).",
         ]
     if write == "level":
@@ -428,7 +429,7 @@ def _item_how(label: str, write: str, dtype: str) -> list[str]:
             f"Game running. HUD must show this weapon's level ({dtype}).",
             "Copy the scan command. Type the number you see.",
             "Upgrade or swap in-game so the number changes. Type the new value until one address remains.",
-            "Scan writes offsets onto this row and enables it. ds_client hot-reloads.",
+            "Scan writes offsets onto this row and enables it. runtime.mem hot-reloads.",
         ]
     if write == "stat":
         return [
@@ -446,13 +447,13 @@ def _item_how(label: str, write: str, dtype: str) -> list[str]:
         f"Game running. HUD must show this item's count ({dtype}).",
         "Copy the scan command. Type the number you see.",
         "Change the count in-game. Type the new number until one address remains.",
-        "Scan writes offsets onto this row and enables it. ds_client hot-reloads.",
+        "Scan writes offsets onto this row and enables it. runtime.mem hot-reloads.",
     ]
 
 
 def _item_scan_cmd(label: str, write: str) -> str:
     if write == "goal":
-        return "python -m ds_client --send-goal"
+        return "python -m runtime.mem --send-goal"
     return f'python -m tools scan --item "{label}"'
 
 
@@ -886,7 +887,7 @@ def stop_capture_aux() -> None:
 
 
 def _event_rows(db_path: Path, since: Optional[int]) -> list[dict[str, Any]]:
-    """New ds_client events after ``since``; with no cursor, the last few as history."""
+    """New runtime.mem events after ``since``; with no cursor, the last few as history."""
     if not db_path.exists():
         return []
     conn = sqlite3.connect(str(db_path))
@@ -954,6 +955,7 @@ def state_payload(monitor: GameMonitor, db_path: Path, since: Optional[int]) -> 
         "watches": watches,
         "events": _event_rows(db_path, since),
         "history": since is None,
+        "dll": LAB.status(),
     }
 
 
@@ -1021,6 +1023,16 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                             "Export it after a verified mapping.)"
                         )
                     _json_response(self, {"markdown": md})
+                    return
+                if path == "/api/dll/status":
+                    _json_response(self, LAB.status())
+                    return
+                if path == "/api/dll/logs":
+                    raw_since = parse_qs(url.query).get("since", ["0"])[0]
+                    since_log = int(raw_since) if str(raw_since).isdigit() else 0
+                    _json_response(
+                        self, {"logs": LAB.logs(since_log), "status": LAB.status()}
+                    )
                     return
             except (OSError, ValueError, TypeError, KeyError, FileNotFoundError, sqlite3.Error) as exc:
                 _json_response(self, {"error": str(exc)}, 500)
@@ -1151,6 +1163,36 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                         },
                     )
                     return
+                if path == "/api/dll/mode":
+                    _json_response(self, LAB.set_mode(str(body.get("mode") or "")))
+                    return
+                if path == "/api/dll/start":
+                    mode = body.get("mode")
+                    _json_response(
+                        self,
+                        LAB.start_host(str(mode) if mode else None),
+                    )
+                    return
+                if path == "/api/dll/stop":
+                    _json_response(self, LAB.stop_host())
+                    return
+                if path == "/api/dll/inject":
+                    _json_response(self, LAB.inject_dll())
+                    return
+                if path == "/api/dll/build":
+                    _json_response(self, LAB.build_dll())
+                    return
+                if path == "/api/dll/simulate":
+                    _json_response(
+                        self,
+                        LAB.simulate_open(
+                            region_id=int(body.get("region_id", DEFAULT_SIM["region_id"])),
+                            layer_id=int(body.get("layer_id", DEFAULT_SIM["layer_id"])),
+                            object_id=int(body.get("object_id", DEFAULT_SIM["object_id"])),
+                            value_key=str(body.get("value_key") or "Triggered"),
+                        ),
+                    )
+                    return
             except (
                 OSError,
                 ValueError,
@@ -1185,7 +1227,7 @@ def run_dashboard(
     print(f"[OK] Mapping dashboard at {url}")
     print(f"     UI: {PAGE_PATH}")
     print(f"     DB: {db_path.resolve()}")
-    print("     Workspace: SAVE DIFF · RAM DUMP · SAVES (encode to edited/, then INSTALL).")
+    print("     Workspace: SAVE DIFF · RAM DUMP · SAVES · DLL LAB (local inject POC).")
     if open_browser:
         threading.Timer(0.4, lambda: webbrowser.open(url)).start()
     try:
@@ -1193,6 +1235,10 @@ def run_dashboard(
     except KeyboardInterrupt:
         print("\n[OK] Dashboard stopped.")
     finally:
+        try:
+            LAB.stop_host()
+        except Exception:
+            pass
         stop_capture_aux()
         monitor.stop()
         server.server_close()

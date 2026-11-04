@@ -53,3 +53,6 @@ Desktop.ini
 snapshots/
 saves/
 *.sav
+
+# Rust DLL build
+runtime/dll/native/target/

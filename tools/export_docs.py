@@ -7,13 +7,13 @@ import json
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from ds_client.models import (
+from runtime.mem.models import (
     CATEGORY_INVENTORY,
     CATEGORY_LOCATION,
     CATEGORY_STAT,
     load_targets,
 )
-from ds_client.sinks import DB_FILE, init_db, list_memory_map, sync_memory_map_from_targets
+from runtime.mem.sinks import DB_FILE, init_db, list_memory_map, sync_memory_map_from_targets
 
 DOCS_PATH = Path("docs") / "memory_map.md"
 

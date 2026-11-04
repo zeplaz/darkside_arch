@@ -11,10 +11,10 @@ from typing import Any, Optional
 
 import websockets
 
-from ds_client.ap_apply import maybe_synthetic_blade
-from ds_client.ap_catalog import ApCatalog
-from ds_client.ap_config import ApConfig, load_config, patch_config
-from ds_client.ap_protocol import (
+from ap.blade import maybe_synthetic_blade
+from ap.catalog import ApCatalog
+from ap.config import ApConfig, load_config, patch_config
+from ap.protocol import (
     ClientStatus,
     NetworkItem,
     connect_packet,
@@ -25,7 +25,7 @@ from ds_client.ap_protocol import (
     status_update_packet,
     sync_packet,
 )
-from ds_client.ap_state import ApState, ReceivedRow
+from ap.state import ApState, ReceivedRow
 
 STARTING_BACKOFF_S = 1.0
 MAX_BACKOFF_S = 60.0

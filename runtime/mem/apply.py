@@ -5,21 +5,20 @@ from __future__ import annotations
 import queue
 from typing import Optional, Sequence
 
-from ds_client.ap_catalog import (
+from ap.blade import SYNTHETIC_BLADE_INDEX
+from ap.catalog import (
     BLADE_ITEM,
     PROGRESSIVE_LEVEL_CAPS,
-    SHARD_ITEM,
     ApCatalog,
 )
-from ds_client.ap_state import ApState, ReceivedRow
-from ds_client.models import (
+from ap.state import ApState, ReceivedRow
+from runtime.mem.models import (
     CATEGORY_INVENTORY,
     CATEGORY_STAT,
     WatchTarget,
 )
-from ds_client import win32
+from runtime.mem import win32
 
-SYNTHETIC_BLADE_INDEX = -1
 _reported: set[str] = set()  # item names already reported as unmappable
 
 
@@ -95,34 +94,6 @@ def write_target(
         packed_value = (current & ~target.bitmask) | (int(value) & target.bitmask)
     payload = target.encode(packed_value)
     return win32.write_memory(handle, addr, payload)
-
-
-def maybe_synthetic_blade(
-    state: ApState,
-    catalog: ApCatalog,
-    seed_name: str,
-    team: int,
-    slot: int,
-) -> Optional[ReceivedRow]:
-    shard_id = catalog.item_id(SHARD_ITEM)
-    blade_id = catalog.item_id(BLADE_ITEM)
-    if shard_id is None or blade_id is None:
-        return None
-    if state.blade_granted(seed_name, team, slot):
-        return None
-    if state.item_count(seed_name, team, slot, shard_id) < 7:
-        return None
-    return ReceivedRow(
-        seed_name=seed_name,
-        team=team,
-        slot=slot,
-        idx=SYNTHETIC_BLADE_INDEX,
-        item_id=blade_id,
-        location=0,
-        player=0,
-        flags=0,
-        applied=0,
-    )
 
 
 def apply_row(

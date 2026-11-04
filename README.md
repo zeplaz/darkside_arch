@@ -1,13 +1,14 @@
 # darkside_arch
 
-Out-of-process Archipelago client for **Darksiders Warmastered** (`darksiders1.exe`, Steam x64). Reads and writes game RAM from outside; no DLL injection. Run everything from the repo root.
+Archipelago tooling for **Darksiders Warmastered** (`darksiders1.exe`, Steam x64). Two player runtimes — ship **one**. Run everything from the repo root.
 
 | Track | Who | Install | Run |
 |-------|-----|---------|-----|
 | Mapping | Contributors | `pip install -r requirements-dev.txt` | `python -m tools dashboard` |
-| Runtime / AP | Players | `pip install -r requirements.txt` | `python -m ds_client` |
+| Runtime **mem** | Players | `pip install -r requirements.txt` | `python -m runtime.mem` |
+| Runtime **dll** | Players | same + Rust DLL | `python -m runtime.dll` |
 
-A seed is **not playable yet**: 0 / 132 location RAM offsets. The client is written; it has nothing to watch. Full checklist: [ds_client/README.md](ds_client/README.md#checklist).
+Mem path needs location RAM offsets (0 / 132 today). DLL path uses `save_object` + inject — **how-to:** [runtime/dll/README.md](runtime/dll/README.md). Mem checklist: [runtime/mem/README.md](runtime/mem/README.md#checklist).
 
 ---
 
@@ -25,10 +26,10 @@ python -m tools dashboard
 | It does | It does not |
 |---------|-------------|
 | Write [targets.json](targets.json) (`save_object`, then RAM `offsets`) | Connect to an AP server |
-| Decode two Keen slots and name the WorldObject | Inject a DLL or poke memory from the page |
-| Find the live 0→1 byte after you open the chest | Enable LocationChecks from identity alone |
+| Decode two Keen slots and name the WorldObject | Connect to AP or poke memory from the page |
+| Find the live 0→1 byte after you open the chest (mem path) | Enable LocationChecks from identity alone on the mem path |
 
-`save_object` = Keen id (`world` + RegionID + LayerID + ObjectID + `Triggered`). **Not** a live watch. `ds_client` ignores `offsets: ["0x0"]` until RAM DUMP saves a real offset.
+`save_object` = Keen id (`world` + RegionID + LayerID + ObjectID + `Triggered`). Mem runtime ignores `offsets: ["0x0"]` until RAM DUMP saves a real offset. DLL path uses `save_object` as the join key after an open hook.
 
 Longer copy + screenshots-in-words: [docs/DASHBOARD.md](docs/DASHBOARD.md). **?** on the page is the same guide.
 
@@ -43,7 +44,7 @@ Game can be closed. Slots: `-1` autosave, `0`–`9` the list.
 5. **MATCH** shows chest `Triggered` rows. **DESTROYED** / **OPEN** / **ALL** unhide breakables and doors if you need them.
 6. Highlight the chest. **SAVE IDENTITY**.
 
-Hotel chest 1 is already identified (`overworld` r=2 L=6 obj=342). It still needs RAM DUMP.
+Hotel chest 1 is already identified (`overworld` r=2 L=6 obj=342). Mem path still needs RAM DUMP; DLL LAB can use identity alone.
 
 ### Live flag (RAM DUMP)
 
@@ -66,10 +67,11 @@ Filter by OPEN / IDENTIFIED / MAPPED, kind (chest, artifact, armor, cube), chest
 
 ```powershell
 pip install -r requirements.txt
-python -m ds_client --connect HOST:PORT --slot NAME
+python -m runtime.mem --connect HOST:PORT --slot NAME
+# DLL: see runtime/dll/README.md (host + inject; or dashboard DLL LAB)
 ```
 
-Until offsets exist this only connects; it cannot report checks or apply items. Config: `ap_config.json` (gitignored). Details: [ds_client/README.md](ds_client/README.md).
+Mem: until offsets exist this only connects. DLL: [runtime/dll/README.md](runtime/dll/README.md). Config: `ap_config.json` (gitignored).
 
 ---
 
@@ -82,13 +84,16 @@ Until offsets exist this only connects; it cannot report checks or apply items. 
 | [docs/SAVES.md](docs/SAVES.md) | Keen `.sav` slots, ObjectIDs, war / UserId |
 | [docs/memory_map.md](docs/memory_map.md) | Generated RAM table (`export-docs`) |
 | [tools/README.md](tools/README.md) | Every `python -m tools` command |
-| [ds_client/README.md](ds_client/README.md) | Player client, flags, checklist |
+| [runtime/dll/README.md](runtime/dll/README.md) | **DLL how-to** (TEST/LIVE) |
+| [runtime/README.md](runtime/README.md) | Mem vs DLL index |
+| [docs/runtime.md](docs/runtime.md) | Dual-path contract |
+| [runtime/mem/README.md](runtime/mem/README.md) | Mem client flags / checklist |
 | [docs/README.md](docs/README.md) | Index of `docs/` |
 
 ## Commit vs local
 
 | Commit | Leave local (gitignored) |
 |--------|-------------|
-| `ds_client/`, `tools/`, `docs/`, `targets.json`, `ap_config.example.json`, `requirements*.txt` | `ap_config.json`, `ap_state.db`, `darksiders_debug.db`, `snapshots/`, `saves/`, `world/`, `.venv/` |
+| `ap/`, `runtime/`, `tools/`, `docs/`, `targets.json`, `ap_config.example.json`, `requirements*.txt` | `ap_config.json`, `ap_state.db`, `darksiders_debug.db`, `snapshots/`, `saves/`, `world/`, `.venv/` |
 
 World: https://github.com/Sachaqc/Archipelago-Darksiders
