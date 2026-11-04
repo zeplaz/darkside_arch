@@ -4,19 +4,17 @@ Rust inject DLL + Python AP host. Location checks join on `save_object`; items s
 
 ## Run
 
+**Easiest POC (no AP):** dashboard → **DLL LAB** tab → START HOST → BUILD → SIMULATE → launch game → INJECT → open hotel chest 1. See [docs/DASHBOARD.md](../../docs/DASHBOARD.md).
+
 ```powershell
-# 1) AP host (from repo root)
-pip install -r requirements.txt
-python -m runtime.dll --connect HOST:PORT --slot NAME
-
-# 2) Build DLL
-cd runtime/dll/native
-cargo build --release
-cd ../../..
-
-# 3) Start the game, then inject
+# CLI equivalent (no AP)
+python -m runtime.dll --no-ap
+# other terminal: cargo build --release in runtime/dll/native
+# launch game, then:
 python -m tools dll-inject
-# or: python tools/dll_inject.py --dll runtime/dll/native/target/release/darkside_arch.dll
+
+# With AP later
+python -m runtime.dll --connect HOST:PORT --slot NAME
 ```
 
 IPC: `tcp://127.0.0.1:27111` (line-delimited JSON).

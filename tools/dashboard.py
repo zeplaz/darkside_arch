@@ -66,6 +66,7 @@ from tools.save_object import (
 )
 from tools.save_patch import occupied_slots
 from tools.targets import build_target_entry, find_row, is_identified, is_template, raw_targets, save_target
+from tools.dll_lab import LAB, DEFAULT_SIM
 from tools.world_catalog import is_mapped, load_catalog
 
 DEFAULT_HOST = "127.0.0.1"
@@ -954,6 +955,7 @@ def state_payload(monitor: GameMonitor, db_path: Path, since: Optional[int]) -> 
         "watches": watches,
         "events": _event_rows(db_path, since),
         "history": since is None,
+        "dll": LAB.status(),
     }
 
 
@@ -1021,6 +1023,16 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                             "Export it after a verified mapping.)"
                         )
                     _json_response(self, {"markdown": md})
+                    return
+                if path == "/api/dll/status":
+                    _json_response(self, LAB.status())
+                    return
+                if path == "/api/dll/logs":
+                    raw_since = parse_qs(url.query).get("since", ["0"])[0]
+                    since_log = int(raw_since) if str(raw_since).isdigit() else 0
+                    _json_response(
+                        self, {"logs": LAB.logs(since_log), "status": LAB.status()}
+                    )
                     return
             except (OSError, ValueError, TypeError, KeyError, FileNotFoundError, sqlite3.Error) as exc:
                 _json_response(self, {"error": str(exc)}, 500)
@@ -1151,6 +1163,29 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                         },
                     )
                     return
+                if path == "/api/dll/start":
+                    _json_response(self, LAB.start_host())
+                    return
+                if path == "/api/dll/stop":
+                    _json_response(self, LAB.stop_host())
+                    return
+                if path == "/api/dll/inject":
+                    _json_response(self, LAB.inject_dll())
+                    return
+                if path == "/api/dll/build":
+                    _json_response(self, LAB.build_dll())
+                    return
+                if path == "/api/dll/simulate":
+                    _json_response(
+                        self,
+                        LAB.simulate_open(
+                            region_id=int(body.get("region_id", DEFAULT_SIM["region_id"])),
+                            layer_id=int(body.get("layer_id", DEFAULT_SIM["layer_id"])),
+                            object_id=int(body.get("object_id", DEFAULT_SIM["object_id"])),
+                            value_key=str(body.get("value_key") or "Triggered"),
+                        ),
+                    )
+                    return
             except (
                 OSError,
                 ValueError,
@@ -1185,7 +1220,7 @@ def run_dashboard(
     print(f"[OK] Mapping dashboard at {url}")
     print(f"     UI: {PAGE_PATH}")
     print(f"     DB: {db_path.resolve()}")
-    print("     Workspace: SAVE DIFF · RAM DUMP · SAVES (encode to edited/, then INSTALL).")
+    print("     Workspace: SAVE DIFF · RAM DUMP · SAVES · DLL LAB (local inject POC).")
     if open_browser:
         threading.Timer(0.4, lambda: webbrowser.open(url)).start()
     try:
@@ -1193,6 +1228,10 @@ def run_dashboard(
     except KeyboardInterrupt:
         print("\n[OK] Dashboard stopped.")
     finally:
+        try:
+            LAB.stop_host()
+        except Exception:
+            pass
         stop_capture_aux()
         monitor.stop()
         server.server_close()

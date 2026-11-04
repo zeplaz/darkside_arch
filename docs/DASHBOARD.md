@@ -16,6 +16,18 @@ It is a workspace for writing [targets.json](../targets.json). It does **not** a
 | **SAVE DIFF** | Two in-game slots → which Keen WorldObject this AP name is | `save_object` only. Row stays disabled. |
 | **RAM DUMP** | Closed then open F8 → live 0→1 byte | RAM `offsets`. This is what LocationChecks need. |
 | **SAVES** | Decode / encode UserId, copy into Steam | Files under `saves/edited/`, then Steam remote. |
+| **DLL LAB** | Local inject POC: start host (`--no-ap`), build/inject DLL, simulate open | Nothing in `targets.json`. Debug confirmations only. |
+
+### DLL LAB — proof of concept (no AP world)
+
+1. Open **DLL LAB**. **START HOST** (TCP `127.0.0.1:27111`).
+2. **BUILD DLL** if status says missing.
+3. **SIMULATE OPEN** — should log `CHECK Seraphim Hotel Life Chest 1` (identity join works).
+4. Launch Darksiders normally (no sideload / no replacing Steam DLLs).
+5. **INJECT** — host log should show hello / watches.
+6. Open hotel chest 1 in-game — look for `op=open` / CHECK in the host log.
+
+Not the Guided-Hacking proxy-DLL method. Inject after the game is running. See [runtime.md](runtime.md).
 
 `save_object` is not a live watch. `runtime.mem` skips `offsets: ["0x0"]` until RAM DUMP saves a real one.
 
