@@ -139,6 +139,25 @@ class DllLab:
             "steps": self._steps(mode, host_mode if alive else None, alive, pid, ap),
         }
 
+    @staticmethod
+    def _stamp_states(raw: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Mark each step done / pending / blocked (first incomplete = pending)."""
+        out: list[dict[str, Any]] = []
+        pending_set = False
+        for step in raw:
+            done = bool(step.get("ok"))
+            if done:
+                state = "done"
+            elif not pending_set:
+                state = "pending"
+                pending_set = True
+            else:
+                state = "blocked"
+            row = dict(step)
+            row["state"] = state
+            out.append(row)
+        return out
+
     def _steps(
         self,
         mode: str,
@@ -151,82 +170,81 @@ class DllLab:
         injected = bool(self._last_inject and "ok" in (self._last_inject or "").lower())
         tcp = self._port_open()
         if mode == "live":
-            return [
+            raw = [
                 {
                     "id": 1,
-                    "title": "ap_config.json has a slot",
-                    "ok": bool(ap.get("ok")),
-                    "hint": ap.get("detail") or "Edit ap_config.json (host/port/slot).",
+                    "title": "Build DLL",
+                    "ok": dll_ok,
+                    "hint": "Click BUILD if missing.",
                 },
                 {
                     "id": 2,
-                    "title": "Start DLL host (live AP)",
-                    "ok": host_alive and tcp and host_mode == "live",
-                    "hint": "START HOST — websocket to Archipelago + TCP for the DLL.",
+                    "title": "ap_config.json slot",
+                    "ok": bool(ap.get("ok")),
+                    "hint": ap.get("detail") or "Set host/port/slot in ap_config.json.",
                 },
                 {
                     "id": 3,
-                    "title": "Build darkside_arch.dll",
-                    "ok": dll_ok,
-                    "hint": "BUILD DLL if missing.",
+                    "title": "Start host (live)",
+                    "ok": host_alive and tcp and host_mode == "live",
+                    "hint": "START HOST — connects to Archipelago.",
                 },
                 {
                     "id": 4,
-                    "title": "Launch Darksiders (vanilla)",
+                    "title": "Launch Darksiders",
                     "ok": game_pid is not None,
-                    "hint": "Normal Steam launch — no sideload.",
+                    "hint": "Steam launch. Wait until GAME pill lights up.",
                 },
                 {
                     "id": 5,
-                    "title": "Inject darkside_arch.dll",
+                    "title": "Inject DLL",
                     "ok": injected,
-                    "hint": "INJECT — host log should show hello / watches.",
+                    "hint": "INJECT — watch LOG for hello.",
                 },
                 {
                     "id": 6,
-                    "title": "Open identified chest → LocationChecks",
+                    "kind": "open",
+                    "title": "Open selected location in-game",
                     "ok": False,
-                    "hint": "In-game open. Host/AP should report the check (not SIMULATE).",
+                    "hint": "Pick an IDENTIFIED row on the left. Real LocationChecks — not SIMULATE.",
                 },
             ]
-        return [
-            {
-                "id": 1,
-                "title": "Start DLL host (test / --no-ap)",
-                "ok": host_alive and tcp and host_mode == "test",
-                "hint": "START HOST — local only; no Archipelago.",
-            },
-            {
-                "id": 2,
-                "title": "Build darkside_arch.dll",
-                "ok": dll_ok,
-                "hint": "BUILD DLL if missing (cargo release).",
-            },
-            {
-                "id": 3,
-                "title": "Simulate open (hotel chest 1)",
-                "ok": bool(self._last_check),
-                "hint": "SIMULATE — proves save_object → CHECK without the game.",
-            },
-            {
-                "id": 4,
-                "title": "Launch Darksiders (vanilla)",
-                "ok": game_pid is not None,
-                "hint": "Start the game normally. Do not replace Steam/version DLLs.",
-            },
-            {
-                "id": 5,
-                "title": "Inject darkside_arch.dll",
-                "ok": injected,
-                "hint": "INJECT after the game is running. Host should log hello / watches.",
-            },
-            {
-                "id": 6,
-                "title": "Open an identified chest in-game",
-                "ok": False,
-                "hint": "Hotel Life Chest 1. Watch HOST LOG for op=open / CHECK.",
-            },
-        ]
+        else:
+            # SIMULATE is a side button — does not gate this list.
+            raw = [
+                {
+                    "id": 1,
+                    "title": "Build DLL",
+                    "ok": dll_ok,
+                    "hint": "Click BUILD if missing.",
+                },
+                {
+                    "id": 2,
+                    "title": "Start host (test)",
+                    "ok": host_alive and tcp and host_mode == "test",
+                    "hint": "START HOST — local, no Archipelago.",
+                },
+                {
+                    "id": 3,
+                    "title": "Launch Darksiders",
+                    "ok": game_pid is not None,
+                    "hint": "Steam launch. Wait until GAME pill lights up.",
+                },
+                {
+                    "id": 4,
+                    "title": "Inject DLL",
+                    "ok": injected,
+                    "hint": "INJECT after GAME is on.",
+                },
+                {
+                    "id": 5,
+                    "kind": "open",
+                    "title": "Open selected location in-game",
+                    "ok": False,
+                    "hint": "Pick an IDENTIFIED row on the left — watch LOG.",
+                },
+            ]
+        return self._stamp_states(raw)
 
     def logs(self, since: int = 0) -> list[dict[str, Any]]:
         with self._lock:

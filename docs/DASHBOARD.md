@@ -11,6 +11,8 @@ Opens `http://127.0.0.1:8765/`. Flags: `--host`, `--port` (default `8765`), `--d
 
 It is a workspace for writing [targets.json](../targets.json). Player runtimes are separate: [runtime.mem](../runtime/mem/README.md) or [runtime.dll](../runtime/dll/README.md).
 
+First open shows a **START** splash (navigates only — Map a check / DLL LAB). Reopen with **START** in the header. Center **WORK MODE** bar switches the middle panel. DLL checklist rows are tinted **DONE** / **PENDING** / **BLOCKED**.
+
 | Tab | Does | Writes |
 |-----|------|--------|
 | **SAVE DIFF** | Two in-game slots → which Keen WorldObject this AP name is | `save_object` only. Row stays disabled. |
