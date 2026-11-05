@@ -19,8 +19,8 @@ Open **DLL LAB**. Pick mode, then follow the checklist on the page.
 
 | Mode | Host | What to do |
 |------|------|------------|
-| **TEST** | `--no-ap` | START HOST → BUILD → **SIMULATE** → launch game → **INJECT** → optional open chest |
-| **LIVE** | `ap_config.json` | set slot → START HOST → BUILD → launch game → **INJECT** → open chest in-game |
+| **TEST** | `--no-ap` | BUILD → START HOST → launch game (wait) → **INJECT** → open chest · optional **SIMULATE** anytime after host |
+| **LIVE** | `ap_config.json` | BUILD → set slot → START HOST → launch game (wait) → **INJECT** → open chest |
 
 Stop the host before switching TEST ↔ LIVE. Mapping tabs still own SAVE DIFF / RAM DUMP; this tab only drives host + inject.
 

@@ -12,18 +12,25 @@
       --panel2: #101317;
       --line: #1e2624;
       --line2: #2a3431;
-      --fg: #c5d4c8;
-      --dim: #7d8c82;
-      --mute: #4f5b53;
+      --fg: #d5e2d8;
+      --dim: #a3b4a9;
+      --mute: #7e9086;
       --ok: #7dff9a;
       --ok-bg: #0d1a12;
-      --warn: #e6b84d;
+      --warn: #f0c45a;
       --warn-bg: #1a1508;
-      --bad: #ff6b6b;
+      --bad: #ff7a7a;
       --bad-bg: #1d0c0c;
-      --key: #8ec8ff;
+      --key: #9ad0ff;
       --key-bg: #0b1520;
-      --hi: #d4ffe4;
+      --hi: #e6fff0;
+      --led-off: #3a4240;
+      --led-host: #7dff9a;
+      --led-tcp: #6ee7ff;
+      --led-game: #f0c45a;
+      --led-dll: #b4a0ff;
+      --led-id: #ff9ad4;
+      --led-ap: #ff9b6b;
       --fs: clamp(11px, 0.28vw + 10px, 13px);
     }
     * { box-sizing: border-box; }
@@ -106,10 +113,10 @@
     .seg button:first-child { margin-left: 0; }
     .seg button .n { color: var(--mute); margin-left: 0.3em; }
     .seg button.on .n { color: var(--ok); }
-    .lbl { font-size: 0.78em; color: var(--mute); letter-spacing: 0.12em; }
+    .lbl { font-size: 0.78em; color: var(--dim); letter-spacing: 0.12em; }
     .scroll { flex: 1 1 auto; overflow: auto; min-height: 0; padding: 0.4rem 0.6rem; }
     .note { color: var(--dim); margin: 0; }
-    .empty { color: var(--mute); padding: 0.6rem 0.2rem; }
+    .empty { color: var(--dim); padding: 0.6rem 0.2rem; }
 
     /* location list */
     .grp { font-size: 0.78em; color: var(--mute); letter-spacing: 0.12em; padding: 0.5rem 0.1rem 0.25rem; }
@@ -143,7 +150,24 @@
     @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
     .card { border: 1px solid var(--line); background: var(--panel); padding: 0.55rem 0.65rem; }
     .loc-title { color: var(--hi); font-size: 1.05em; }
-    .loc-meta { color: var(--dim); margin-top: 0.15rem; display: flex; gap: 0.8rem; flex-wrap: wrap; }
+    .loc-meta { color: var(--dim); margin-top: 0.15rem; display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: center; }
+    #loc-card.needs-id { border-color: #6a5020; background: var(--warn-bg); }
+    #loc-card.needs-id .loc-title { color: var(--warn); }
+    #loc-card.has-id { border-color: #3d5a7a; background: var(--key-bg); }
+    #loc-card.has-id .loc-title { color: var(--key); }
+    #loc-card.is-mapped { border-color: #2a5a3a; background: var(--ok-bg); }
+    #loc-card.is-mapped .loc-title { color: var(--ok); }
+    .loc-status {
+      display: inline-block; font-size: 0.78em; letter-spacing: 0.1em;
+      padding: 0.15em 0.45em; border: 1px solid var(--line2); color: var(--dim);
+    }
+    .loc-status.needs { border-color: var(--warn); color: var(--warn); background: #241a08; }
+    .loc-status.id { border-color: var(--key); color: var(--key); background: #0b1520; }
+    .loc-status.map { border-color: var(--ok); color: var(--ok); background: #0d1a12; }
+    .next .d b { color: var(--hi); }
+    .next.warn .d { color: #e8d9a8; }
+    .next.warn .d b { color: var(--warn); }
+    #work-tab-ram.needs-id { border-color: var(--warn); color: var(--warn); }
     .steps { display: flex; flex-direction: column; gap: 0.35rem; }
     .step {
       display: grid; grid-template-columns: 1.7rem minmax(0, 1fr) auto; gap: 0.2rem 0.6rem;
@@ -207,22 +231,120 @@
     .g-INFO, .g-FILE { color: var(--dim); }
     .foot { padding: 0.5rem 0.6rem; border-top: 1px solid var(--line); flex: 0 0 auto; display: flex; flex-direction: column; gap: 0.3rem; }
 
-    /* tooltip + help */
+    /* tooltip + help + splash */
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-thumb { background: var(--line2); }
     #tip {
-      position: fixed; z-index: 30; display: none;
-      max-width: min(24rem, calc(100vw - 16px));
-      padding: 0.45rem 0.55rem;
+      position: fixed; z-index: 60; display: none;
+      max-width: min(26rem, calc(100vw - 16px));
+      padding: 0.5rem 0.65rem;
       background: #0a0c0e; border: 1px solid var(--key); color: var(--fg);
-      font-size: 0.92em; line-height: 1.4; white-space: pre-wrap; pointer-events: none;
+      font-size: 0.92em; line-height: 1.45; white-space: pre-wrap;
+      pointer-events: none; box-shadow: 0 0.4rem 1.2rem rgba(0,0,0,.55);
     }
-    .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 40; }
+    .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 40; }
     .help {
       position: fixed; z-index: 50; top: 50%; left: 50%; transform: translate(-50%, -50%);
       width: min(56rem, calc(100vw - 1.2rem)); max-height: calc(100dvh - 1.2rem); overflow: auto;
       background: var(--panel); border: 1px solid var(--key); padding: 0 1rem 1rem;
     }
+    .splash {
+      position: fixed; z-index: 55; inset: 0; display: flex; align-items: center; justify-content: center;
+      padding: 1rem; background: rgba(0,0,0,.82);
+    }
+    .splash-card {
+      width: min(40rem, 100%); max-height: calc(100dvh - 2rem); overflow: auto;
+      background: var(--panel); border: 1px solid var(--key); padding: 1.1rem 1.2rem 1.2rem;
+    }
+    .splash-card h1 {
+      margin: 0 0 0.35rem; font-size: 1.05em; letter-spacing: 0.14em; color: var(--hi);
+    }
+    .splash-card .lead { color: var(--dim); margin: 0 0 1rem; }
+    .splash-choice {
+      display: block; width: 100%; text-align: left; margin: 0 0 0.55rem; padding: 0.75rem 0.85rem;
+      background: var(--bg); border: 1px solid var(--line2);
+    }
+    .splash-choice:hover { border-color: var(--key); }
+    .splash-choice b { display: block; color: var(--hi); letter-spacing: 0.08em; margin-bottom: 0.25rem; }
+    .splash-choice span { color: var(--dim); font-size: 0.92em; }
+    .splash-foot { display: flex; justify-content: space-between; gap: 0.5rem; margin-top: 0.8rem; flex-wrap: wrap; }
+    .mode-bar {
+      display: flex; flex-direction: column; align-items: stretch; gap: 0.25rem; min-width: 0; flex: 1 1 auto;
+    }
+    .mode-bar .lbl { letter-spacing: 0.14em; }
+    .mode-bar .seg button { flex: 1 1 0; min-width: 5.5rem; }
+    .check-list { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.4rem; }
+    .check-item {
+      display: grid; grid-template-columns: 4.6rem minmax(0, 1fr); gap: 0.4rem 0.65rem;
+      align-items: center; padding: 0.45rem 0.6rem; border: 1px solid var(--line);
+      background: #0e1210;
+    }
+    .check-item .badge {
+      font-size: 0.72em; letter-spacing: 0.08em; padding: 0.2em 0.35em;
+      text-align: center; border: 1px solid var(--line2); color: var(--dim);
+    }
+    .check-item .ctitle { color: var(--fg); font-weight: 600; margin: 0; }
+    .check-item .chint { color: var(--dim); margin: 0.15rem 0 0; font-size: 0.9em; }
+    .check-item.done { border-color: #2a5a3a; background: var(--ok-bg); }
+    .check-item.done .badge { border-color: var(--ok); color: var(--ok); }
+    .check-item.done .ctitle { color: var(--ok); }
+    .check-item.pending { border-color: #4a6f96; background: var(--key-bg); }
+    .check-item.pending .badge { border-color: var(--key); color: var(--key); }
+    .check-item.pending .ctitle { color: var(--hi); }
+    .check-item.blocked { border-color: var(--line2); background: #12151a; }
+    .check-item.blocked .badge { color: var(--dim); border-color: var(--line2); }
+    .check-item.blocked .ctitle { color: #b0beb4; }
+    #work-dll .card { background: #0e1318; border-color: #243038; }
+    #work-dll .card.dll-card-check { background: #0d1512; border-color: #24382c; }
+    #work-dll .card.dll-card-log { background: #121018; border-color: #322840; }
+    #work-dll #dll-mode-note { color: #c5d6cc; }
+    #work-dll #dll-action-note { color: var(--hi); min-height: 1.2em; }
+    #work-dll #dll-log { color: #d2c8e8; background: #0a0b10; border: 1px solid #2a2438; padding: 0.45rem 0.55rem; }
+    .dll-top { display: flex; flex-direction: column; align-items: stretch; gap: 0.75rem; }
+    .dll-lamps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(6.4rem, 1fr));
+      gap: 0.55rem 0.65rem;
+    }
+    .dll-lamp {
+      display: flex; align-items: center; gap: 0.55rem;
+      padding: 0.45rem 0.55rem;
+      border: 1px solid #2a343c;
+      background: #0a0e12;
+      min-width: 0;
+    }
+    .dll-lamp .led {
+      width: 0.72rem; height: 0.72rem; border-radius: 50%; flex: 0 0 auto;
+      background: var(--led-off);
+      box-shadow: inset 0 0 0 1px #1a1e1c;
+    }
+    .dll-lamp .dll-lamp-meta { display: flex; flex-direction: column; gap: 0.05rem; min-width: 0; }
+    .dll-lamp .dll-lamp-name {
+      font-size: 0.72em; letter-spacing: 0.14em; color: #c8d6ce; line-height: 1.1;
+    }
+    .dll-lamp .dll-lamp-val {
+      font-size: 0.88em; color: #e8f0ea; line-height: 1.2;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .dll-lamp.off .dll-lamp-val { color: #9aaba0; }
+    .dll-lamp.on .led { box-shadow: 0 0 0.35rem currentColor, 0 0 0.7rem currentColor; }
+    .dll-lamp.warn .led { box-shadow: 0 0 0.35rem currentColor, 0 0 0.55rem currentColor; }
+    .dll-lamp.ch-host.on .led, .dll-lamp.ch-host.warn .led { background: var(--led-host); color: var(--led-host); }
+    .dll-lamp.ch-tcp.on .led, .dll-lamp.ch-tcp.warn .led { background: var(--led-tcp); color: var(--led-tcp); }
+    .dll-lamp.ch-game.on .led, .dll-lamp.ch-game.warn .led { background: var(--led-game); color: var(--led-game); }
+    .dll-lamp.ch-dll.on .led, .dll-lamp.ch-dll.warn .led { background: var(--led-dll); color: var(--led-dll); }
+    .dll-lamp.ch-id.on .led, .dll-lamp.ch-id.warn .led { background: var(--led-id); color: var(--led-id); }
+    .dll-lamp.ch-ap.on .led, .dll-lamp.ch-ap.warn .led { background: var(--led-ap); color: var(--led-ap); }
+    .dll-lamp.ch-host.on { border-color: #2a5a3a; }
+    .dll-lamp.ch-tcp.on { border-color: #2a5a66; }
+    .dll-lamp.ch-game.on { border-color: #5a4a1a; }
+    .dll-lamp.ch-dll.on { border-color: #4a3a6a; }
+    .dll-lamp.ch-id.on { border-color: #5a3a50; }
+    .dll-lamp.ch-ap.on { border-color: #5a3a28; }
+    .dll-lamp.warn { border-color: #6a5020; background: var(--warn-bg); }
+    .dll-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.65rem; }
+    button.lit { border-color: var(--ok); color: var(--ok); background: var(--ok-bg); }
+    button.dimmed { opacity: 0.45; color: var(--dim); }
     .help-bar {
       display: flex; justify-content: space-between; align-items: center; gap: 0.6rem;
       position: sticky; top: 0; background: var(--panel); padding: 0.7rem 0 0.5rem;
@@ -262,15 +384,16 @@
 </head>
 <body>
   <header class="strip">
-    <div class="brand"><b>DARKSIDE_ARCH</b><span>workspace</span></div>
+    <div class="brand"><b>DARKSIDE_ARCH</b><span>mapper</span></div>
     <div class="pills">
       <span class="pill" id="pill-game" data-tip=""><span class="dot"></span>GAME <b>…</b></span>
       <span class="pill" id="pill-link" data-tip="Connection to this dashboard's Python server (python -m tools dashboard)."><span class="dot"></span>SERVER <b>…</b></span>
-      <span class="pill" id="pill-checks" data-tip="Catalog locations with a real offset in targets.json. LocationChecks only fire for these."><span class="dot"></span>CHECKS <b>0/0</b> <span class="bar"><i style="width:0"></i></span></span>
-      <span class="pill" id="pill-items" data-tip="Inventory / goal rows with a real offset. Items received for an unmapped row wait in ap_state.db and apply once it is mapped."><span class="dot"></span>ITEMS <b>0/0</b></span>
-      <span class="pill" id="pill-ap" data-tip="Read from ap_config.json. This page never connects to the AP server — python -m ds_client does."><span class="dot"></span>AP <b>…</b></span>
+      <span class="pill" id="pill-checks" data-tip="Catalog locations with a real offset in targets.json (mem path). DLL LAB can use IDENTIFIED without an offset."><span class="dot"></span>CHECKS <b>0/0</b> <span class="bar"><i style="width:0"></i></span></span>
+      <span class="pill" id="pill-items" data-tip="Inventory / goal rows with a real offset. Items for an unmapped row wait until mapped."><span class="dot"></span>ITEMS <b>0/0</b></span>
+      <span class="pill" id="pill-ap" data-tip="From ap_config.json. This page does not connect to AP — use runtime.mem / runtime.dll or DLL LAB LIVE."><span class="dot"></span>AP <b>…</b></span>
     </div>
     <div class="acts">
+      <button type="button" id="splash-btn" data-tip="Show the start screen again.">START</button>
       <button type="button" id="help-btn" data-tip="How mapping works. Shortcut: ?">? HELP</button>
       <button type="button" id="refresh-btn" data-tip="Re-read the world catalog, targets.json and memory_map.md.">RELOAD</button>
     </div>
@@ -290,8 +413,8 @@
         <input id="catalog-search" type="search" placeholder="Search name or AP id   ( / )" aria-label="Search">
         <div class="seg" id="status-seg">
           <button type="button" data-filter="todo" class="on" data-tip="No Keen object and no RAM offset.">OPEN<span class="n"></span></button>
-          <button type="button" data-filter="identified" data-tip="Keen save_object recorded. Not a live AP watch until a RAM offset exists.">IDENTIFIED<span class="n"></span></button>
-          <button type="button" data-filter="mapped" data-tip="Has a RAM offset. LocationChecks can fire.">MAPPED<span class="n"></span></button>
+          <button type="button" data-filter="identified" data-tip="Keen save_object recorded. Enough for DLL LAB checks; mem path still needs RAM DUMP.">IDENTIFIED<span class="n"></span></button>
+          <button type="button" data-filter="mapped" data-tip="Has a RAM offset (mem path). DLL path can use IDENTIFIED alone.">MAPPED<span class="n"></span></button>
           <button type="button" data-filter="all">ALL<span class="n"></span></button>
         </div>
         <div class="seg wrap" id="kind-seg">
@@ -325,13 +448,16 @@
     <section class="col center">
       <div class="hd">
         <strong id="center-title" hidden>ITEM WRITES</strong>
-        <div class="seg" id="work-seg" role="tablist">
-          <button type="button" class="on" id="work-tab-diff" data-tip="Two in-game slots → object Triggered/Destroyed/Open. Primary chest method.">SAVE DIFF</button>
-          <button type="button" id="work-tab-ram" data-tip="Finds the live flag for LocationChecks. Identified rows scan the heap around their Keen object; others diff .data.">RAM DUMP</button>
-          <button type="button" id="work-tab-saves" data-tip="Brief / export JSON / encode UserId to saves/edited/ / install to Steam. Encode is not mapping.">SAVES</button>
-          <button type="button" id="work-tab-dll" data-tip="DLL inject: TEST (no AP) or LIVE (ap_config.json). Host + inject — not sideload.">DLL LAB</button>
+        <div class="mode-bar" id="work-mode-bar">
+          <div class="lbl">WORK MODE — pick what this panel does</div>
+          <div class="seg" id="work-seg" role="tablist" aria-label="Work mode">
+            <button type="button" class="on" id="work-tab-diff" data-tip="MODE: identify a chest from two save slots (Keen save_object). Start here for mapping.">SAVE DIFF</button>
+            <button type="button" id="work-tab-ram" data-tip="MODE: find the live RAM 0→1 flag (mem path). Needs identity first.">RAM DUMP</button>
+            <button type="button" id="work-tab-saves" data-tip="MODE: encode UserId / install saves to Steam. Not mapping.">SAVES</button>
+            <button type="button" id="work-tab-dll" data-tip="MODE: DLL inject lab. TEST = no AP. LIVE = ap_config.json. Not sideload.">DLL LAB</button>
+          </div>
+          <span class="sub" id="center-sub">two save slots → Keen identity</span>
         </div>
-        <span class="sub" id="center-sub">two save slots → Keen identity</span>
       </div>
       <div class="body">
         <div class="body-inner" id="capture-panel">
@@ -342,8 +468,12 @@
           </div>
 
           <div class="card" id="loc-card" hidden>
-            <div class="loc-title" id="loc-title"></div>
+            <div class="row" style="justify-content:space-between;align-items:flex-start;gap:0.5rem">
+              <div class="loc-title" id="loc-title"></div>
+              <span class="loc-status" id="loc-status" hidden></span>
+            </div>
             <div class="loc-meta" id="loc-meta"></div>
+            <p class="note" id="loc-gate" hidden style="margin-top:0.4rem"></p>
           </div>
 
           <div id="work-diff">
@@ -480,46 +610,34 @@
           </div>
 
           <div id="work-dll" hidden>
-            <div class="card how">
-              <div class="lbl">DLL LAB — TEST vs LIVE</div>
-              <p class="note" style="margin-top:0.35rem"><b>TEST</b> — no Archipelago. Prove host + identity + inject. <b>LIVE</b> — same inject path, host connects with <code>ap_config.json</code> and sends LocationChecks.</p>
-              <ol id="dll-how-list">
-                <li>Pick <b>TEST</b> or <b>LIVE</b> below.</li>
-                <li><b>START HOST</b> (STOP first if switching modes).</li>
-                <li><b>BUILD</b> / launch game / <b>INJECT</b> — not sideload.</li>
-                <li>TEST: <b>SIMULATE</b> then optional in-game open. LIVE: open chest in-game only.</li>
-              </ol>
-            </div>
             <div class="card">
-              <div class="lbl">MODE</div>
-              <div class="seg" id="dll-mode-seg" role="tablist" style="margin-top:0.4rem">
-                <button type="button" class="on" id="dll-mode-test" data-mode="test" data-tip="--no-ap local POC. SIMULATE allowed.">TEST</button>
-                <button type="button" id="dll-mode-live" data-mode="live" data-tip="Uses ap_config.json slot. Real LocationChecks. No SIMULATE.">LIVE</button>
+              <div class="dll-top">
+                <div class="seg" id="dll-mode-seg" role="tablist">
+                  <button type="button" class="on" id="dll-mode-test" data-mode="test" data-tip="Local POC. No Archipelago. SIMULATE allowed.">TEST</button>
+                  <button type="button" id="dll-mode-live" data-mode="live" data-tip="ap_config.json → real LocationChecks. No SIMULATE.">LIVE</button>
+                </div>
+                <div class="dll-lamps" id="dll-pills" aria-label="runtime status"></div>
               </div>
-              <p class="note" id="dll-mode-note" style="margin-top:0.4rem"></p>
-            </div>
-            <div class="card">
-              <div class="lbl">STATUS</div>
-              <div class="loc-meta" id="dll-status-line">…</div>
-              <div class="row" style="margin-top:0.5rem;flex-wrap:wrap;gap:0.35rem">
-                <button type="button" class="primary" id="btn-dll-start" data-tip="Start host for the selected mode">START HOST</button>
-                <button type="button" class="ghost" id="btn-dll-stop">STOP HOST</button>
-                <button type="button" class="ghost" id="btn-dll-build" data-tip="cargo build --release">BUILD DLL</button>
-                <button type="button" class="primary" id="btn-dll-simulate" data-tip="TEST only — hotel chest 1 identity without the game">SIMULATE OPEN</button>
-                <button type="button" class="primary" id="btn-dll-inject" data-tip="LoadLibraryW into darksiders1.exe">INJECT</button>
+              <p class="note" id="dll-mode-note" style="margin-top:0.55rem"></p>
+              <div class="dll-actions">
+                <button type="button" id="btn-dll-start" data-tip="Start host for the selected mode">START HOST</button>
+                <button type="button" id="btn-dll-stop" data-tip="Stop the running host">STOP HOST</button>
+                <button type="button" class="ghost" id="btn-dll-build" data-tip="cargo build --release">BUILD</button>
+                <button type="button" class="ghost" id="btn-dll-simulate" data-tip="TEST only — hotel chest 1 without the game">SIMULATE</button>
+                <button type="button" id="btn-dll-inject" data-tip="Inject into darksiders1.exe (not sideload)">INJECT</button>
               </div>
               <p class="note" id="dll-action-note"></p>
             </div>
-            <div class="card">
+            <div class="card dll-card-check">
               <div class="lbl">CHECKLIST</div>
-              <ol id="dll-steps" style="margin:0.4rem 0 0;padding-left:1.2rem"></ol>
+              <div class="check-list" id="dll-steps"></div>
             </div>
-            <div class="card">
+            <div class="card dll-card-log">
               <div class="row" style="justify-content:space-between;align-items:center">
-                <span class="lbl">HOST / LAB LOG</span>
-                <button type="button" class="ghost" id="btn-dll-log-clear" style="font-size:0.95em;padding:0 0.4em">CLEAR VIEW</button>
+                <span class="lbl">LOG</span>
+                <button type="button" class="ghost" id="btn-dll-log-clear" style="font-size:0.95em;padding:0 0.4em">CLEAR</button>
               </div>
-              <pre id="dll-log" style="max-height:14rem;overflow:auto;font-size:0.85em;margin:0.4rem 0 0;white-space:pre-wrap;word-break:break-word"></pre>
+              <pre id="dll-log" style="max-height:11rem;overflow:auto;font-size:0.85em;margin:0.4rem 0 0;white-space:pre-wrap;word-break:break-word"></pre>
             </div>
           </div>
 
@@ -657,6 +775,24 @@
   </div>
 
   <div id="tip" role="tooltip"></div>
+  <div id="splash" class="splash" hidden>
+    <div class="splash-card" role="dialog" aria-labelledby="splash-h">
+      <h1 id="splash-h">DARKSIDE_ARCH</h1>
+      <p class="lead">Only navigates. Nothing starts from here. The center <b>WORK MODE</b> bar switches the middle panel.</p>
+      <button type="button" class="splash-choice" id="splash-map" data-tip="Opens SAVE DIFF work mode.">
+        <b>1 · MAP A CHECK</b>
+        <span>Takes you to SAVE DIFF. Two save slots → Keen identity. RAM DUMP only if you use the mem runtime.</span>
+      </button>
+      <button type="button" class="splash-choice" id="splash-dll" data-tip="Opens the DLL LAB work mode. Pick TEST or LIVE on that tab.">
+        <b>2 · DLL LAB</b>
+        <span>Opens the DLL work tab. You choose TEST (no AP) or LIVE (ap_config) there — nothing starts from this screen.</span>
+      </button>
+      <div class="splash-foot">
+        <button type="button" class="ghost" id="splash-skip">Skip — open workspace</button>
+        <button type="button" class="ghost" id="splash-help">? Help</button>
+      </div>
+    </div>
+  </div>
   <div id="help-scrim" class="scrim" hidden></div>
   <aside id="help-panel" class="help" hidden role="dialog" aria-labelledby="help-h">
     <div class="help-bar">
@@ -671,7 +807,7 @@
         <ol>
           <li>Save while untouched. Open or collect it. Save again in another slot.</li>
           <li>Pick the AP name. Set the two slot numbers. <b>DIFF SAVES</b>.</li>
-          <li><b>SAVE IDENTITY</b>. ds_client still skips it until a RAM offset exists.</li>
+          <li><b>SAVE IDENTITY</b>. Mem path needs RAM DUMP next; DLL LAB can use identity alone.</li>
         </ol>
         <p>CLI: <code>python -m tools scan --sav FILE --slots 1 2 --item "NAME"</code></p>
         <p>Inspect: <code>python -m tools save-brief --slot 1 FILE.sav</code>. Encode/install: SAVES tab, or <code>python -m tools save-patch --sav FILE --userid ID --out saves\edited\FILE.sav --install</code>.</p>
@@ -739,6 +875,9 @@ let slotBriefs = {};
 let searchQ = "";
 let dllLogSince = 0;
 let dllLogLines = [];
+let dllBusy = "";          // start|stop|build|inject|simulate|mode
+let dllRefreshInflight = false;
+let lastDllStatus = null;
 
 const $ = id => document.getElementById(id);
 // The poll re-renders every 500 ms; only touch the DOM when markup really changes,
@@ -780,32 +919,50 @@ function post(path, body) {
   });
 }
 
-/* ---------- tooltips + help ---------- */
+/* ---------- tooltips + help + splash ---------- */
 const tipEl = $("tip");
-function placeTip(el) {
+let tipTarget = null;
+function placeTip(el, clientX, clientY) {
   const text = el.getAttribute("data-tip");
   if (!text) { hideTip(); return; }
   tipEl.textContent = text;
   tipEl.style.display = "block";
-  const r = el.getBoundingClientRect();
   const tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
-  let x = r.left > window.innerWidth * 0.45 ? r.right - tw : r.left;
-  let y = r.bottom + 6;
+  let x = (clientX != null ? clientX + 14 : el.getBoundingClientRect().left);
+  let y = (clientY != null ? clientY + 18 : el.getBoundingClientRect().bottom + 6);
   if (x + tw > window.innerWidth - 8) x = window.innerWidth - tw - 8;
   if (x < 8) x = 8;
-  if (y + th > window.innerHeight - 8) y = r.top - th - 6;
-  if (y < 8) y = 8;
+  if (y + th > window.innerHeight - 8) y = Math.max(8, (clientY != null ? clientY : el.getBoundingClientRect().top) - th - 10);
   tipEl.style.left = x + "px";
   tipEl.style.top = y + "px";
 }
-function hideTip() { tipEl.style.display = "none"; }
+function hideTip() {
+  tipTarget = null;
+  tipEl.style.display = "none";
+}
 function helpOpen() { return !$("help-panel").hidden; }
-document.addEventListener("mouseover", e => {
-  if (helpOpen()) return hideTip();
+function splashOpen() { return !$("splash").hidden; }
+// Stay up for the whole hover. Ignore child enter/leave inside the same [data-tip].
+document.addEventListener("pointerover", e => {
+  if (helpOpen()) return;
   const el = e.target.closest("[data-tip]");
-  if (el) placeTip(el); else hideTip();
+  if (!el || !el.getAttribute("data-tip")) return;
+  if (tipTarget === el) return;
+  tipTarget = el;
+  placeTip(el, e.clientX, e.clientY);
 });
-document.addEventListener("focusout", hideTip);
+document.addEventListener("pointerout", e => {
+  if (!tipTarget) return;
+  const to = e.relatedTarget;
+  if (to && (tipTarget === to || tipTarget.contains(to))) return;
+  if (to && to.closest && to.closest("[data-tip]") === tipTarget) return;
+  hideTip();
+});
+document.addEventListener("pointermove", e => {
+  if (!tipTarget || tipEl.style.display === "none") return;
+  if (!tipTarget.contains(e.target) && tipTarget !== e.target) return;
+  placeTip(tipTarget, e.clientX, e.clientY);
+});
 window.addEventListener("scroll", hideTip, true);
 
 function setHelp(on) {
@@ -814,14 +971,33 @@ function setHelp(on) {
   $("help-btn").classList.toggle("on", on);
   hideTip();
 }
-$("help-btn").onclick = () => setHelp(!helpOpen());
+function setSplash(on) {
+  $("splash").hidden = !on;
+  $("splash-btn").classList.toggle("on", on);
+  hideTip();
+  if (!on) {
+    try { localStorage.setItem("darkside_splash_seen", "1"); } catch (_) {}
+  }
+}
+function enterFromSplash(work) {
+  setSplash(false);
+  setPane("checks");
+  setWork(work);
+}
+$("help-btn").onclick = () => { setSplash(false); setHelp(!helpOpen()); };
 $("help-close").onclick = () => setHelp(false);
 $("help-scrim").onclick = () => setHelp(false);
+$("splash-btn").onclick = () => { setHelp(false); setSplash(true); };
+$("splash-skip").onclick = () => setSplash(false);
+$("splash-help").onclick = () => { setSplash(false); setHelp(true); };
+$("splash-map").onclick = () => enterFromSplash("diff");
+$("splash-dll").onclick = () => enterFromSplash("dll");
 
 document.addEventListener("keydown", e => {
   const typing = e.target.matches("input,select,textarea");
   if (e.key === "Escape") {
     if (helpOpen()) return setHelp(false);
+    if (splashOpen()) return setSplash(false);
     if (typing) { e.target.blur(); return; }
   }
   if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -934,6 +1110,30 @@ function findLoc(id) {
   return null;
 }
 function selected() { return ui.sel ? findLoc(ui.sel) : null; }
+/** Keen identity for the left-list selection — drives DLL LAB open/simulate. */
+function selectedIdentity() {
+  const loc = selected();
+  if (!loc) return null;
+  const so = loc.target && loc.target.save_object;
+  if (!so || so.region_id == null || so.layer_id == null || so.object_id == null) {
+    return {
+      label: loc.label,
+      ap_id: loc.ap_id,
+      identified: false,
+      save_key: loc.save_key || "",
+    };
+  }
+  return {
+    label: loc.label,
+    ap_id: loc.ap_id,
+    identified: !!loc.identified,
+    save_key: loc.save_key || "",
+    region_id: Number(so.region_id),
+    layer_id: Number(so.layer_id),
+    object_id: Number(so.object_id),
+    value_key: String(so.value_key || so.key || "Triggered"),
+  };
+}
 function matches(item, { status = ui.status, kind = ui.kind, loot = ui.loot } = {}) {
   if (status === "todo" && (item.mapped || item.identified)) return false;
   if (status === "identified" && (!item.identified || item.mapped)) return false;
@@ -1027,6 +1227,7 @@ function selectLoc(id) {
   savePrefs();
   renderList();
   renderCapture();
+  if (ui.work === "dll" && lastDllStatus) renderDllStatus(lastDllStatus);
   post("/api/capture/select", { id }).then(data => {
     if (st) st.capture = data.capture;
   }).catch(() => {});
@@ -1151,7 +1352,7 @@ function setPane(name) {
   $("check-filters").hidden = name !== "checks";
   $("capture-panel").hidden = name !== "checks";
   $("items-panel").hidden = name !== "items";
-  $("work-seg").hidden = name !== "checks";
+  $("work-mode-bar").hidden = name !== "checks";
   $("center-title").hidden = name !== "items";
   $("center-title").textContent = "ITEM WRITES";
   if (name === "items") {
@@ -1179,12 +1380,12 @@ function setWork(name) {
   $("work-saves").hidden = name !== "saves";
   $("work-dll").hidden = name !== "dll";
   $("center-sub").textContent = name === "diff"
-    ? "two save slots → Keen identity"
+    ? "MODE: SAVE DIFF — two save slots → Keen identity"
     : name === "ram"
-      ? "live flag · heap around the Keen object · F8 in-game"
+      ? "MODE: RAM DUMP — live 0→1 flag · F8 in-game (mem path)"
       : name === "dll"
-        ? "local inject POC · no AP server · host → inject → open"
-        : "encode autosave to edited/ · then INSTALL";
+        ? "MODE: DLL LAB — TEST or LIVE host + inject (not sideload)"
+        : "MODE: SAVES — encode UserId · install to Steam";
   $("row-box").hidden = name === "saves" || name === "dll";
   $("files-box").hidden = name === "saves" || name === "dll";
   syncSavFields();
@@ -1432,10 +1633,23 @@ function renderCapture() {
   const saveCand = cands.find(d => d.address === saveAddr);
 
   // location card (mapping tabs only)
-  $("loc-card").hidden = ui.work === "saves" || !loc;
-  if (!loc) $("row-json").textContent = "Pick a location first.";
+  const card = $("loc-card");
+  card.hidden = ui.work === "saves" || !loc;
+  card.classList.remove("needs-id", "has-id", "is-mapped");
+  const statusEl = $("loc-status");
+  const gateEl = $("loc-gate");
+  if (!loc) {
+    $("row-json").textContent = "Pick a location first.";
+    statusEl.hidden = true;
+    gateEl.hidden = true;
+  }
   if (loc) {
+    const needsId = !loc.identified && !loc.mapped;
     $("loc-title").textContent = loc.label;
+    statusEl.hidden = false;
+    statusEl.className = "loc-status " + (loc.mapped ? "map" : loc.identified ? "id" : "needs");
+    statusEl.textContent = loc.mapped ? "MAPPED" : loc.identified ? "IDENTIFIED" : "NEEDS SAVE DIFF";
+    card.classList.add(loc.mapped ? "is-mapped" : loc.identified ? "has-id" : "needs-id");
     setHTML($("loc-meta"), [
       esc(loc.ap_region || loc.region), esc(loc.kind), "AP " + loc.ap_id,
       loc.vanilla_item ? ("vanilla " + esc(loc.vanilla_item)) : "",
@@ -1443,6 +1657,20 @@ function renderCapture() {
         : loc.identified ? `<span style="color:var(--key)">Keen ${esc(loc.save_key)}</span>`
         : `<span style="color:var(--warn)">no Keen object yet</span>`
     ].filter(Boolean).map(x => `<span>${x}</span>`).join(""));
+    if (needsId) {
+      gateEl.hidden = false;
+      gateEl.innerHTML = ui.work === "ram"
+        ? "RAM DUMP is locked until SAVE DIFF writes a Keen identity for this check."
+        : ui.work === "dll"
+          ? "DLL inject can watch this only after SAVE IDENTITY (Keen object)."
+          : "Do SAVE DIFF here first — two slots → DIFF SAVES → SAVE IDENTITY. Then RAM DUMP or DLL LAB.";
+    } else if (loc.identified && !loc.mapped && ui.work === "diff") {
+      gateEl.hidden = false;
+      gateEl.innerHTML = "Keen identity saved. Mem path: switch to <b>RAM DUMP</b>. DLL path: <b>DLL LAB</b> can use this now.";
+    } else {
+      gateEl.hidden = true;
+      gateEl.textContent = "";
+    }
     $("row-json").textContent = loc.target ? JSON.stringify(loc.target, null, 2) : "No row yet. SAVE IDENTITY appends one with id \"" + loc.id + "\".";
   }
 
@@ -1456,27 +1684,50 @@ function renderCapture() {
 
   const bB = $("btn-baseline"), bD = $("btn-diff"), bS = $("btn-save");
   const hold = Math.ceil(cap.hold_s || 0);
-  bB.disabled = !loc || !up || freeze;
+  const ramReady = !!(loc && (loc.identified || loc.mapped));
+  bB.disabled = !loc || !up || freeze || !ramReady;
   bB.textContent = busy === "baseline" ? "DUMPING…"
     : wait === "baseline" ? (cap.foreground ? ("IN-GAME " + hold + "s") : "GO TO GAME")
+    : !ramReady ? "NEED IDENTITY"
     : stage === "idle" ? "BASELINE" : "RETAKE";
-  bD.disabled = stage === "idle" || !up || freeze;
+  bD.disabled = stage === "idle" || !up || freeze || !ramReady;
   bD.textContent = busy === "diff" ? "DIFFING…"
     : wait === "diff" ? (cap.foreground ? ("IN-GAME " + hold + "s") : "GO TO GAME")
     : stage === "diffed" ? "DIFF AGAIN" : "DIFF";
   const talk = locTalk(loc);
   const how1 = $("how-li-1");
   const how2 = $("how-li-2");
-  if (how1) how1.innerHTML = "Quit to the pause menu. <b>Save</b> while the " + talk.kind + " is still " + talk.closed + " (note the slot).";
-  if (how2) how2.innerHTML = talk.openVerb + " the " + talk.kind + ". <b>Save</b> again in a different slot.";
+  const howLbl = $("how-card") && $("how-card").querySelector(".lbl");
+  if (howLbl) {
+    howLbl.textContent = loc && !loc.identified && !loc.mapped
+      ? ("NEEDS IDENTITY — " + loc.label)
+      : "TWO IN-GAME SAVES. DIFF THE OBJECT RECORD. NOT A RAM DUMP.";
+  }
+  if (how1) {
+    how1.innerHTML = loc
+      ? ("Quit to the pause menu. <b>Save</b> while <b>" + esc(loc.label) + "</b> is still " + talk.closed + " (note the slot).")
+      : ("Quit to the pause menu. <b>Save</b> while the " + talk.kind + " is still " + talk.closed + " (note the slot).");
+  }
+  if (how2) {
+    how2.innerHTML = loc
+      ? (talk.openVerb + " <b>" + esc(loc.label) + "</b>. <b>Save</b> again in a different slot.")
+      : (talk.openVerb + " the " + talk.kind + ". <b>Save</b> again in a different slot.");
+  }
   const ramNote = $("ram-note");
   if (ramNote) {
-    ramNote.textContent = "Identified rows (SAVE DIFF first) scan the heap for the packed ObjectID+RegionID+LayerID triple from the Keen dumps, then nearby, and diff only around those. Rows without an identity diff 34 MB of .data, where " + talk.kind + " flags are not. The closed dump samples for 4 s and the open dump for 1.5 s — stand still for both. F8 still dumps while this tab is hidden.";
+    ramNote.textContent = loc && !loc.identified && !loc.mapped
+      ? ("Locked for " + loc.label + " — finish SAVE DIFF first. Without a Keen identity this diffs ~34 MB of .data and almost never finds the " + talk.kind + " flag.")
+      : ("Identified rows (SAVE DIFF first) scan the heap for the packed ObjectID+RegionID+LayerID triple from the Keen dumps, then nearby, and diff only around those. Rows without an identity diff 34 MB of .data, where " + talk.kind + " flags are not. The closed dump samples for 4 s and the open dump for 1.5 s — stand still for both. F8 still dumps while this tab is hidden.");
   }
   $("what-1").textContent = "Pick the AP name for the " + talk.kind + " you are facing";
   $("why-1").textContent = "The dump cannot see which " + talk.kind + " it is. The name you pick is what gets written.";
-  $("btn-baseline").dataset.tip = "Arms a wait: dump after Darksiders stays in front 7s. Click the game, unpause (Esc), stand still. " + talk.kind + " still " + talk.closed + ". In-game F8 dumps now. Shortcut: B";
-  $("btn-diff").dataset.tip = talk.openVerb + " the " + talk.kind + " first, then arm AFTER. Click back, unpause, wait 7s — or press F8 in-game. Shortcut: D";
+  $("btn-baseline").dataset.tip = !ramReady
+    ? "Locked — this location has no Keen identity. Finish SAVE DIFF → SAVE IDENTITY first."
+    : "Arms a wait: dump after Darksiders stays in front 7s. Click the game, unpause (Esc), stand still. " + talk.kind + " still " + talk.closed + ". In-game F8 dumps now. Shortcut: B";
+  $("btn-diff").dataset.tip = !ramReady
+    ? "Locked — SAVE DIFF identity required before RAM dumps."
+    : talk.openVerb + " the " + talk.kind + " first, then arm AFTER. Click back, unpause, wait 7s — or press F8 in-game. Shortcut: D";
+  $("work-tab-ram").classList.toggle("needs-id", !!(loc && !loc.identified && !loc.mapped));
   $("what-2").textContent = stage === "idle"
     ? "Dump BEFORE — " + talk.kind + " still " + talk.closed
     : "Closed dump stored — do not RETAKE unless still " + talk.closed;
@@ -1564,8 +1815,14 @@ function renderCapture() {
       [jump, over]);
   } else if (ui.work === "ram") {
     if (!loc) {
-      setNext("action", "Pick the AP name, then dump",
-        "Pick an IDENTIFIED " + talk.kind + " (SAVE DIFF first) so the capture can scan the heap around it. F8 still dumps while this tab is hidden.");
+      setNext("action", "Pick an IDENTIFIED location",
+        "RAM DUMP needs a Keen identity. Pick a row tagged IDENTIFIED (or finish SAVE DIFF first).");
+    } else if (!loc.identified && !loc.mapped) {
+      setNext("warn", "Blocked — SAVE DIFF first",
+        "<b>" + esc(loc.label) + "</b> (AP " + loc.ap_id + ") has <b>no Keen object</b> yet. "
+          + "Without it, RAM DUMP scans ~34 MB of .data and almost never finds this " + talk.kind + ". "
+          + "Go to SAVE DIFF: two slots → DIFF SAVES → SAVE IDENTITY.",
+        [{ label: "GO TO SAVE DIFF", cls: "primary", run: () => setWork("diff") }]);
     } else if (stage === "diffed") {
       if (!cands.length) {
         setNext("warn", "No 0→1 byte found",
@@ -1594,9 +1851,6 @@ function renderCapture() {
     } else if (loc.identified) {
       setNext("action", talk.kind[0].toUpperCase() + talk.kind.slice(1) + " " + talk.closed + ", stand still, F8",
         "Heap capture around <code>" + esc(loc.save_key) + "</code>. Load a save where it is still " + talk.closed + ", stand next to it, press <b>F8</b> (4 s sample).");
-    } else {
-      setNext("warn", "Identify it on SAVE DIFF first",
-        "Without a Keen identity this diffs 34 MB of .data, where " + talk.kind + " flags are not. Two save slots on SAVE DIFF, then come back.");
     }
   } else if (!loc) {
     setNext("action", "Pick the location you just opened",
@@ -1621,13 +1875,23 @@ function renderCapture() {
     }
   } else if (loc.identified && !loc.mapped) {
     setNext("ok", "Keen identity saved",
-      "<code>" + esc(loc.save_key) + "</code> — ds_client still skips this until a RAM offset exists. Next: RAM DUMP tab finds the live flag around this object.");
+      "<code>" + esc(loc.save_key) + "</code> — identity saved. Mem path: <b>RAM DUMP</b> next. DLL path: <b>DLL LAB</b> can use this without a RAM offset.",
+      [
+        { label: "RAM DUMP", cls: "primary", run: () => setWork("ram") },
+        { label: "DLL LAB", cls: "ghost", run: () => setWork("dll") },
+      ]);
   } else if (loc.mapped) {
     setNext("ok", "Already mapped",
-      "RAM watch is under LIVE VALUES. Keen identity can still be saved from two slots.");
+      "RAM watch is under LIVE VALUES. Keen identity can still be re-saved from two slots if needed.");
   } else {
-    setNext("action", "Two save slots, then DIFF SAVES",
-      "Save while <b>" + esc(loc.label) + "</b> is " + talk.closed + ". " + talk.openVerb + " it. Save in another slot. Pick the slots. The game can be closed.");
+    setNext("warn", "Needs SAVE DIFF — no Keen identity yet",
+      "<b>" + esc(loc.label) + "</b> · AP " + loc.ap_id
+        + (loc.vanilla_item ? (" · vanilla " + esc(loc.vanilla_item)) : "")
+        + ".<br>"
+        + "<b>1.</b> In-game: save while this " + talk.kind + " is still <b>" + talk.closed + "</b> (note the slot).<br>"
+        + "<b>2.</b> " + talk.openVerb + " it, then save in a <b>different</b> slot. Game can be closed after.<br>"
+        + "<b>3.</b> Set CLOSED / OPENED above → <b>DIFF SAVES</b> → click the matching row → <b>SAVE IDENTITY</b>.<br>"
+        + "RAM DUMP and DLL checks stay locked until that identity exists.");
   }
 }
 
@@ -1658,6 +1922,12 @@ async function runStep(n, kind, fn) {
 function armCapture(kind) {
   const loc = selected();
   if (!loc) return;
+  if (!loc.identified && !loc.mapped) {
+    setNext("warn", "Blocked — SAVE DIFF first",
+      "<b>" + esc(loc.label) + "</b> has no Keen object yet. Finish SAVE DIFF → SAVE IDENTITY before RAM dumps.",
+      [{ label: "GO TO SAVE DIFF", cls: "primary", run: () => setWork("diff") }]);
+    return;
+  }
   const step = kind === "baseline" ? 2 : 3;
   runStep(step, "arm-" + kind, async () => {
     const data = await post("/api/capture/arm", { id: loc.id, kind });
@@ -1966,37 +2236,200 @@ function renderWatches() {
 }
 
 /* ---------- DLL LAB ---------- */
+function dllSetBtn(el, { enabled, lit, ghost, label, busy }) {
+  if (!el) return;
+  el.disabled = !enabled || !!busy;
+  el.classList.toggle("lit", !!lit && enabled && !busy);
+  el.classList.toggle("primary", !!lit && enabled && !busy);
+  el.classList.toggle("ghost", !!ghost || !enabled);
+  el.classList.toggle("dimmed", !enabled && !busy);
+  el.classList.toggle("busy", !!busy);
+  if (label != null) el.textContent = label;
+}
+function syncDllControls(s) {
+  if (!s) return;
+  const host = !!s.host_running;
+  const game = !!s.game_running;
+  const mode = s.mode || "test";
+  const building = !!s.building || dllBusy === "build";
+  const busy = dllBusy;
+
+  $("dll-mode-test").disabled = host || !!busy;
+  $("dll-mode-live").disabled = host || !!busy;
+  $("dll-mode-test").classList.toggle("dimmed", host);
+  $("dll-mode-live").classList.toggle("dimmed", host);
+
+  // Host pair: only one is active. Click → busy … → then flip.
+  dllSetBtn($("btn-dll-start"), {
+    enabled: !host && busy !== "stop",
+    lit: !host,
+    ghost: host,
+    busy: busy === "start",
+    label: busy === "start" ? "STARTING" : "START HOST",
+  });
+  dllSetBtn($("btn-dll-stop"), {
+    enabled: host && busy !== "start",
+    lit: host,
+    ghost: !host,
+    busy: busy === "stop",
+    label: busy === "stop" ? "STOPPING" : "STOP HOST",
+  });
+  dllSetBtn($("btn-dll-build"), {
+    enabled: !building && !busy,
+    lit: false,
+    ghost: true,
+    busy: building,
+    label: building ? "BUILDING" : (s.dll_exists ? "REBUILD" : "BUILD"),
+  });
+  const focus = selectedIdentity();
+  const canSim = mode === "test" && host && !busy && focus && focus.identified
+    && focus.region_id != null;
+  dllSetBtn($("btn-dll-simulate"), {
+    enabled: !!canSim,
+    lit: false,
+    ghost: true,
+    busy: busy === "simulate",
+    label: busy === "simulate" ? "SIMULATING" : "SIMULATE",
+  });
+  $("btn-dll-simulate").setAttribute(
+    "data-tip",
+    canSim
+      ? ("Simulate open — " + focus.label + " · " + (focus.save_key || ""))
+      : (mode === "live"
+        ? "SIMULATE is TEST only"
+        : (!host ? "Start host first" : "Select an IDENTIFIED location on the left"))
+  );
+  dllSetBtn($("btn-dll-inject"), {
+    enabled: host && game && !!s.dll_exists && !busy,
+    lit: host && game && !!s.dll_exists,
+    ghost: !(host && game),
+    busy: busy === "inject",
+    label: busy === "inject" ? "INJECTING" : "INJECT",
+  });
+}
 function renderDllStatus(s) {
   if (!s) return;
+  lastDllStatus = s;
   const mode = s.mode || "test";
   $("dll-mode-test").classList.toggle("on", mode === "test");
   $("dll-mode-live").classList.toggle("on", mode === "live");
-  $("btn-dll-simulate").disabled = mode === "live";
-  $("btn-dll-simulate").style.opacity = mode === "live" ? "0.45" : "";
   const ap = s.ap || {};
   setHTML(
     $("dll-mode-note"),
     mode === "live"
-      ? "LIVE → " + esc(ap.detail || "set ap_config.json") + ". SIMULATE disabled; open chests in-game."
-      : "TEST → no AP. Use SIMULATE to prove identity join, then optional inject."
+      ? "LIVE — AP " + esc(ap.detail || "set ap_config.json") + ". Open chests in-game only."
+      : "TEST — no AP. Host → launch game → inject. SIMULATE is optional."
   );
-  const bits = [
-    "MODE " + mode.toUpperCase() + (s.host_mode ? " (host=" + s.host_mode + ")" : ""),
-    s.host_running ? "HOST up pid=" + s.host_pid : "HOST down",
-    s.tcp_open ? "TCP " + s.tcp : "TCP closed",
-    s.game_running ? "GAME pid=" + s.game_pid : "GAME off",
-    s.dll_exists ? "DLL built" : "DLL missing",
-    (s.identities || 0) + " save_object(s)",
+  const lamps = [
+    {
+      ch: "host",
+      state: s.host_running ? "on" : "off",
+      name: "HOST",
+      val: s.host_running ? "pid " + s.host_pid : "off",
+      tip: s.host_running ? "DLL host running" : "Host not started",
+    },
+    {
+      ch: "tcp",
+      state: s.tcp_open ? "on" : "off",
+      name: "TCP",
+      val: s.tcp_open ? (s.tcp || "open") : "closed",
+      tip: "Host listen " + (s.tcp || "127.0.0.1:27111"),
+    },
+    {
+      ch: "game",
+      state: s.game_running ? "on" : "off",
+      name: "GAME",
+      val: s.game_running ? "pid " + s.game_pid : "off",
+      tip: s.game_running ? "darksiders1.exe found" : "Launch Darksiders",
+    },
+    {
+      ch: "dll",
+      state: s.dll_exists ? "on" : "warn",
+      name: "DLL",
+      val: s.dll_exists ? "built" : "missing",
+      tip: s.dll_path || "darkside_arch.dll",
+    },
+    {
+      ch: "id",
+      state: (s.identities || 0) > 0 ? "on" : "off",
+      name: "IDs",
+      val: String(s.identities || 0) + " mapped",
+      tip: "save_object identities in targets.json",
+    },
   ];
-  if (mode === "live") bits.push(ap.ok ? "AP " + ap.detail : "AP slot missing");
-  if (s.building) bits.push("building…");
-  if (s.last_check) bits.push("last: " + s.last_check);
-  setHTML($("dll-status-line"), esc(bits.join(" · ")));
-  const steps = (s.steps || []).map(st => {
-    const mark = st.ok ? "✓" : "○";
-    return `<li style="margin:0.25rem 0"><b>${mark} ${esc(st.title)}</b><div class="note">${esc(st.hint)}</div></li>`;
+  if (mode === "live") {
+    lamps.push({
+      ch: "ap",
+      state: ap.ok ? "on" : "warn",
+      name: "AP",
+      val: ap.ok ? (ap.detail || "ready") : "slot?",
+      tip: ap.detail || "Set ap_config.json",
+    });
+  }
+  if (s.building || dllBusy === "build") {
+    lamps.push({
+      ch: "dll",
+      state: "warn",
+      name: "BUILD",
+      val: "working…",
+      tip: "cargo build --release",
+    });
+  }
+  setHTML(
+    $("dll-pills"),
+    lamps.map(p => `<div class="dll-lamp ch-${p.ch} ${p.state}" data-tip="${esc(p.tip)}">
+      <span class="led" aria-hidden="true"></span>
+      <span class="dll-lamp-meta">
+        <span class="dll-lamp-name">${esc(p.name)}</span>
+        <span class="dll-lamp-val">${esc(p.val)}</span>
+      </span>
+    </div>`).join("")
+  );
+  syncDllControls(s);
+  const focus = selectedIdentity();
+  const label = { done: "DONE", pending: "NEXT", blocked: "WAIT" };
+  let pendingSet = false;
+  const stamped = (s.steps || []).map(st => {
+    let row = st;
+    if (st.kind === "open") {
+      if (focus && focus.identified) {
+        row = {
+          ...st,
+          title: "Open " + focus.label + " in-game",
+          hint: "AP " + focus.ap_id + (focus.save_key ? " · " + focus.save_key : "") + " — watch LOG.",
+        };
+      } else if (focus) {
+        row = {
+          ...st,
+          title: "Open " + focus.label + " in-game",
+          hint: "No Keen identity yet — SAVE IDENTITY on SAVE DIFF first.",
+        };
+      } else {
+        row = {
+          ...st,
+          title: "Open selected location in-game",
+          hint: "Select an IDENTIFIED location on the left.",
+        };
+      }
+    }
+    if (row.state) return row;
+    if (row.ok) return { ...row, state: "done" };
+    if (!pendingSet) { pendingSet = true; return { ...row, state: "pending" }; }
+    return { ...row, state: "blocked" };
+  });
+  const steps = stamped.map(st => {
+    const state = st.state || "blocked";
+    const hint = state === "pending" && st.hint
+      ? `<p class="chint">${esc(st.hint)}</p>` : "";
+    return `<div class="check-item ${state}">
+      <span class="badge">${label[state] || state.toUpperCase()}</span>
+      <div>
+        <div class="ctitle">${esc(st.title)}</div>
+        ${hint}
+      </div>
+    </div>`;
   }).join("");
-  setHTML($("dll-steps"), steps || "<li class=\"note\">…</li>");
+  setHTML($("dll-steps"), steps || `<div class="note">…</div>`);
 }
 function appendDllLogs(logs) {
   if (!logs || !logs.length) return;
@@ -2009,9 +2442,11 @@ function appendDllLogs(logs) {
   $("dll-log").scrollTop = $("dll-log").scrollHeight;
 }
 async function refreshDllLab(full) {
+  if (dllRefreshInflight || dllBusy) return;
+  dllRefreshInflight = true;
   try {
     const data = await api("/api/dll/logs?since=" + (full ? 0 : dllLogSince), {
-      signal: AbortSignal.timeout(POLL_TIMEOUT_MS),
+      signal: AbortSignal.timeout(4000),
     });
     if (full) {
       dllLogSince = 0;
@@ -2021,20 +2456,33 @@ async function refreshDllLab(full) {
     renderDllStatus(data.status);
     appendDllLogs(data.logs || []);
   } catch (e) {
-    $("dll-action-note").textContent = e.message;
+    // Don't spam the action line with poll aborts; only surface real failures while idle.
+    if (!dllBusy && e.name !== "TimeoutError" && !/timed out|abort/i.test(String(e.message || e))) {
+      $("dll-action-note").textContent = e.message;
+    }
+  } finally {
+    dllRefreshInflight = false;
   }
 }
-async function dllAction(path, body) {
-  $("dll-action-note").textContent = "…";
+async function dllAction(path, body, busyKey) {
+  if (dllBusy) return;
+  dllBusy = busyKey || "work";
+  $("dll-action-note").textContent = "";
+  if (lastDllStatus) syncDllControls(lastDllStatus);
+  else syncDllControls({ host_running: false, game_running: false, dll_exists: true, mode: "test" });
   try {
     const data = await post(path, body || {});
     renderDllStatus(data);
-    $("dll-action-note").textContent = data.note || data.last_check || data.last_inject || "ok";
-    log("DLL", $("dll-action-note").textContent);
-    await refreshDllLab(false);
+    const note = data.note || data.last_check || data.last_inject || "ok";
+    $("dll-action-note").textContent = note;
+    log("DLL", note);
   } catch (e) {
     $("dll-action-note").textContent = e.message;
     log("ERR", "dll: " + e.message);
+    if (lastDllStatus) syncDllControls(lastDllStatus);
+  } finally {
+    dllBusy = "";
+    if (lastDllStatus) syncDllControls(lastDllStatus);
   }
 }
 
@@ -2151,19 +2599,42 @@ $("tab-md").onclick = () => showPreviewTab("md");
 $("pane-checks").onclick = () => setPane("checks");
 $("pane-items").onclick = () => setPane("items");
 $("work-tab-diff").onclick = () => setWork("diff");
-$("work-tab-ram").onclick = () => setWork("ram");
+$("work-tab-ram").onclick = () => {
+  const loc = selected();
+  if (loc && !loc.identified && !loc.mapped) {
+    const ok = window.confirm(
+      loc.label + " has no Keen identity yet.\n\n"
+      + "RAM DUMP without SAVE DIFF scans ~34 MB and almost never finds the flag.\n\n"
+      + "Open RAM DUMP anyway? (Buttons stay locked until you SAVE IDENTITY.)"
+    );
+    if (!ok) return;
+  }
+  setWork("ram");
+};
 $("work-tab-saves").onclick = () => setWork("saves");
 $("work-tab-dll").onclick = () => setWork("dll");
-$("dll-mode-test").onclick = () => dllAction("/api/dll/mode", { mode: "test" });
-$("dll-mode-live").onclick = () => dllAction("/api/dll/mode", { mode: "live" });
+$("dll-mode-test").onclick = () => dllAction("/api/dll/mode", { mode: "test" }, "mode");
+$("dll-mode-live").onclick = () => dllAction("/api/dll/mode", { mode: "live" }, "mode");
 $("btn-dll-start").onclick = () => {
   const live = $("dll-mode-live").classList.contains("on");
-  dllAction("/api/dll/start", { mode: live ? "live" : "test" });
+  dllAction("/api/dll/start", { mode: live ? "live" : "test" }, "start");
 };
-$("btn-dll-stop").onclick = () => dllAction("/api/dll/stop");
-$("btn-dll-build").onclick = () => dllAction("/api/dll/build");
-$("btn-dll-inject").onclick = () => dllAction("/api/dll/inject");
-$("btn-dll-simulate").onclick = () => dllAction("/api/dll/simulate", {});
+$("btn-dll-stop").onclick = () => dllAction("/api/dll/stop", {}, "stop");
+$("btn-dll-build").onclick = () => dllAction("/api/dll/build", {}, "build");
+$("btn-dll-inject").onclick = () => dllAction("/api/dll/inject", {}, "inject");
+$("btn-dll-simulate").onclick = () => {
+  const focus = selectedIdentity();
+  if (!focus || !focus.identified || focus.region_id == null) {
+    $("dll-action-note").textContent = "Select an IDENTIFIED location on the left first.";
+    return;
+  }
+  dllAction("/api/dll/simulate", {
+    region_id: focus.region_id,
+    layer_id: focus.layer_id,
+    object_id: focus.object_id,
+    value_key: focus.value_key,
+  }, "simulate");
+};
 $("btn-dll-log-clear").onclick = () => {
   dllLogLines = [];
   $("dll-log").textContent = "";
@@ -2219,6 +2690,9 @@ document.querySelectorAll(".copy").forEach(b => b.onclick = async () => {
   }
   setPane(ui.pane === "items" ? "items" : "checks");
   loadSavSlots();
+  let seen = false;
+  try { seen = localStorage.getItem("darkside_splash_seen") === "1"; } catch (_) {}
+  if (!seen) setSplash(true);
   poll();
 })();
 </script>
