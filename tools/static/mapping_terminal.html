@@ -150,7 +150,24 @@
     @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
     .card { border: 1px solid var(--line); background: var(--panel); padding: 0.55rem 0.65rem; }
     .loc-title { color: var(--hi); font-size: 1.05em; }
-    .loc-meta { color: var(--dim); margin-top: 0.15rem; display: flex; gap: 0.8rem; flex-wrap: wrap; }
+    .loc-meta { color: var(--dim); margin-top: 0.15rem; display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: center; }
+    #loc-card.needs-id { border-color: #6a5020; background: var(--warn-bg); }
+    #loc-card.needs-id .loc-title { color: var(--warn); }
+    #loc-card.has-id { border-color: #3d5a7a; background: var(--key-bg); }
+    #loc-card.has-id .loc-title { color: var(--key); }
+    #loc-card.is-mapped { border-color: #2a5a3a; background: var(--ok-bg); }
+    #loc-card.is-mapped .loc-title { color: var(--ok); }
+    .loc-status {
+      display: inline-block; font-size: 0.78em; letter-spacing: 0.1em;
+      padding: 0.15em 0.45em; border: 1px solid var(--line2); color: var(--dim);
+    }
+    .loc-status.needs { border-color: var(--warn); color: var(--warn); background: #241a08; }
+    .loc-status.id { border-color: var(--key); color: var(--key); background: #0b1520; }
+    .loc-status.map { border-color: var(--ok); color: var(--ok); background: #0d1a12; }
+    .next .d b { color: var(--hi); }
+    .next.warn .d { color: #e8d9a8; }
+    .next.warn .d b { color: var(--warn); }
+    #work-tab-ram.needs-id { border-color: var(--warn); color: var(--warn); }
     .steps { display: flex; flex-direction: column; gap: 0.35rem; }
     .step {
       display: grid; grid-template-columns: 1.7rem minmax(0, 1fr) auto; gap: 0.2rem 0.6rem;
@@ -451,8 +468,12 @@
           </div>
 
           <div class="card" id="loc-card" hidden>
-            <div class="loc-title" id="loc-title"></div>
+            <div class="row" style="justify-content:space-between;align-items:flex-start;gap:0.5rem">
+              <div class="loc-title" id="loc-title"></div>
+              <span class="loc-status" id="loc-status" hidden></span>
+            </div>
             <div class="loc-meta" id="loc-meta"></div>
+            <p class="note" id="loc-gate" hidden style="margin-top:0.4rem"></p>
           </div>
 
           <div id="work-diff">
@@ -1612,10 +1633,23 @@ function renderCapture() {
   const saveCand = cands.find(d => d.address === saveAddr);
 
   // location card (mapping tabs only)
-  $("loc-card").hidden = ui.work === "saves" || !loc;
-  if (!loc) $("row-json").textContent = "Pick a location first.";
+  const card = $("loc-card");
+  card.hidden = ui.work === "saves" || !loc;
+  card.classList.remove("needs-id", "has-id", "is-mapped");
+  const statusEl = $("loc-status");
+  const gateEl = $("loc-gate");
+  if (!loc) {
+    $("row-json").textContent = "Pick a location first.";
+    statusEl.hidden = true;
+    gateEl.hidden = true;
+  }
   if (loc) {
+    const needsId = !loc.identified && !loc.mapped;
     $("loc-title").textContent = loc.label;
+    statusEl.hidden = false;
+    statusEl.className = "loc-status " + (loc.mapped ? "map" : loc.identified ? "id" : "needs");
+    statusEl.textContent = loc.mapped ? "MAPPED" : loc.identified ? "IDENTIFIED" : "NEEDS SAVE DIFF";
+    card.classList.add(loc.mapped ? "is-mapped" : loc.identified ? "has-id" : "needs-id");
     setHTML($("loc-meta"), [
       esc(loc.ap_region || loc.region), esc(loc.kind), "AP " + loc.ap_id,
       loc.vanilla_item ? ("vanilla " + esc(loc.vanilla_item)) : "",
@@ -1623,6 +1657,20 @@ function renderCapture() {
         : loc.identified ? `<span style="color:var(--key)">Keen ${esc(loc.save_key)}</span>`
         : `<span style="color:var(--warn)">no Keen object yet</span>`
     ].filter(Boolean).map(x => `<span>${x}</span>`).join(""));
+    if (needsId) {
+      gateEl.hidden = false;
+      gateEl.innerHTML = ui.work === "ram"
+        ? "RAM DUMP is locked until SAVE DIFF writes a Keen identity for this check."
+        : ui.work === "dll"
+          ? "DLL inject can watch this only after SAVE IDENTITY (Keen object)."
+          : "Do SAVE DIFF here first — two slots → DIFF SAVES → SAVE IDENTITY. Then RAM DUMP or DLL LAB.";
+    } else if (loc.identified && !loc.mapped && ui.work === "diff") {
+      gateEl.hidden = false;
+      gateEl.innerHTML = "Keen identity saved. Mem path: switch to <b>RAM DUMP</b>. DLL path: <b>DLL LAB</b> can use this now.";
+    } else {
+      gateEl.hidden = true;
+      gateEl.textContent = "";
+    }
     $("row-json").textContent = loc.target ? JSON.stringify(loc.target, null, 2) : "No row yet. SAVE IDENTITY appends one with id \"" + loc.id + "\".";
   }
 
@@ -1636,27 +1684,50 @@ function renderCapture() {
 
   const bB = $("btn-baseline"), bD = $("btn-diff"), bS = $("btn-save");
   const hold = Math.ceil(cap.hold_s || 0);
-  bB.disabled = !loc || !up || freeze;
+  const ramReady = !!(loc && (loc.identified || loc.mapped));
+  bB.disabled = !loc || !up || freeze || !ramReady;
   bB.textContent = busy === "baseline" ? "DUMPING…"
     : wait === "baseline" ? (cap.foreground ? ("IN-GAME " + hold + "s") : "GO TO GAME")
+    : !ramReady ? "NEED IDENTITY"
     : stage === "idle" ? "BASELINE" : "RETAKE";
-  bD.disabled = stage === "idle" || !up || freeze;
+  bD.disabled = stage === "idle" || !up || freeze || !ramReady;
   bD.textContent = busy === "diff" ? "DIFFING…"
     : wait === "diff" ? (cap.foreground ? ("IN-GAME " + hold + "s") : "GO TO GAME")
     : stage === "diffed" ? "DIFF AGAIN" : "DIFF";
   const talk = locTalk(loc);
   const how1 = $("how-li-1");
   const how2 = $("how-li-2");
-  if (how1) how1.innerHTML = "Quit to the pause menu. <b>Save</b> while the " + talk.kind + " is still " + talk.closed + " (note the slot).";
-  if (how2) how2.innerHTML = talk.openVerb + " the " + talk.kind + ". <b>Save</b> again in a different slot.";
+  const howLbl = $("how-card") && $("how-card").querySelector(".lbl");
+  if (howLbl) {
+    howLbl.textContent = loc && !loc.identified && !loc.mapped
+      ? ("NEEDS IDENTITY — " + loc.label)
+      : "TWO IN-GAME SAVES. DIFF THE OBJECT RECORD. NOT A RAM DUMP.";
+  }
+  if (how1) {
+    how1.innerHTML = loc
+      ? ("Quit to the pause menu. <b>Save</b> while <b>" + esc(loc.label) + "</b> is still " + talk.closed + " (note the slot).")
+      : ("Quit to the pause menu. <b>Save</b> while the " + talk.kind + " is still " + talk.closed + " (note the slot).");
+  }
+  if (how2) {
+    how2.innerHTML = loc
+      ? (talk.openVerb + " <b>" + esc(loc.label) + "</b>. <b>Save</b> again in a different slot.")
+      : (talk.openVerb + " the " + talk.kind + ". <b>Save</b> again in a different slot.");
+  }
   const ramNote = $("ram-note");
   if (ramNote) {
-    ramNote.textContent = "Identified rows (SAVE DIFF first) scan the heap for the packed ObjectID+RegionID+LayerID triple from the Keen dumps, then nearby, and diff only around those. Rows without an identity diff 34 MB of .data, where " + talk.kind + " flags are not. The closed dump samples for 4 s and the open dump for 1.5 s — stand still for both. F8 still dumps while this tab is hidden.";
+    ramNote.textContent = loc && !loc.identified && !loc.mapped
+      ? ("Locked for " + loc.label + " — finish SAVE DIFF first. Without a Keen identity this diffs ~34 MB of .data and almost never finds the " + talk.kind + " flag.")
+      : ("Identified rows (SAVE DIFF first) scan the heap for the packed ObjectID+RegionID+LayerID triple from the Keen dumps, then nearby, and diff only around those. Rows without an identity diff 34 MB of .data, where " + talk.kind + " flags are not. The closed dump samples for 4 s and the open dump for 1.5 s — stand still for both. F8 still dumps while this tab is hidden.");
   }
   $("what-1").textContent = "Pick the AP name for the " + talk.kind + " you are facing";
   $("why-1").textContent = "The dump cannot see which " + talk.kind + " it is. The name you pick is what gets written.";
-  $("btn-baseline").dataset.tip = "Arms a wait: dump after Darksiders stays in front 7s. Click the game, unpause (Esc), stand still. " + talk.kind + " still " + talk.closed + ". In-game F8 dumps now. Shortcut: B";
-  $("btn-diff").dataset.tip = talk.openVerb + " the " + talk.kind + " first, then arm AFTER. Click back, unpause, wait 7s — or press F8 in-game. Shortcut: D";
+  $("btn-baseline").dataset.tip = !ramReady
+    ? "Locked — this location has no Keen identity. Finish SAVE DIFF → SAVE IDENTITY first."
+    : "Arms a wait: dump after Darksiders stays in front 7s. Click the game, unpause (Esc), stand still. " + talk.kind + " still " + talk.closed + ". In-game F8 dumps now. Shortcut: B";
+  $("btn-diff").dataset.tip = !ramReady
+    ? "Locked — SAVE DIFF identity required before RAM dumps."
+    : talk.openVerb + " the " + talk.kind + " first, then arm AFTER. Click back, unpause, wait 7s — or press F8 in-game. Shortcut: D";
+  $("work-tab-ram").classList.toggle("needs-id", !!(loc && !loc.identified && !loc.mapped));
   $("what-2").textContent = stage === "idle"
     ? "Dump BEFORE — " + talk.kind + " still " + talk.closed
     : "Closed dump stored — do not RETAKE unless still " + talk.closed;
@@ -1744,8 +1815,14 @@ function renderCapture() {
       [jump, over]);
   } else if (ui.work === "ram") {
     if (!loc) {
-      setNext("action", "Pick the AP name, then dump",
-        "Pick an IDENTIFIED " + talk.kind + " (SAVE DIFF first) so the capture can scan the heap around it. F8 still dumps while this tab is hidden.");
+      setNext("action", "Pick an IDENTIFIED location",
+        "RAM DUMP needs a Keen identity. Pick a row tagged IDENTIFIED (or finish SAVE DIFF first).");
+    } else if (!loc.identified && !loc.mapped) {
+      setNext("warn", "Blocked — SAVE DIFF first",
+        "<b>" + esc(loc.label) + "</b> (AP " + loc.ap_id + ") has <b>no Keen object</b> yet. "
+          + "Without it, RAM DUMP scans ~34 MB of .data and almost never finds this " + talk.kind + ". "
+          + "Go to SAVE DIFF: two slots → DIFF SAVES → SAVE IDENTITY.",
+        [{ label: "GO TO SAVE DIFF", cls: "primary", run: () => setWork("diff") }]);
     } else if (stage === "diffed") {
       if (!cands.length) {
         setNext("warn", "No 0→1 byte found",
@@ -1774,9 +1851,6 @@ function renderCapture() {
     } else if (loc.identified) {
       setNext("action", talk.kind[0].toUpperCase() + talk.kind.slice(1) + " " + talk.closed + ", stand still, F8",
         "Heap capture around <code>" + esc(loc.save_key) + "</code>. Load a save where it is still " + talk.closed + ", stand next to it, press <b>F8</b> (4 s sample).");
-    } else {
-      setNext("warn", "Identify it on SAVE DIFF first",
-        "Without a Keen identity this diffs 34 MB of .data, where " + talk.kind + " flags are not. Two save slots on SAVE DIFF, then come back.");
     }
   } else if (!loc) {
     setNext("action", "Pick the location you just opened",
@@ -1801,13 +1875,23 @@ function renderCapture() {
     }
   } else if (loc.identified && !loc.mapped) {
     setNext("ok", "Keen identity saved",
-      "<code>" + esc(loc.save_key) + "</code> — identity saved. Mem path: RAM DUMP next. DLL path: DLL LAB can use this without a RAM offset.");
+      "<code>" + esc(loc.save_key) + "</code> — identity saved. Mem path: <b>RAM DUMP</b> next. DLL path: <b>DLL LAB</b> can use this without a RAM offset.",
+      [
+        { label: "RAM DUMP", cls: "primary", run: () => setWork("ram") },
+        { label: "DLL LAB", cls: "ghost", run: () => setWork("dll") },
+      ]);
   } else if (loc.mapped) {
     setNext("ok", "Already mapped",
-      "RAM watch is under LIVE VALUES. Keen identity can still be saved from two slots.");
+      "RAM watch is under LIVE VALUES. Keen identity can still be re-saved from two slots if needed.");
   } else {
-    setNext("action", "Two save slots, then DIFF SAVES",
-      "Save while <b>" + esc(loc.label) + "</b> is " + talk.closed + ". " + talk.openVerb + " it. Save in another slot. Pick the slots. The game can be closed.");
+    setNext("warn", "Needs SAVE DIFF — no Keen identity yet",
+      "<b>" + esc(loc.label) + "</b> · AP " + loc.ap_id
+        + (loc.vanilla_item ? (" · vanilla " + esc(loc.vanilla_item)) : "")
+        + ".<br>"
+        + "<b>1.</b> In-game: save while this " + talk.kind + " is still <b>" + talk.closed + "</b> (note the slot).<br>"
+        + "<b>2.</b> " + talk.openVerb + " it, then save in a <b>different</b> slot. Game can be closed after.<br>"
+        + "<b>3.</b> Set CLOSED / OPENED above → <b>DIFF SAVES</b> → click the matching row → <b>SAVE IDENTITY</b>.<br>"
+        + "RAM DUMP and DLL checks stay locked until that identity exists.");
   }
 }
 
@@ -1838,6 +1922,12 @@ async function runStep(n, kind, fn) {
 function armCapture(kind) {
   const loc = selected();
   if (!loc) return;
+  if (!loc.identified && !loc.mapped) {
+    setNext("warn", "Blocked — SAVE DIFF first",
+      "<b>" + esc(loc.label) + "</b> has no Keen object yet. Finish SAVE DIFF → SAVE IDENTITY before RAM dumps.",
+      [{ label: "GO TO SAVE DIFF", cls: "primary", run: () => setWork("diff") }]);
+    return;
+  }
   const step = kind === "baseline" ? 2 : 3;
   runStep(step, "arm-" + kind, async () => {
     const data = await post("/api/capture/arm", { id: loc.id, kind });
@@ -2509,7 +2599,18 @@ $("tab-md").onclick = () => showPreviewTab("md");
 $("pane-checks").onclick = () => setPane("checks");
 $("pane-items").onclick = () => setPane("items");
 $("work-tab-diff").onclick = () => setWork("diff");
-$("work-tab-ram").onclick = () => setWork("ram");
+$("work-tab-ram").onclick = () => {
+  const loc = selected();
+  if (loc && !loc.identified && !loc.mapped) {
+    const ok = window.confirm(
+      loc.label + " has no Keen identity yet.\n\n"
+      + "RAM DUMP without SAVE DIFF scans ~34 MB and almost never finds the flag.\n\n"
+      + "Open RAM DUMP anyway? (Buttons stay locked until you SAVE IDENTITY.)"
+    );
+    if (!ok) return;
+  }
+  setWork("ram");
+};
 $("work-tab-saves").onclick = () => setWork("saves");
 $("work-tab-dll").onclick = () => setWork("dll");
 $("dll-mode-test").onclick = () => dllAction("/api/dll/mode", { mode: "test" }, "mode");
