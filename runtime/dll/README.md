@@ -67,6 +67,14 @@ python -m runtime.dll --no-ap --simulate-open "{\"region_id\":2,\"layer_id\":6,\
 2. TEST SIMULATE or in-game open: `CHECK …` / `op=open`
 3. LIVE: same, plus LocationChecks on the AP socket
 
+## Inject troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `WriteProcessMemory failed: 998` | Old injector truncated 64-bit remote addresses | Use current `tools/dll_inject.py` (c_void_p prototypes); restart dashboard; reinject |
+| Host log flooded with client connect/disconnect | Dashboard TCP probes | Current host ignores empty probes; STOP/START HOST after update |
+| `LoadLibraryW returned NULL` | Arch mismatch or missing DLL deps | Confirm 64-bit Python + 64-bit `darkside_arch.dll` + game |
+
 ## What the DLL does
 
 1. Connects to the host; receives every `save_object` watch
