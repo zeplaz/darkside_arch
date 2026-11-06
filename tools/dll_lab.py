@@ -48,6 +48,7 @@ class DllLab:
         self._building = False
         self._mode = "test"  # UI selection
         self._host_mode: Optional[str] = None  # mode the running host was started with
+        self._tcp_cache: tuple[float, bool] = (0.0, False)
 
     def _append(self, source: str, text: str) -> None:
         text = text.rstrip()
@@ -74,11 +75,19 @@ class DllLab:
         self._append("lab", f"host exited code={code}")
 
     def _port_open(self) -> bool:
+        # Dashboard polls status often; each connect hits the host accept loop.
+        # Cache briefly so we do not flood the host log with probe churn.
+        now = time.monotonic()
+        cached_at, cached_ok = self._tcp_cache
+        if now - cached_at < 1.5:
+            return cached_ok
         try:
             with socket.create_connection((TCP_HOST, TCP_PORT), timeout=0.2):
-                return True
+                ok = True
         except OSError:
-            return False
+            ok = False
+        self._tcp_cache = (now, ok)
+        return ok
 
     def _ap_summary(self) -> dict[str, Any]:
         try:
@@ -291,6 +300,7 @@ class DllLab:
         self._reader.start()
         tag = "--no-ap" if want == "test" else "live AP"
         self._append("lab", f"started host pid={proc.pid} ({tag})")
+        self._tcp_cache = (0.0, False)
         for _ in range(20):
             if self._port_open():
                 break
@@ -304,6 +314,7 @@ class DllLab:
             proc = self._proc
             self._proc = None
             self._host_mode = None
+            self._tcp_cache = (0.0, False)
         if proc is None:
             return {"ok": True, "note": "no host", **self.status()}
         proc.terminate()
@@ -312,6 +323,7 @@ class DllLab:
         except subprocess.TimeoutExpired:
             proc.kill()
         self._append("lab", "host stopped")
+        self._tcp_cache = (0.0, False)
         return {"ok": True, **self.status()}
 
     def inject_dll(self) -> dict[str, Any]:

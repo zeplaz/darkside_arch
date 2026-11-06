@@ -76,12 +76,12 @@ class IpcServer:
                     conn, addr = sock.accept()
                 except socket.timeout:
                     continue
-                print(f"[dll/ipc] client {addr}")
                 with self._client_lock:
                     self._client = conn
                 conn.settimeout(1.0)
                 self._send_watches()
                 buf = b""
+                saw_payload = False
                 try:
                     while not self._stop.is_set():
                         try:
@@ -97,6 +97,9 @@ class IpcServer:
                             raw, buf = buf.split(b"\n", 1)
                             text = raw.decode("utf-8", errors="replace").strip()
                             if text:
+                                if not saw_payload:
+                                    print(f"[dll/ipc] client {addr}")
+                                    saw_payload = True
                                 self._on_message(text)
                 finally:
                     with self._client_lock:
@@ -106,6 +109,9 @@ class IpcServer:
                         conn.close()
                     except OSError:
                         pass
-                    print("[dll/ipc] client disconnected")
+                    # Dashboard TCP probes connect and hang up with no payload —
+                    # keep those out of the lab log.
+                    if saw_payload:
+                        print("[dll/ipc] client disconnected")
         finally:
             sock.close()
