@@ -1,6 +1,6 @@
 # Runtime paths
 
-Two player runtimes. Ship **one**. Mapping tools stay shared.
+Two player runtimes for **Darksiders Warmastered x64** only (not 2016 32-bit). Ship **one**. Mapping tools stay shared.
 
 | | **mem** | **dll** |
 |--|--|--|

@@ -1,6 +1,6 @@
 # darkside_arch
 
-Archipelago tooling for **Darksiders Warmastered** (`darksiders1.exe`, Steam x64). Two player runtimes — ship **one**. Run everything from the repo root.
+Archipelago tooling for **Darksiders Warmastered** only (`darksiders1.exe`, Steam app **462780**, **x64**). Do **not** map or inject on the 2016 32-bit retail build — Keen IDs and the DLL path will not match. Two player runtimes — ship **one**. Run everything from the repo root.
 
 | Track | Who | Install | Run |
 |-------|-----|---------|-----|
@@ -35,7 +35,7 @@ Longer copy + screenshots-in-words: [docs/DASHBOARD.md](docs/DASHBOARD.md). **?*
 
 ### Identify a chest (SAVE DIFF)
 
-Game can be closed. Slots: `-1` autosave, `0`–`9` the list.
+Needs [whatisaphone/war](https://github.com/whatisaphone/war) as a `.sav` codec (header pill **WAR**, or SAVE DIFF → **INSTALL WAR**). Warmastered x64 saves only. Game can be closed. Slots: `-1` autosave, `0`–`9` the list.
 
 1. Pause. **Save** while the chest is still closed. Note the slot.
 2. Open it. **Save** in a different slot.

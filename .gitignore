@@ -53,6 +53,8 @@ Desktop.ini
 snapshots/
 saves/
 *.sav
+*.apworld
+game_data/*.apworld
 
 # Rust DLL build
 runtime/dll/native/target/

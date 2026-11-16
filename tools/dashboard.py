@@ -52,10 +52,12 @@ from tools.save_patch import (
     EDITED_DIR,
     copy_into_steam,
     default_edited_path,
+    ensure_war_installed,
     find_war,
     is_steam_save_path,
     patch_sav_userid,
     steam_install_paths,
+    war_status,
 )
 from tools.save_object import (
     diff_sav_slots,
@@ -942,6 +944,48 @@ def _verified_values(db_path: Path) -> dict[str, str]:
         conn.close()
 
 
+_war_install_lock = threading.Lock()
+_war_installing = False
+_war_install_note = ""
+
+
+def _tools_payload() -> dict[str, Any]:
+    """war + bitness — SAVE DIFF needs war; game target is Warmastered x64 only."""
+    info = war_status()
+    with _war_install_lock:
+        installing = _war_installing
+        note = _war_install_note
+    info["installing"] = installing
+    if note:
+        info["note"] = note
+    return info
+
+
+def _start_war_install() -> dict[str, Any]:
+    global _war_installing, _war_install_note
+    with _war_install_lock:
+        if _war_installing:
+            return {"ok": True, "note": "war install already running", **_tools_payload()}
+        _war_installing = True
+        _war_install_note = "cloning / building war-cli…"
+
+    def _run() -> None:
+        global _war_installing, _war_install_note
+        try:
+            st = ensure_war_installed()
+            with _war_install_lock:
+                _war_install_note = "war ready: " + str(st.get("detail") or st.get("path") or "ok")
+        except (OSError, RuntimeError, CalledProcessError) as exc:
+            with _war_install_lock:
+                _war_install_note = f"war install failed: {exc}"
+        finally:
+            with _war_install_lock:
+                _war_installing = False
+
+    threading.Thread(target=_run, daemon=True).start()
+    return {"ok": True, "note": "war install started", **_tools_payload()}
+
+
 def state_payload(monitor: GameMonitor, db_path: Path, since: Optional[int]) -> dict[str, Any]:
     verified = _verified_values(db_path)
     watches = monitor.watches()
@@ -956,6 +1000,7 @@ def state_payload(monitor: GameMonitor, db_path: Path, since: Optional[int]) -> 
         "events": _event_rows(db_path, since),
         "history": since is None,
         "dll": LAB.status(),
+        "tools": _tools_payload(),
     }
 
 
@@ -1023,6 +1068,9 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                             "Export it after a verified mapping.)"
                         )
                     _json_response(self, {"markdown": md})
+                    return
+                if path == "/api/war/status":
+                    _json_response(self, _tools_payload())
                     return
                 if path == "/api/dll/status":
                     _json_response(self, LAB.status())
@@ -1163,6 +1211,9 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                         },
                     )
                     return
+                if path == "/api/war/install":
+                    _json_response(self, _start_war_install())
+                    return
                 if path == "/api/dll/mode":
                     _json_response(self, LAB.set_mode(str(body.get("mode") or "")))
                     return
@@ -1227,7 +1278,13 @@ def run_dashboard(
     print(f"[OK] Mapping dashboard at {url}")
     print(f"     UI: {PAGE_PATH}")
     print(f"     DB: {db_path.resolve()}")
-    print("     Workspace: SAVE DIFF · RAM DUMP · SAVES · DLL LAB (local inject POC).")
+    print("     Workspace: SAVE DIFF · RAM DUMP · SAVES · DLL LAB")
+    print("     Target: Darksiders Warmastered Steam x64 only (not 2016 32-bit).")
+    tools = _tools_payload()
+    if tools.get("ok"):
+        print(f"     war: {tools.get('detail')}")
+    else:
+        print("     war: MISSING — open SAVE DIFF → INSTALL WAR (needs Rust + git)")
     if open_browser:
         threading.Timer(0.4, lambda: webbrowser.open(url)).start()
     try:
