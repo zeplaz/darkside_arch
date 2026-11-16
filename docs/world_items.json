@@ -62,7 +62,7 @@
       "kind": "Artifacts"
     },
     {
-      "name": "Empty Container",
+      "name": "Empty Vessel",
       "ap_id": 30,
       "kind": "Consumables"
     },
@@ -167,6 +167,16 @@
       "kind": "Keys"
     },
     {
+      "name": "Map",
+      "ap_id": 62,
+      "kind": "Keys"
+    },
+    {
+      "name": "Hoardseeker",
+      "ap_id": 63,
+      "kind": "Keys"
+    },
+    {
       "name": "Air Tremor Smash",
       "ap_id": 70,
       "kind": "Gauntlet Combos"
@@ -232,28 +242,33 @@
       "kind": "Health"
     },
     {
-      "name": "Progressive Chaoseater",
+      "name": "Armageddon Blade",
       "ap_id": 100,
       "kind": "Primary Weapons"
     },
     {
-      "name": "Chaoseater",
+      "name": "Armageddon Blade Shard",
       "ap_id": 101,
       "kind": "Primary Weapons"
     },
     {
-      "name": "Armageddon Blade",
+      "name": "Chaoseater",
       "ap_id": 102,
       "kind": "Primary Weapons"
     },
     {
-      "name": "Armageddon Blade Shard",
+      "name": "Chaoseater Level Up",
       "ap_id": 103,
       "kind": "Primary Weapons"
     },
     {
-      "name": "Sword Key",
+      "name": "Progressive Sword",
       "ap_id": 104,
+      "kind": "Primary Weapons"
+    },
+    {
+      "name": "Sword Key",
+      "ap_id": 105,
       "kind": "Primary Weapons"
     },
     {
@@ -282,28 +297,33 @@
       "kind": "Scythe Combos"
     },
     {
-      "name": "Progressive Scythe",
+      "name": "Harvester",
       "ap_id": 120,
       "kind": "Secondary Weapons"
     },
     {
-      "name": "Harvester",
+      "name": "Hellraiser",
       "ap_id": 121,
       "kind": "Secondary Weapons"
     },
     {
-      "name": "Hellraiser",
+      "name": "Gauntlet Level Up",
       "ap_id": 122,
       "kind": "Secondary Weapons"
     },
     {
-      "name": "Progressive Gauntlet",
+      "name": "Progressive Scythe",
       "ap_id": 123,
       "kind": "Secondary Weapons"
     },
     {
-      "name": "Tremor Gauntlet",
+      "name": "Scythe Level Up",
       "ap_id": 124,
+      "kind": "Secondary Weapons"
+    },
+    {
+      "name": "Tremor Gauntlet",
+      "ap_id": 125,
       "kind": "Secondary Weapons"
     },
     {

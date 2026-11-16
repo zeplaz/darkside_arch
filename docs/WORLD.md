@@ -16,7 +16,7 @@ Bump this table after every `git pull` of the clone.
 | Field | Value |
 |-------|--------|
 | Branch | `main` |
-| Commit | `10d573a` — *All Locations* (2026-10-26) |
+| Commit | `0adab9e` — *reworked the json_read utils…* (2026-11-13) |
 
 ```powershell
 if (-not (Test-Path world\Archipelago-Darksiders)) {
@@ -27,7 +27,7 @@ git -C world\Archipelago-Darksiders pull --ff-only origin main
 python -m tools sync-world
 ```
 
-`sync-world` reads `data/*.json` and writes [world_locations.json](world_locations.json) and [world_items.json](world_items.json). `Locations.py` `create_location_table_from_json` decides `"in_ap"`. Catalog now: **321** names (**319** in AP, **2** local hotel tests). Join key is still the location **name**. Black Throne / Eden / Iron Canopy are live. [proposed/Seraphim Hotel.json](proposed/Seraphim%20Hotel.json) is **our test file only** (ids **2000 / 2001**) — not for his world, never reuse his ids.
+`sync-world` reads `data/*.json` and writes [world_locations.json](world_locations.json) and [world_items.json](world_items.json). `Locations.py` `create_location_table_from_json` decides `"in_ap"`. Catalog now: **382** names (**380** in AP, **2** local hotel tests). Join key is still the location **name**. Serpent Holes grew a lot in this sync; shop + option tests landed on his side. [proposed/Seraphim Hotel.json](proposed/Seraphim%20Hotel.json) is **our test file only** (ids **2000 / 2001**) — not for his world, never reuse his ids.
 
 ## Contract
 
@@ -36,7 +36,8 @@ python -m tools sync-world
 | Location **name** + AP **id** | Sacha `data/*.json` | Join key. `targets.json` `label` is byte-for-byte the same |
 | `vanilla item` | Sacha JSON | Hint only — several Hollows rows currently say Currency for armor/keys |
 | Keen **object** | This repo `save_object` | `world` + RegionID + LayerID + ObjectID + `Triggered`/`Destroyed`/`Open` |
-| RAM **offset** | This repo `targets.json` only | Warmastered / ASLR. Never write RVAs into the world |
+| RAM **offset** | This repo `targets.json` only | Warmastered x64 / ASLR. Never write RVAs into the world |
+| Live game | Warmastered Steam x64 | Never map on 2016 32-bit — Keen IDs diverge |
 
 If Sacha later adds Keen keys on a location object, we ingest them. RAM offsets stay here. `runtime.mem` watches RAM; `runtime.dll` joins on `save_object` after hooks.
 

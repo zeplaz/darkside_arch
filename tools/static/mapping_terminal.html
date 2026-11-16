@@ -151,12 +151,14 @@
     .card { border: 1px solid var(--line); background: var(--panel); padding: 0.55rem 0.65rem; }
     .loc-title { color: var(--hi); font-size: 1.05em; }
     .loc-meta { color: var(--dim); margin-top: 0.15rem; display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: center; }
-    #loc-card.needs-id { border-color: #6a5020; background: var(--warn-bg); }
+    #loc-card.needs-id, #war-setup-card.needs-id { border-color: #6a5020; background: var(--warn-bg); }
     #loc-card.needs-id .loc-title { color: var(--warn); }
-    #loc-card.has-id { border-color: #3d5a7a; background: var(--key-bg); }
+    #loc-card.has-id, #war-setup-card.has-id { border-color: #3d5a7a; background: var(--key-bg); }
     #loc-card.has-id .loc-title { color: var(--key); }
     #loc-card.is-mapped { border-color: #2a5a3a; background: var(--ok-bg); }
     #loc-card.is-mapped .loc-title { color: var(--ok); }
+    #war-setup-card.has-id .lbl { color: var(--key); }
+    #war-setup-card.needs-id .lbl { color: var(--warn); }
     .loc-status {
       display: inline-block; font-size: 0.78em; letter-spacing: 0.1em;
       padding: 0.15em 0.45em; border: 1px solid var(--line2); color: var(--dim);
@@ -384,13 +386,14 @@
 </head>
 <body>
   <header class="strip">
-    <div class="brand"><b>DARKSIDE_ARCH</b><span>mapper</span></div>
+    <div class="brand"><b>DARKSIDE_ARCH</b><span>Warmastered x64</span></div>
     <div class="pills">
       <span class="pill" id="pill-game" data-tip=""><span class="dot"></span>GAME <b>…</b></span>
       <span class="pill" id="pill-link" data-tip="Connection to this dashboard's Python server (python -m tools dashboard)."><span class="dot"></span>SERVER <b>…</b></span>
       <span class="pill" id="pill-checks" data-tip="Catalog locations with a real offset in targets.json (mem path). DLL LAB can use IDENTIFIED without an offset."><span class="dot"></span>CHECKS <b>0/0</b> <span class="bar"><i style="width:0"></i></span></span>
       <span class="pill" id="pill-items" data-tip="Inventory / goal rows with a real offset. Items for an unmapped row wait until mapped."><span class="dot"></span>ITEMS <b>0/0</b></span>
       <span class="pill" id="pill-ap" data-tip="From ap_config.json. This page does not connect to AP — use runtime.mem / runtime.dll or DLL LAB LIVE."><span class="dot"></span>AP <b>…</b></span>
+      <span class="pill" id="pill-war" data-tip="whatisaphone/war — Keen .sav decode for SAVE DIFF. Warmastered x64 only."><span class="dot"></span>WAR <b>…</b></span>
     </div>
     <div class="acts">
       <button type="button" id="splash-btn" data-tip="Show the start screen again.">START</button>
@@ -477,14 +480,30 @@
           </div>
 
           <div id="work-diff">
+          <div class="card" id="war-setup-card">
+            <div class="row" style="justify-content:space-between;align-items:flex-start;gap:0.5rem;flex-wrap:wrap">
+              <div>
+                <div class="lbl">SETUP — WAR + WARMMASTERED X64</div>
+                <p class="note" id="war-setup-note" style="margin-top:0.35rem">Checking war…</p>
+              </div>
+              <div class="row" style="gap:0.35rem">
+                <button type="button" class="ghost" id="btn-war-check" data-tip="Re-probe PATH / tools/vendor/war">CHECK WAR</button>
+                <button type="button" class="primary" id="btn-war-install" data-tip="git clone whatisaphone/war + cargo install war-cli">INSTALL WAR</button>
+                <button type="button" class="ghost" id="btn-war-copy" data-tip="Copy the install commands">COPY CMDS</button>
+              </div>
+            </div>
+            <pre id="war-setup-cmds" style="margin-top:0.45rem;max-height:6rem;font-size:0.85em">git clone https://github.com/whatisaphone/war.git tools/vendor/war
+cargo install --path tools/vendor/war/crates/war-cli</pre>
+          </div>
           <div class="card how" id="how-card">
-            <div class="lbl">TWO IN-GAME SAVES. DIFF THE OBJECT RECORD. NOT A RAM DUMP.</div>
+            <div class="lbl">TWO WARMMASTERED X64 SAVES. DIFF THE OBJECT RECORD. NOT A RAM DUMP.</div>
+            <p class="note" style="margin-top:0.35rem"><b>Steam Warmastered only</b> (<code>darksiders1.exe</code> x64, app 462780). Do <b>not</b> map on the 2016 32-bit build — Keen Region/Object IDs will not match.</p>
             <ol>
               <li id="how-li-1">Quit to the pause menu. <b>Save</b> while the object is still untouched (note the slot).</li>
               <li id="how-li-2">Trigger the object. <b>Save</b> again in a different slot.</li>
               <li>Pick the AP name on the left. Slot numbers: -1 is autosave, 0–9 are the list.</li>
-              <li><b>DIFF SAVES</b>. Chests write <code>Triggered</code>. Breakables are <code>Destroyed</code>. Doors are <code>Open</code>.</li>
-              <li><b>SAVE</b> the Keen identity. That is not a live AP watch — RAM offset comes later.</li>
+              <li><b>DIFF SAVES</b> (needs <b>war</b> above). Chests write <code>Triggered</code>. Breakables are <code>Destroyed</code>. Doors are <code>Open</code>.</li>
+              <li><b>SAVE IDENTITY</b>. That is not a live AP watch — RAM offset / DLL inject come later.</li>
             </ol>
           </div>
 
@@ -778,10 +797,10 @@
   <div id="splash" class="splash" hidden>
     <div class="splash-card" role="dialog" aria-labelledby="splash-h">
       <h1 id="splash-h">DARKSIDE_ARCH</h1>
-      <p class="lead">Only navigates. Nothing starts from here. The center <b>WORK MODE</b> bar switches the middle panel.</p>
+      <p class="lead">Warmastered <b>x64</b> only. Only navigates — nothing starts here. Center <b>WORK MODE</b> switches the middle panel.</p>
       <button type="button" class="splash-choice" id="splash-map" data-tip="Opens SAVE DIFF work mode.">
         <b>1 · MAP A CHECK</b>
-        <span>Takes you to SAVE DIFF. Two save slots → Keen identity. RAM DUMP only if you use the mem runtime.</span>
+        <span>SAVE DIFF on Warmastered saves (needs war). Two slots → Keen identity. Not the 2016 32-bit build.</span>
       </button>
       <button type="button" class="splash-choice" id="splash-dll" data-tip="Opens the DLL LAB work mode. Pick TEST or LIVE on that tab.">
         <b>2 · DLL LAB</b>
@@ -799,11 +818,13 @@
       <h2 id="help-h">HOW THIS WORKS</h2>
       <button type="button" id="help-close">CLOSE (Esc)</button>
     </div>
-    <p>Workspace tabs: <b>SAVE DIFF</b> (identity), <b>RAM DUMP</b> (live flag), <b>SAVES</b> (encode/install), <b>DLL LAB</b> (local inject POC, no AP server). Runtimes: <code>python -m runtime.mem</code> or <code>python -m runtime.dll</code> + inject — not this page for live seeds.</p>
+    <p>Target: <b>Darksiders Warmastered</b> Steam x64 (<code>darksiders1.exe</code>). Never map on the 2016 32-bit retail build. Workspace: <b>SAVE DIFF</b> · <b>RAM DUMP</b> · <b>SAVES</b> · <b>DLL LAB</b>. Runtimes: <code>python -m runtime.mem</code> or <code>python -m runtime.dll</code> + inject.</p>
     <div class="help-grid">
       <div>
+        <h3>WAR (SAVE DECODE)</h3>
+        <p>SAVE DIFF needs <a href="https://github.com/whatisaphone/war">whatisaphone/war</a> as a <b>.sav codec</b> only — not as a 32-bit game mod. Header pill <b>WAR</b> must be green. If missing: SAVE DIFF → <b>INSTALL WAR</b> (Rust + git), or copy the commands shown there.</p>
         <h3>CAPTURE A CHECK</h3>
-        <p>Two in-game save slots. Chests / artifacts / cubes are Keen WorldObjects (<code>Triggered</code>), same table as <code>Destroyed</code> breakables. Not a RAM 0→1.</p>
+        <p>Two Warmastered save slots. Chests / artifacts / cubes are Keen WorldObjects (<code>Triggered</code>). Not a RAM 0→1.</p>
         <ol>
           <li>Save while untouched. Open or collect it. Save again in another slot.</li>
           <li>Pick the AP name. Set the two slot numbers. <b>DIFF SAVES</b>.</li>
@@ -1056,11 +1077,53 @@ function renderPills() {
   $("pill-checks").querySelector(".bar i").style.width = pct + "%";
   const invN = (catalog.inventory || []).length;
   setPill("pill-items", catalog.inventory_mapped ? "ok" : "warn", (catalog.inventory_mapped || 0) + "/" + invN);
+  const tools = st?.tools || {};
+  if (tools.installing) {
+    setPill("pill-war", "warn", "BUILD…", "Installing whatisaphone/war (clone + cargo install).");
+  } else if (tools.ok) {
+    setPill("pill-war", "ok", "OK",
+      "war ready for SAVE DIFF / encode.\n" + (tools.detail || tools.path || "")
+      + "\n" + (tools.game || "Warmastered x64")
+      + "\nPython " + (tools.python_bits || "?") + "-bit");
+  } else {
+    setPill("pill-war", "bad", "MISSING",
+      (tools.reject || "Warmastered x64 only — not 2016 32-bit.")
+      + "\n\n" + (tools.hint || "Open SAVE DIFF → INSTALL WAR (needs Rust + git)."));
+  }
+  renderWarSetup(tools);
   const ap = catalog.ap || {};
   if (ap.slot) setPill("pill-ap", "ok", ap.slot + "@" + ap.uri + (ap.seed ? " · " + ap.seed : ""));
   else if (ap.config_present) setPill("pill-ap", "warn", "NO SLOT");
   else setPill("pill-ap", "", "NOT SET",
     "No ap_config.json. Copy ap_config.example.json and set slot. Only ds_client uses it; mapping works without it.");
+}
+function renderWarSetup(tools) {
+  const note = $("war-setup-note");
+  const card = $("war-setup-card");
+  const cmds = $("war-setup-cmds");
+  const btnInst = $("btn-war-install");
+  const btnChk = $("btn-war-check");
+  if (!note || !card) return;
+  const t = tools || {};
+  if (cmds && t.hint) cmds.textContent = t.hint;
+  card.classList.toggle("needs-id", !t.ok && !t.installing);
+  card.classList.toggle("has-id", !!t.ok);
+  if (t.installing) {
+    note.innerHTML = "<b>Installing war…</b> " + esc(t.note || "clone + cargo install. Keep this tab open.");
+  } else if (t.ok) {
+    note.innerHTML = "<b>war ready</b> — " + esc(t.detail || t.path || "ok")
+      + ". Map on <b>Warmastered x64</b> only. Python " + esc(t.python_bits || "?") + "-bit.";
+  } else {
+    note.innerHTML = "<b>war missing</b> — DIFF SAVES will fail until it is installed. "
+      + esc(t.reject || "Warmastered x64 only — not the 2016 32-bit build.")
+      + (t.cargo === false ? " Install Rust (<code>rustup.rs</code>) first." : "")
+      + " Then <b>INSTALL WAR</b>, or paste the commands below in a repo-root PowerShell.";
+  }
+  if (btnInst) {
+    btnInst.disabled = !!t.installing || !!t.ok;
+    btnInst.textContent = t.installing ? "INSTALLING…" : (t.ok ? "WAR OK" : "INSTALL WAR");
+  }
+  if (btnChk) btnChk.disabled = !!t.installing;
 }
 function pulse(id) {
   const el = $(id);
@@ -1523,13 +1586,18 @@ function renderSaveDiffPanel(loc) {
   const pathEl = $("sav-path");
   if (pathEl && ui.savPath && pathEl.value !== ui.savPath) pathEl.value = ui.savPath;
   fillSlotSelects();
+  const warOk = !!(st?.tools && st.tools.ok);
   stepState("s1", loc ? "done" : "now");
   const hasDiff = !!(saveDiff && loc && saveDiff.id === loc.id);
-  stepState("s2", !loc ? "locked" : hasDiff ? "done" : "now");
+  stepState("s2", !loc || !warOk ? "locked" : hasDiff ? "done" : "now");
   const pick = hasDiff ? (pickObj || saveDiff.pick) : null;
   stepState("s3", pick ? "now" : "locked");
-  $("btn-save-diff").disabled = !loc || pending === "save-diff";
-  $("btn-save-diff").textContent = pending === "save-diff" ? "DECODING…" : "DIFF SAVES";
+  $("btn-save-diff").disabled = !loc || !warOk || pending === "save-diff";
+  $("btn-save-diff").textContent = pending === "save-diff" ? "DECODING…"
+    : (!warOk ? "NEED WAR" : "DIFF SAVES");
+  $("btn-save-diff").dataset.tip = !warOk
+    ? "Install war first (SETUP card above). Decodes Warmastered .sav slots."
+    : "Decode both slots and list WorldObject Triggered/Destroyed/Open changes.";
   $("btn-save-obj").disabled = !pick || pending === "save-obj";
   const saveBusy = pending === "save-brief" || pending === "save-export" || pending === "save-diff";
   $("btn-brief-all").disabled = saveBusy;
@@ -1700,8 +1768,8 @@ function renderCapture() {
   const howLbl = $("how-card") && $("how-card").querySelector(".lbl");
   if (howLbl) {
     howLbl.textContent = loc && !loc.identified && !loc.mapped
-      ? ("NEEDS IDENTITY — " + loc.label)
-      : "TWO IN-GAME SAVES. DIFF THE OBJECT RECORD. NOT A RAM DUMP.";
+      ? ("NEEDS IDENTITY — " + loc.label + " (Warmastered x64)")
+      : "TWO WARMMASTERED X64 SAVES. DIFF THE OBJECT RECORD. NOT A RAM DUMP.";
   }
   if (how1) {
     how1.innerHTML = loc
@@ -1852,9 +1920,18 @@ function renderCapture() {
       setNext("action", talk.kind[0].toUpperCase() + talk.kind.slice(1) + " " + talk.closed + ", stand still, F8",
         "Heap capture around <code>" + esc(loc.save_key) + "</code>. Load a save where it is still " + talk.closed + ", stand next to it, press <b>F8</b> (4 s sample).");
     }
+  } else if (!(st?.tools && st.tools.ok)) {
+    setNext("warn", "Install war before SAVE DIFF",
+      "DIFF SAVES needs <b>whatisaphone/war</b> to decode Warmastered <code>.sav</code> files. "
+      + "Use the <b>SETUP</b> card → <b>INSTALL WAR</b> (Rust + git), or copy the commands. "
+      + "<b>Warmastered x64 only</b> — do not map on the 2016 32-bit build.",
+      [
+        { label: "INSTALL WAR", cls: "primary", run: () => $("btn-war-install").click() },
+        { label: "COPY CMDS", cls: "ghost", run: () => $("btn-war-copy").click() },
+      ]);
   } else if (!loc) {
     setNext("action", "Pick the location you just opened",
-      "Save while it is " + talk.closed + ", " + talk.openVerb.toLowerCase() + " it, save again. Then pick its exact AP name.");
+      "Save while it is " + talk.closed + ", " + talk.openVerb.toLowerCase() + " it, save again. Then pick its exact AP name. Warmastered x64 only.");
   } else if (saveDiff && saveDiff.id === loc.id) {
     const flags = visibleFlags(loc);
     const hidden = (saveDiff.flags || []).length - flags.length;
@@ -1887,11 +1964,11 @@ function renderCapture() {
     setNext("warn", "Needs SAVE DIFF — no Keen identity yet",
       "<b>" + esc(loc.label) + "</b> · AP " + loc.ap_id
         + (loc.vanilla_item ? (" · vanilla " + esc(loc.vanilla_item)) : "")
-        + ".<br>"
+        + " · <b>Warmastered x64</b>.<br>"
         + "<b>1.</b> In-game: save while this " + talk.kind + " is still <b>" + talk.closed + "</b> (note the slot).<br>"
         + "<b>2.</b> " + talk.openVerb + " it, then save in a <b>different</b> slot. Game can be closed after.<br>"
         + "<b>3.</b> Set CLOSED / OPENED above → <b>DIFF SAVES</b> → click the matching row → <b>SAVE IDENTITY</b>.<br>"
-        + "RAM DUMP and DLL checks stay locked until that identity exists.");
+        + "Do not use the 2016 32-bit build. RAM DUMP / DLL stay locked until identity exists.");
   }
 }
 
@@ -2137,9 +2214,60 @@ $("btn-swap-slots").onclick = () => {
   ui.slotAfter = Number(a.value);
   savePrefs();
 };
+$("btn-war-check").onclick = async () => {
+  try {
+    const data = await api("/api/war/status");
+    if (st) st.tools = data;
+    renderWarSetup(data);
+    renderPills();
+    renderCapture();
+    log("FILE", data.ok ? ("war ok · " + (data.detail || data.path)) : "war missing");
+  } catch (e) {
+    log("ERR", "war check: " + e.message);
+  }
+};
+$("btn-war-install").onclick = async () => {
+  try {
+    const data = await post("/api/war/install", {});
+    if (st) st.tools = data;
+    renderWarSetup(data);
+    renderPills();
+    log("FILE", data.note || "war install started");
+    const pollWar = async () => {
+      try {
+        const s = await api("/api/war/status");
+        if (st) st.tools = s;
+        renderWarSetup(s);
+        renderPills();
+        renderCapture();
+        if (s.installing) setTimeout(pollWar, 1500);
+        else log("FILE", s.ok ? ("war ready · " + (s.detail || s.path)) : (s.note || "war install finished"));
+      } catch (e) {
+        log("ERR", "war poll: " + e.message);
+      }
+    };
+    setTimeout(pollWar, 1200);
+  } catch (e) {
+    log("ERR", "war install: " + e.message);
+    $("war-setup-note").textContent = e.message;
+  }
+};
+$("btn-war-copy").onclick = async () => {
+  const text = ($("war-setup-cmds")?.textContent || "").trim();
+  try {
+    await navigator.clipboard.writeText(text);
+    log("FILE", "war install commands copied");
+  } catch {
+    log("ERR", "clipboard failed — select the commands box manually");
+  }
+};
 $("btn-save-diff").onclick = () => {
   const loc = selected();
   if (!loc) return;
+  if (!(st?.tools && st.tools.ok)) {
+    setMsg("s2", "err", "Install war first (SETUP card → INSTALL WAR).");
+    return;
+  }
   ui.savPath = $("sav-path").value.trim();
   ui.slotBefore = Number($("slot-before").value);
   ui.slotAfter = Number($("slot-after").value);

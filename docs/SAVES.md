@@ -2,6 +2,8 @@
 
 Map from the dashboard first: `python -m tools dashboard` — [DASHBOARD.md](DASHBOARD.md). This page is the save-file layout behind **SAVE DIFF** and the **SAVES** tab.
 
+**Warmastered x64 only** (Steam app 462780). Do not take identity pairs from the 2016 32-bit retail build — RegionID / ObjectID will not match the x64 client or DLL injector.
+
 Same slot, two files. JSON is a schema dump, not a memory map. Gitignored under `saves/`. Keep raw and patched apart:
 
 | Folder | |
@@ -56,12 +58,14 @@ python -m tools save-diff --slots 1 2 --location "Seraphim Hotel Life Chest 1" F
 
 Need a **new** slot: new game → Crossroads after Vulgrim (`overworld` / `CI_01`). Export JSON. Then:
 
+Easiest: dashboard **SAVE DIFF** → **INSTALL WAR** (or **COPY CMDS**). Same from a repo-root shell:
+
 ```powershell
 git clone https://github.com/whatisaphone/war.git tools/vendor/war
 cargo install --path tools/vendor/war/crates/war-cli
 python -m tools save-patch --sav saves\sacha_raw\keen_savegame_0_0.sav --userid YOUR_STEAM_ID --out saves\edited\keen_savegame_0_0.sav --install
 ```
 
-`save-patch` runs `war sav decode`, sets `SaveGameInfo.UserId`, then `war sav encode`. war only rewrites the **autosave** slot. `--install` copies into `remote\` and `remote\autocloud\save\` as both `svd_fmt_0_0.sav` and `keen_savegame_0_0.sav`. Quit the game and launch from Steam. Backups are timestamped (`*.sav.YYYYMMDD-HHMMSS.bak`) so a second install cannot eat the only copy.
+`save-patch` runs `war sav decode`, sets `SaveGameInfo.UserId`, then `war sav encode`. war only rewrites the **autosave** slot (codec for Warmastered `.sav`, not an in-game 32-bit mod). `--install` copies into `remote\` and `remote\autocloud\save\` as both `svd_fmt_0_0.sav` and `keen_savegame_0_0.sav`. Quit the game and launch from Steam. Backups are timestamped (`*.sav.YYYYMMDD-HHMMSS.bak`) so a second install cannot eat the only copy.
 
 `save-install` is JSON-only / late-game gate. It does not rewrite a playable `.sav`.

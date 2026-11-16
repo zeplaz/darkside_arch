@@ -11,7 +11,9 @@ Opens `http://127.0.0.1:8765/`. Flags: `--host`, `--port` (default `8765`), `--d
 
 It is a workspace for writing [targets.json](../targets.json). Player runtimes are separate: [runtime.mem](../runtime/mem/README.md) or [runtime.dll](../runtime/dll/README.md).
 
-First open shows a **START** splash (navigates only — Map a check / DLL LAB). Reopen with **START** in the header. Center **WORK MODE** bar switches the middle panel. DLL checklist rows are tinted **DONE** / **PENDING** / **BLOCKED**.
+**Target build:** Darksiders **Warmastered** Steam **x64** only. Do not SAVE DIFF / inject on the 2016 32-bit retail game.
+
+First open shows a **START** splash (navigates only — Map a check / DLL LAB). Reopen with **START** in the header. Center **WORK MODE** bar switches the middle panel. Header pill **WAR** must be green before DIFF SAVES (install from the SAVE DIFF setup card if missing). DLL checklist rows are tinted **DONE** / **PENDING** / **BLOCKED**.
 
 | Tab | Does | Writes |
 |-----|------|--------|
@@ -44,7 +46,9 @@ Pick the AP name here. Never type labels — they must match [WORLD.md](WORLD.md
 
 ## SAVE DIFF — identify
 
-Game can be closed. Slots: `-1` autosave, `0`–`9` the list.
+Requires **war** (`whatisaphone/war`) to decode `.sav`. If the **WAR** pill is red: open SAVE DIFF → **INSTALL WAR** (needs [Rust](https://rustup.rs) + git), or copy the commands on that card. war is a save codec here — not a 32-bit in-game mod.
+
+Game can be closed. Warmastered x64 saves only. Slots: `-1` autosave, `0`–`9` the list.
 
 1. Pause. **Save** while the object is still untouched. Note the slot.
 2. Open / collect it. **Save** in a different slot.

@@ -106,7 +106,7 @@
       "ap_id": 12,
       "region": "Anvil's Ford Challenge Area",
       "kind": "location",
-      "vanilla_item": "",
+      "vanilla_item": "Combat Lore",
       "in_ap": true,
       "area": "Anvil Ford"
     },
@@ -129,6 +129,15 @@
       "area": "Anvil Ford"
     },
     {
+      "name": "Anvil's Ford Challenge Area Wicked K defeated",
+      "ap_id": 15,
+      "region": "Anvil's Ford Challenge Area",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Anvil Ford"
+    },
+    {
       "name": "Ashlands Access Tunnel Chest by Goremaw",
       "ap_id": 100,
       "region": "Ashlands Access Tunnel 1",
@@ -147,8 +156,17 @@
       "area": "Ashlands"
     },
     {
-      "name": "Ashlands Access Tunnel Chest Blocked by Ice",
+      "name": "Ashlands Access Tunnel Above Three Goremaws Chest",
       "ap_id": 102,
+      "region": "Ashlands Access Tunnel 1",
+      "kind": "chest",
+      "vanilla_item": "Wrath Shard",
+      "in_ap": true,
+      "area": "Ashlands"
+    },
+    {
+      "name": "Ashlands Access Tunnel Chest Blocked by Ice",
+      "ap_id": 103,
       "region": "Ashlands Access Tunnel 2",
       "kind": "chest",
       "vanilla_item": "Lifestone Shard",
@@ -157,7 +175,7 @@
     },
     {
       "name": "Ashlands Cave Underwater Artifact",
-      "ap_id": 107,
+      "ap_id": 108,
       "region": "Ashlands Cave Area",
       "kind": "artifact",
       "vanilla_item": "Soldier Artifact",
@@ -166,7 +184,7 @@
     },
     {
       "name": "Ashlands Cave North of First Goremaw Chest",
-      "ap_id": 108,
+      "ap_id": 109,
       "region": "Ashlands Cave Area",
       "kind": "chest",
       "vanilla_item": "Currency",
@@ -175,15 +193,6 @@
     },
     {
       "name": "Ashlands Chest up the Ramp",
-      "ap_id": 103,
-      "region": "Ashlands Central Tower Area",
-      "kind": "chest",
-      "vanilla_item": "Currency",
-      "in_ap": true,
-      "area": "Ashlands"
-    },
-    {
-      "name": "Ashlands Central Tower Middle Floor Chest",
       "ap_id": 104,
       "region": "Ashlands Central Tower Area",
       "kind": "chest",
@@ -192,8 +201,17 @@
       "area": "Ashlands"
     },
     {
+      "name": "Ashlands Central Tower Middle Floor Chest",
+      "ap_id": 105,
+      "region": "Ashlands Central Tower Area",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Ashlands"
+    },
+    {
       "name": "Ashlands Central Tower Top Floor Chest",
-      "ap_id": 130,
+      "ap_id": 131,
       "region": "Ashlands Central Tower Top Floor",
       "kind": "chest",
       "vanilla_item": "Abyssal Armor Piece",
@@ -202,7 +220,7 @@
     },
     {
       "name": "Ashlands East Island Chest",
-      "ap_id": 128,
+      "ap_id": 129,
       "region": "Ashlands East Island",
       "kind": "chest",
       "vanilla_item": "Currency",
@@ -211,7 +229,7 @@
     },
     {
       "name": "Ashlands Goremaw Tunnel Elevated Platform Chest",
-      "ap_id": 109,
+      "ap_id": 110,
       "region": "Ashlands Goremaw Tunnel",
       "kind": "chest",
       "vanilla_item": "Lifestone Shard",
@@ -220,7 +238,7 @@
     },
     {
       "name": "Ashlands Goremaw Tunnel East Chest",
-      "ap_id": 110,
+      "ap_id": 111,
       "region": "Ashlands Goremaw Tunnel",
       "kind": "chest",
       "vanilla_item": "Strife's Offering",
@@ -229,7 +247,7 @@
     },
     {
       "name": "Ashlands North east Cliff Artifact",
-      "ap_id": 129,
+      "ap_id": 130,
       "region": "Ashlands North East Cliff",
       "kind": "artifact",
       "vanilla_item": "Soldier Artifact",
@@ -238,7 +256,7 @@
     },
     {
       "name": "Ashlands Northern Edge behind Wood Pillars Chest",
-      "ap_id": 111,
+      "ap_id": 112,
       "region": "Ashlands Northern Edge",
       "kind": "chest",
       "vanilla_item": "Currency",
@@ -247,7 +265,7 @@
     },
     {
       "name": "Ashlands North Chest Blocked by Ice",
-      "ap_id": 112,
+      "ap_id": 113,
       "region": "Ashlands Northern Edge",
       "kind": "chest",
       "vanilla_item": "Wrath Shard",
@@ -256,7 +274,7 @@
     },
     {
       "name": "Ashlands First Berzerker Arena Chest",
-      "ap_id": 113,
+      "ap_id": 114,
       "region": "Ashlands Northern Edge",
       "kind": "chest",
       "vanilla_item": "Health",
@@ -265,7 +283,7 @@
     },
     {
       "name": "Ashlands passed Ash Titan Chest",
-      "ap_id": 114,
+      "ap_id": 115,
       "region": "Ashlands Northern Edge",
       "kind": "chest",
       "vanilla_item": "Currency",
@@ -274,7 +292,7 @@
     },
     {
       "name": "Ashlands Second Berzerker East Arena Chest",
-      "ap_id": 115,
+      "ap_id": 116,
       "region": "Ashlands Northern Edge",
       "kind": "chest",
       "vanilla_item": "Health",
@@ -283,7 +301,7 @@
     },
     {
       "name": "Ashlands Second Berzerker West Arena Chest",
-      "ap_id": 116,
+      "ap_id": 117,
       "region": "Ashlands Northern Edge",
       "kind": "chest",
       "vanilla_item": "Wrath",
@@ -292,15 +310,6 @@
     },
     {
       "name": "Ashlands First Shooter Sequence under Stairs Chest",
-      "ap_id": 117,
-      "region": "Ashlands Northern Edge",
-      "kind": "chest",
-      "vanilla_item": "Health",
-      "in_ap": true,
-      "area": "Ashlands"
-    },
-    {
-      "name": "Ashlands First Shooter Sequence before Drawbridge Chest",
       "ap_id": 118,
       "region": "Ashlands Northern Edge",
       "kind": "chest",
@@ -309,7 +318,7 @@
       "area": "Ashlands"
     },
     {
-      "name": "Ashlands First Shooter Sequence Final Chest",
+      "name": "Ashlands First Shooter Sequence before Drawbridge Chest",
       "ap_id": 119,
       "region": "Ashlands Northern Edge",
       "kind": "chest",
@@ -318,7 +327,7 @@
       "area": "Ashlands"
     },
     {
-      "name": "Ashlands Gladiator Arena East Chest",
+      "name": "Ashlands First Shooter Sequence Final Chest",
       "ap_id": 120,
       "region": "Ashlands Northern Edge",
       "kind": "chest",
@@ -327,7 +336,7 @@
       "area": "Ashlands"
     },
     {
-      "name": "Ashlands Gladiator Arena West Chest",
+      "name": "Ashlands Gladiator Arena East Chest",
       "ap_id": 121,
       "region": "Ashlands Northern Edge",
       "kind": "chest",
@@ -336,8 +345,17 @@
       "area": "Ashlands"
     },
     {
-      "name": "Ashlands Gladiator Champion defeated",
+      "name": "Ashlands Gladiator Arena West Chest",
       "ap_id": 122,
+      "region": "Ashlands Northern Edge",
+      "kind": "chest",
+      "vanilla_item": "Health",
+      "in_ap": true,
+      "area": "Ashlands"
+    },
+    {
+      "name": "Ashlands Gladiator Champion defeated",
+      "ap_id": 123,
       "region": "Ashlands Northern Edge",
       "kind": "location",
       "vanilla_item": "Ruin",
@@ -346,15 +364,6 @@
     },
     {
       "name": "Ashlands Gladiator Arena Exit Chest",
-      "ap_id": 123,
-      "region": "Ashlands Northern Edge",
-      "kind": "chest",
-      "vanilla_item": "Currency",
-      "in_ap": true,
-      "area": "Ashlands"
-    },
-    {
-      "name": "Ashlands North of Ash titan Chest",
       "ap_id": 124,
       "region": "Ashlands Northern Edge",
       "kind": "chest",
@@ -363,8 +372,17 @@
       "area": "Ashlands"
     },
     {
-      "name": "Ashlands Second Shooter Sequence South Chest",
+      "name": "Ashlands North of Ash titan Chest",
       "ap_id": 125,
+      "region": "Ashlands Northern Edge",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Ashlands"
+    },
+    {
+      "name": "Ashlands Second Shooter Sequence South Chest",
+      "ap_id": 126,
       "region": "Ashlands Northern Edge",
       "kind": "chest",
       "vanilla_item": "Health",
@@ -373,7 +391,7 @@
     },
     {
       "name": "Ashlands Second Shooter Sequence North Chest",
-      "ap_id": 126,
+      "ap_id": 127,
       "region": "Ashlands Northern Edge",
       "kind": "chest",
       "vanilla_item": "Currency",
@@ -382,7 +400,7 @@
     },
     {
       "name": "Ashlands Second Shooter Sequence underwater Artifact",
-      "ap_id": 127,
+      "ap_id": 128,
       "region": "Ashlands Northern Edge",
       "kind": "artifact",
       "vanilla_item": "Soldier Artifact",
@@ -390,8 +408,8 @@
       "area": "Ashlands"
     },
     {
-      "name": "Ashlands Armaggedon Blade Shard",
-      "ap_id": 131,
+      "name": "Ashlands Armageddon Blade Shard",
+      "ap_id": 132,
       "region": "Ashlands West Cliff",
       "kind": "location",
       "vanilla_item": "Armageddon Blade Shard",
@@ -400,16 +418,16 @@
     },
     {
       "name": "Ashlands West Tower Middle Floor Chest",
-      "ap_id": 105,
+      "ap_id": 106,
       "region": "Ashlands West Tower Area",
       "kind": "chest",
-      "vanilla_item": "Possession",
+      "vanilla_item": "Empty Vessel",
       "in_ap": true,
       "area": "Ashlands"
     },
     {
       "name": "Ashlands West Tower under North Drill Artifact",
-      "ap_id": 106,
+      "ap_id": 107,
       "region": "Ashlands West Tower Area",
       "kind": "artifact",
       "vanilla_item": "Overlord Artifact",
@@ -484,7 +502,7 @@
       "ap_id": 206,
       "region": "Black Throne East Guardian First Floor",
       "kind": "cube",
-      "vanilla_item": "Void Walker",
+      "vanilla_item": "Voidwalker",
       "in_ap": true,
       "area": "Black Throne"
     },
@@ -880,7 +898,7 @@
       "ap_id": 400,
       "region": "Broken Stair Access Tunnel",
       "kind": "artifact",
-      "vanilla_item": "Soldier Artifact",
+      "vanilla_item": "Champion Artifact",
       "in_ap": true,
       "area": "Broken Stairs"
     },
@@ -961,7 +979,7 @@
       "ap_id": 509,
       "region": "Choking Grounds",
       "kind": "chest",
-      "vanilla_item": "Currency",
+      "vanilla_item": "Lifestone Shard",
       "in_ap": true,
       "area": "Choking Grounds"
     },
@@ -970,7 +988,7 @@
       "ap_id": 510,
       "region": "Choking Grounds",
       "kind": "chest",
-      "vanilla_item": "Lifestone Shard",
+      "vanilla_item": "Currency",
       "in_ap": true,
       "area": "Choking Grounds"
     },
@@ -979,12 +997,12 @@
       "ap_id": 511,
       "region": "Choking Grounds",
       "kind": "chest",
-      "vanilla_item": "Empty Container",
+      "vanilla_item": "Empty Vessel",
       "in_ap": true,
       "area": "Choking Grounds"
     },
     {
-      "name": "Choking Grounds North Building Armaggedon Blade Shard",
+      "name": "Choking Grounds North Building Armageddon Blade Shard",
       "ap_id": 512,
       "region": "Choking Grounds",
       "kind": "location",
@@ -1038,6 +1056,15 @@
       "area": "Choking Grounds"
     },
     {
+      "name": "Choking Grounds Free the Tormented Warden",
+      "ap_id": 518,
+      "region": "Choking Grounds",
+      "kind": "location",
+      "vanilla_item": "Ravager",
+      "in_ap": true,
+      "area": "Choking Grounds"
+    },
+    {
       "name": "Choking Grounds Access Tunnel Lava River Chest",
       "ap_id": 500,
       "region": "Choking Grounds Access Tunnel 1",
@@ -1051,7 +1078,7 @@
       "ap_id": 501,
       "region": "Choking Grounds Access Tunnel 1",
       "kind": "chest",
-      "vanilla_item": "Abyssal Armor Piece",
+      "vanilla_item": "Empty Vessel",
       "in_ap": true,
       "area": "Choking Grounds"
     },
@@ -1155,6 +1182,15 @@
       "area": "Crossroads"
     },
     {
+      "name": "Crossroads Wicked K defeated",
+      "ap_id": 611,
+      "region": "Crossroads",
+      "kind": "chest",
+      "vanilla_item": "Currency",
+      "in_ap": true,
+      "area": "Crossroads"
+    },
+    {
       "name": "Drowned Pass Cave Under Waterfall Artifact",
       "ap_id": 703,
       "region": "Drowned Pass",
@@ -1209,8 +1245,17 @@
       "area": "Drowned Pass"
     },
     {
-      "name": "Drowned Pass Crystal Switch Platform Chest",
+      "name": "Drowned Pass Defender 3/6 Skeletons Survive Reward",
       "ap_id": 709,
+      "region": "Drowned Pass",
+      "kind": "location",
+      "vanilla_item": "Empty Vessel",
+      "in_ap": true,
+      "area": "Drowned Pass"
+    },
+    {
+      "name": "Drowned Pass Crystal Switch Platform Chest",
+      "ap_id": 710,
       "region": "Drowned Pass",
       "kind": "chest",
       "vanilla_item": "Lifestone Shard",
@@ -1218,8 +1263,8 @@
       "area": "Drowned Pass"
     },
     {
-      "name": "Drowned Pass Soldier Semi Submerged Building Artifact",
-      "ap_id": 710,
+      "name": "Drowned Pass Semi Submerged Building Artifact",
+      "ap_id": 711,
       "region": "Drowned Pass",
       "kind": "artifact",
       "vanilla_item": "Soldier Artifact",
@@ -1228,7 +1273,7 @@
     },
     {
       "name": "Drowned Pass Semi Submerged Building Chest",
-      "ap_id": 711,
+      "ap_id": 712,
       "region": "Drowned Pass",
       "kind": "chest",
       "vanilla_item": "Currency",
@@ -1237,7 +1282,7 @@
     },
     {
       "name": "Drowned Pass Wrath of War Reward",
-      "ap_id": 712,
+      "ap_id": 713,
       "region": "Drowned Pass",
       "kind": "location",
       "vanilla_item": "",
@@ -1246,7 +1291,7 @@
     },
     {
       "name": "Drowned Pass Armageddon Blade Shard",
-      "ap_id": 713,
+      "ap_id": 714,
       "region": "Drowned Pass",
       "kind": "location",
       "vanilla_item": "Armageddon Blade Shard",
@@ -1255,7 +1300,7 @@
     },
     {
       "name": "Drowned Pass Crystal Elevated Cliff Chest",
-      "ap_id": 714,
+      "ap_id": 715,
       "region": "Drowned Pass",
       "kind": "chest",
       "vanilla_item": "Lifestone Shard",
@@ -1264,10 +1309,28 @@
     },
     {
       "name": "Drowned Pass Counter Killer Reward",
-      "ap_id": 715,
+      "ap_id": 716,
       "region": "Drowned Pass",
       "kind": "location",
       "vanilla_item": "",
+      "in_ap": true,
+      "area": "Drowned Pass"
+    },
+    {
+      "name": "Drowned Pass Free the Tormented Warden",
+      "ap_id": 717,
+      "region": "Drowned Pass",
+      "kind": "armor",
+      "vanilla_item": "Abyssal Armor Piece",
+      "in_ap": true,
+      "area": "Drowned Pass"
+    },
+    {
+      "name": "Drowned Pass Wicked K defeated",
+      "ap_id": 718,
+      "region": "Drowned Pass",
+      "kind": "chest",
+      "vanilla_item": "Currency",
       "in_ap": true,
       "area": "Drowned Pass"
     },
@@ -1335,11 +1398,11 @@
       "area": "Dry Road"
     },
     {
-      "name": "Dry Road Armaggedon Blade Shard",
+      "name": "Dry Road Armageddon Blade Shard",
       "ap_id": 809,
       "region": "Dry Road",
       "kind": "location",
-      "vanilla_item": "Armaggedon Blade Shard",
+      "vanilla_item": "Armageddon Blade Shard",
       "in_ap": true,
       "area": "Dry Road"
     },
@@ -1447,7 +1510,7 @@
       "ap_id": 1033,
       "region": "Hollows Boss Room",
       "kind": "location",
-      "vanilla_item": "Heart of Chosen",
+      "vanilla_item": "Heart of the Chosen",
       "in_ap": true,
       "area": "Hollows"
     },
@@ -1924,7 +1987,7 @@
       "ap_id": 1104,
       "region": "Iron Canopy Past the Spider Area",
       "kind": "chest",
-      "vanilla_item": "Possession",
+      "vanilla_item": "Empty Vessel",
       "in_ap": true,
       "area": "Iron Canopy"
     },
@@ -1938,7 +2001,7 @@
       "area": "Iron Canopy"
     },
     {
-      "name": "Iron Canopy Silitha defeated",
+      "name": "Silitha defeated",
       "ap_id": 1129,
       "region": "Iron Canopy Silitha's Loom",
       "kind": "location",
@@ -1947,11 +2010,20 @@
       "area": "Iron Canopy"
     },
     {
-      "name": "Iron Canopy Silitha Item Reward",
+      "name": "Silitha Item Reward",
       "ap_id": 1130,
       "region": "Iron Canopy Silitha's Loom",
       "kind": "location",
       "vanilla_item": "Lifestone",
+      "in_ap": true,
+      "area": "Iron Canopy"
+    },
+    {
+      "name": "Silitha Loom Artifact",
+      "ap_id": 1131,
+      "region": "Iron Canopy Silitha's Loom",
+      "kind": "artifact",
+      "vanilla_item": "Soldier Artifact",
       "in_ap": true,
       "area": "Iron Canopy"
     },
@@ -2095,7 +2167,7 @@
       "ap_id": 1202,
       "region": "Leviathan's Drift",
       "kind": "location",
-      "vanilla_item": "Heart of Chosen",
+      "vanilla_item": "Heart of the Chosen",
       "in_ap": true,
       "area": "Leviathan Drift"
     },
@@ -2118,7 +2190,7 @@
       "area": "Leviathan Drift"
     },
     {
-      "name": "Leviathan's Drift Armaggedon Blade Shard",
+      "name": "Leviathan's Drift Armageddon Blade Shard",
       "ap_id": 1204,
       "region": "Leviathan's Drift Upper Area",
       "kind": "location",
@@ -2299,7 +2371,7 @@
     },
     {
       "name": "Serpent Hole to Anvil's Ford Chest",
-      "ap_id": 1618,
+      "ap_id": 1671,
       "region": "Serpent Holes to Anvil's Ford",
       "kind": "chest",
       "vanilla_item": "Wrath Shard",
@@ -2308,7 +2380,7 @@
     },
     {
       "name": "Serpent Hole to Dry Road Chest",
-      "ap_id": 1619,
+      "ap_id": 1672,
       "region": "Serpent Holes to Dry Road",
       "kind": "chest",
       "vanilla_item": "Wrath Shard",
@@ -2317,7 +2389,7 @@
     },
     {
       "name": "Serpent Hole to Twilight Cathedral Chest",
-      "ap_id": 1620,
+      "ap_id": 1673,
       "region": "Serpent Holes to Twilight Cathedral",
       "kind": "chest",
       "vanilla_item": "Lifestone Shard",
@@ -2599,7 +2671,7 @@
       "ap_id": 1732,
       "region": "Twilight Cathedral South Blade Path",
       "kind": "chest",
-      "vanilla_item": "Beholder Key",
+      "vanilla_item": "Currency",
       "in_ap": true,
       "area": "Twilight Cathedral"
     },
@@ -2635,7 +2707,7 @@
       "ap_id": 1706,
       "region": "Twilight Cathedral South Wing",
       "kind": "chest",
-      "vanilla_item": "Undying",
+      "vanilla_item": "Empty Vessel",
       "in_ap": true,
       "area": "Twilight Cathedral"
     },
@@ -2757,7 +2829,7 @@
       "area": "Serpent Holes"
     },
     {
-      "name": "Item1",
+      "name": "Items1",
       "ap_id": 1603,
       "region": "Vulgrim's Shop",
       "kind": "location",
@@ -2775,8 +2847,44 @@
       "area": "Serpent Holes"
     },
     {
-      "name": "Item3",
+      "name": "Item3.1",
       "ap_id": 1605,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Progressive Ricochet",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Item3.2",
+      "ap_id": 1606,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Progressive Ricochet",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Item4",
+      "ap_id": 1607,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Shredder",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Item5",
+      "ap_id": 1608,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Impact Rounds",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Item6",
+      "ap_id": 1609,
       "region": "Vulgrim's Shop",
       "kind": "chest",
       "vanilla_item": "Wrath Shard",
@@ -2784,8 +2892,8 @@
       "area": "Serpent Holes"
     },
     {
-      "name": "Item4",
-      "ap_id": 1606,
+      "name": "Item7",
+      "ap_id": 1610,
       "region": "Vulgrim's Shop",
       "kind": "location",
       "vanilla_item": "Wrath Core",
@@ -2793,8 +2901,8 @@
       "area": "Serpent Holes"
     },
     {
-      "name": "Item5",
-      "ap_id": 1607,
+      "name": "Item8",
+      "ap_id": 1611,
       "region": "Vulgrim's Shop",
       "kind": "location",
       "vanilla_item": "Rage",
@@ -2802,8 +2910,8 @@
       "area": "Serpent Holes"
     },
     {
-      "name": "Item6",
-      "ap_id": 1608,
+      "name": "Item9",
+      "ap_id": 1612,
       "region": "Vulgrim's Shop",
       "kind": "location",
       "vanilla_item": "Greater Rage",
@@ -2811,8 +2919,8 @@
       "area": "Serpent Holes"
     },
     {
-      "name": "Item7",
-      "ap_id": 1609,
+      "name": "Item10",
+      "ap_id": 1613,
       "region": "Vulgrim's Shop",
       "kind": "location",
       "vanilla_item": "Life Essence",
@@ -2820,8 +2928,8 @@
       "area": "Serpent Holes"
     },
     {
-      "name": "Item8",
-      "ap_id": 1610,
+      "name": "Item11",
+      "ap_id": 1614,
       "region": "Vulgrim's Shop",
       "kind": "location",
       "vanilla_item": "Greater Life Essence",
@@ -2829,8 +2937,8 @@
       "area": "Serpent Holes"
     },
     {
-      "name": "Item9",
-      "ap_id": 1611,
+      "name": "Item12",
+      "ap_id": 1615,
       "region": "Vulgrim's Shop",
       "kind": "location",
       "vanilla_item": "Possession",
@@ -2838,8 +2946,8 @@
       "area": "Serpent Holes"
     },
     {
-      "name": "Item10",
-      "ap_id": 1612,
+      "name": "Item13",
+      "ap_id": 1616,
       "region": "Vulgrim's Shop",
       "kind": "location",
       "vanilla_item": "Undying",
@@ -2847,26 +2955,17 @@
       "area": "Serpent Holes"
     },
     {
-      "name": "Item11",
-      "ap_id": 1613,
+      "name": "Item14",
+      "ap_id": 1617,
       "region": "Vulgrim's Shop",
       "kind": "location",
-      "vanilla_item": "Empty Container",
+      "vanilla_item": "Empty Vessel",
       "in_ap": true,
       "area": "Serpent Holes"
     },
     {
-      "name": "Pcombo1",
-      "ap_id": 1614,
-      "region": "Vulgrim's Shop",
-      "kind": "location",
-      "vanilla_item": "180 Orbit Slash",
-      "in_ap": true,
-      "area": "Serpent Holes"
-    },
-    {
-      "name": "Pcombo2",
-      "ap_id": 1615,
+      "name": "Sword1.1",
+      "ap_id": 1618,
       "region": "Vulgrim's Shop",
       "kind": "location",
       "vanilla_item": "Demon Edge",
@@ -2874,8 +2973,152 @@
       "area": "Serpent Holes"
     },
     {
-      "name": "Pcombo3",
-      "ap_id": 1616,
+      "name": "Sword1.2",
+      "ap_id": 1619,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Demon Edge",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Sword1.3",
+      "ap_id": 1620,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Demon Edge",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Sword2",
+      "ap_id": 1621,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "180 Orbit Slash",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Sword3",
+      "ap_id": 1622,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Whirl Wind Combo",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Sword4.1",
+      "ap_id": 1623,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Harpoon Tackle",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Sword4.2",
+      "ap_id": 1624,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Harpoon Tackle",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Sword4.3",
+      "ap_id": 1625,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Harpoon Tackle",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Sword5.1",
+      "ap_id": 1626,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Flipsaw",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Sword5.2",
+      "ap_id": 1627,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Flipsaw",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Sword5.3",
+      "ap_id": 1628,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Flipsaw",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Sword6",
+      "ap_id": 1629,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Meteor Strike",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Sword7.1",
+      "ap_id": 1630,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Power Strike",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Sword7.2",
+      "ap_id": 1631,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Power Strike",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Sword7.3",
+      "ap_id": 1632,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Power Strike",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Sword8.1",
+      "ap_id": 1633,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Sword Uppercut",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Sword8.2",
+      "ap_id": 1634,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Sword Uppercut",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Sword9.1",
+      "ap_id": 1635,
       "region": "Vulgrim's Shop",
       "kind": "location",
       "vanilla_item": "Devil's Cross",
@@ -2883,11 +3126,317 @@
       "area": "Serpent Holes"
     },
     {
-      "name": "Pcombo4",
-      "ap_id": 1617,
+      "name": "Sword9.2",
+      "ap_id": 1636,
       "region": "Vulgrim's Shop",
       "kind": "location",
-      "vanilla_item": "Flipsaw",
+      "vanilla_item": "Devil's Cross",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons1",
+      "ap_id": 1637,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Hellraiser",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons2",
+      "ap_id": 1638,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Harvester",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons3",
+      "ap_id": 1639,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Death's Rage",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons4",
+      "ap_id": 1640,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Reaper's Revenge",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons5.1",
+      "ap_id": 1641,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Air Reaper Blade",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons5.2",
+      "ap_id": 1642,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Air Reaper Blade",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons5.3",
+      "ap_id": 1643,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Air Reaper Blade",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons6.1",
+      "ap_id": 1644,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Reaper Blade",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons6.2",
+      "ap_id": 1645,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Reaper Blade",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons7.1",
+      "ap_id": 1646,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Hell Razor",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons7.2",
+      "ap_id": 1647,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Hell Razor",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons7.3",
+      "ap_id": 1648,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Hell Razor",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons8",
+      "ap_id": 1649,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Meteor Launch",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons9",
+      "ap_id": 1650,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Earthbreaker",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons10.1",
+      "ap_id": 1651,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Tremor Smash",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons10.2",
+      "ap_id": 1652,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Tremor Smash",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons11.1",
+      "ap_id": 1653,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Air Tremor Smash",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons11.2",
+      "ap_id": 1654,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Air Tremor Smash",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons11.3",
+      "ap_id": 1655,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Air Tremor Smash",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons12.1",
+      "ap_id": 1656,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Tremor Punch",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons12.2",
+      "ap_id": 1657,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Tremor Punch",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Weapons12.3",
+      "ap_id": 1658,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Tremor Punch",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Wrath1.1",
+      "ap_id": 1659,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Blade Geyser",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Wrath1.2",
+      "ap_id": 1660,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Blade Geyser",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Wrath1.3",
+      "ap_id": 1661,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Blade Geyser",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Wrath2.1",
+      "ap_id": 1662,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Stoneskin",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Wrath2.2",
+      "ap_id": 1663,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Stoneskin",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Wrath2.3",
+      "ap_id": 1664,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Stoneskin",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Wrath3.1",
+      "ap_id": 1665,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Immolation",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Wrath3.2",
+      "ap_id": 1666,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Immolation",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Wrath3.3",
+      "ap_id": 1667,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Immolation",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Wrath4.1",
+      "ap_id": 1668,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Affliction",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Wrath4.2",
+      "ap_id": 1669,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Affliction",
+      "in_ap": true,
+      "area": "Serpent Holes"
+    },
+    {
+      "name": "Wrath4.3",
+      "ap_id": 1670,
+      "region": "Vulgrim's Shop",
+      "kind": "location",
+      "vanilla_item": "Affliction",
       "in_ap": true,
       "area": "Serpent Holes"
     }

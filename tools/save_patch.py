@@ -1,15 +1,20 @@
-"""Rewrite Warmastered .sav UserId through whatisaphone/war (decode → edit → encode)."""
+"""Rewrite Warmastered .sav UserId through whatisaphone/war (decode → edit → encode).
+
+war is the Keen ``.sav`` codec only. Map on **Darksiders Warmastered (Steam x64)** —
+never on the 2016 32-bit retail build (ObjectIDs / regions will not match).
+"""
 
 from __future__ import annotations
 
 import argparse
 import json
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from tools.save_install import (
     APP_ID,
@@ -22,6 +27,11 @@ from tools.save_install import (
 VENDOR_WAR = Path(__file__).resolve().parent / "vendor" / "war"
 WAR_REPO = "https://github.com/whatisaphone/war"
 EDITED_DIR = Path("saves") / "edited"
+
+WAR_INSTALL_HINT = (
+    "git clone https://github.com/whatisaphone/war.git tools/vendor/war\n"
+    "cargo install --path tools/vendor/war/crates/war-cli"
+)
 
 
 def find_war(explicit: Optional[Path] = None) -> list[str]:
@@ -57,11 +67,74 @@ def find_war(explicit: Optional[Path] = None) -> list[str]:
             "--",
         ]
     raise FileNotFoundError(
-        "war not found. Clone and build it:\n"
-        f"  git clone {WAR_REPO} tools/vendor/war\n"
-        "  cargo install --path tools/vendor/war/crates/war-cli\n"
-        "Or pass --war PATH to a war / war-cli binary."
+        "war not found (needed to decode Warmastered .sav for SAVE DIFF).\n"
+        f"  {WAR_INSTALL_HINT.replace(chr(10), chr(10) + '  ')}\n"
+        "Or pass --war PATH to a war / war-cli binary.\n"
+        "Use Warmastered x64 saves only — not the 2016 32-bit build."
     )
+
+
+def war_status() -> dict[str, Any]:
+    """Dashboard probe: is war available for SAVE DIFF / encode?"""
+    bits = struct.calcsize("P") * 8
+    base: dict[str, Any] = {
+        "ok": False,
+        "path": "",
+        "mode": "missing",
+        "detail": "war not found",
+        "hint": WAR_INSTALL_HINT,
+        "cargo": bool(shutil.which("cargo")),
+        "vendor_cloned": (VENDOR_WAR / "Cargo.toml").is_file(),
+        "python_bits": bits,
+        "game": "Darksiders Warmastered (Steam App 462780, x64)",
+        "reject": "Do not map on the 2016 32-bit retail build — identities will not match Warmastered.",
+    }
+    try:
+        cmd = find_war()
+    except FileNotFoundError as exc:
+        base["detail"] = str(exc).split("\n", 1)[0]
+        return base
+    if cmd and Path(cmd[0]).name.lower().startswith("cargo"):
+        base.update(
+            ok=True,
+            path=str(VENDOR_WAR),
+            mode="cargo-run",
+            detail="cargo run -p war-cli (tools/vendor/war)",
+        )
+    else:
+        base.update(
+            ok=True,
+            path=cmd[0],
+            mode="binary",
+            detail=cmd[0],
+        )
+    return base
+
+
+def ensure_war_installed() -> dict[str, Any]:
+    """Clone tools/vendor/war if needed, then cargo install war-cli."""
+    cargo = shutil.which("cargo")
+    if not cargo:
+        raise RuntimeError(
+            "cargo not found. Install Rust from https://rustup.rs then retry INSTALL WAR."
+        )
+    git = shutil.which("git")
+    if not git:
+        raise RuntimeError("git not found — needed to clone whatisaphone/war")
+    VENDOR_WAR.parent.mkdir(parents=True, exist_ok=True)
+    if not (VENDOR_WAR / "Cargo.toml").is_file():
+        subprocess.run(
+            [git, "clone", "--depth", "1", WAR_REPO, str(VENDOR_WAR)],
+            check=True,
+        )
+    cli = VENDOR_WAR / "crates" / "war-cli"
+    if not cli.is_dir():
+        raise RuntimeError(f"war-cli crate missing under {VENDOR_WAR}")
+    subprocess.run(
+        [cargo, "install", "--path", str(cli), "--force"],
+        check=True,
+    )
+    return war_status()
 
 
 def run_war(war: list[str], args: list[str]) -> None:
