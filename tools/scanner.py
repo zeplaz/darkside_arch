@@ -93,7 +93,14 @@ def _refine(process, pytype, width, candidates, new_value, regions) -> list[int]
     ]
 
 
-def _pointer_paths(process, address: int, module_name: str, max_results: int = 8):
+def _pointer_paths(
+    process,
+    address: int,
+    module_name: str,
+    max_results: int = 8,
+    max_depth: int = 3,
+    max_offset: int = 0x1000,
+):
     mod = _find_module(process, module_name)
     if mod is None:
         return []
@@ -102,8 +109,8 @@ def _pointer_paths(process, address: int, module_name: str, max_results: int = 8
         paths = list(
             process.scan_pointer_paths(
                 address,
-                max_depth=3,
-                max_offset=0x1000,
+                max_depth=max_depth,
+                max_offset=max_offset,
                 static_ranges=[(base, base + size)],
                 max_results=max_results,
             )

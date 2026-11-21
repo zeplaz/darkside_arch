@@ -15,6 +15,7 @@ python -m tools <command> --help
 | [`dashboard`](#dashboard) | **Main entry.** Identify (two save slots or `game_data`), then RAM DUMP. |
 | [`capture`](#capture) | Same identify / RAM dump in the terminal. |
 | [`scan`](#scan) | HUD numbers (souls, weapon levels). Add `--sav --slots` only for a chest identity. |
+| [`stable`](#stable) | Find a pointer chain that survives save reloads (two-session scan). |
 | [`identify`](#identify) | Identify a location from a `game_data` dump (Chests/Artifacts.json) — no save diff. |
 | [`poke`](#poke) | Write a value (Souls / item count / raw address) into the running game. |
 | [`locations`](#locations) | List checks: open / identified / mapped. |
@@ -94,6 +95,24 @@ python -m tools scan --item "Progressive Chaoseater" --type uint32 --dry-run
 | `--dry-run` | Print; do not write. |
 
 Dashboard **ITEM WRITES** shows the command for the selected row. Type the HUD number, change it in-game, type again. Heap hits become a pointer chain. Use `--diff` when the stored float does not match the HUD number bit-for-bit.
+
+---
+
+## `stable`
+
+Find a **pointer chain that survives save reloads**. The normal `scan` auto-scan finds *a* path through whatever heap object is handy right now; that path usually goes stale after a reload. `stable` finds the stable path by scanning across two sessions and keeping only chains that resolve in both.
+
+```powershell
+python -m tools stable --item Soul_Count
+```
+
+| Flag | |
+|------|--|
+| `--item NAME` | `targets.json` label. Default `Soul_Count`. |
+| `--type` | Override the row type. |
+| `--dry-run` | Print; do not write. |
+
+Flow: type the HUD value (session 1) → it enumerates pointer chains → **reload the save** → type the new HUD value (session 2) → it keeps the chains that resolve in both, and saves the shortest stable one. Run it for every heap pointer you actually rely on in live play.
 
 ---
 

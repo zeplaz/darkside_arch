@@ -11,6 +11,7 @@ COMMANDS: dict[str, tuple[str, str]] = {
     "dashboard": ("tools.dashboard:main", "Browser UI: two save slots -> DIFF SAVES, then live RAM watches"),
     "capture": ("tools.snapshot:main_capture", "Identify a location from two .sav slots (RAM dump last resort)"),
     "scan": ("tools.scanner:main", "HUD numbers (exact or --diff), or --sav/--slots for a chest identity"),
+    "stable": ("tools.stable:main", "Find a pointer chain that survives save reloads (two-session scan)"),
     "identify": ("tools.save_object:main_identify", "Identify a location from a game_data dump (Chests/Artifacts.json), no save diff"),
     "locations": ("tools.world_catalog:main_locations", "List location checks with todo/done status"),
     "sync-world": ("tools.world_catalog:main_sync_world", "Refresh docs/world_*.json from worlds/darksiders/data"),
