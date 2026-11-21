@@ -148,6 +148,7 @@ def _exact_filter(
     cur: list[Optional[np.ndarray]],
     masks: list[Optional[np.ndarray]],
     value: int | float,
+    dtype: str,
 ) -> tuple[list[Optional[np.ndarray]], int]:
     out: list[Optional[np.ndarray]] = []
     count = 0
@@ -155,7 +156,11 @@ def _exact_filter(
         if c is None or m is None:
             out.append(None)
             continue
-        keep = (c == value) & m
+        if dtype in _FLOAT_TYPES:
+            # HUD shows an integer; the stored float is usually within ±0.5 of it.
+            keep = (np.abs(c - value) <= 0.5) & m
+        else:
+            keep = (c == value) & m
         out.append(keep)
         count += int(np.count_nonzero(keep))
     return out, count
@@ -254,7 +259,7 @@ def run_diff_scan(row: dict, *, dry_run: bool = False) -> int:
             "\nChange the value in-game (kill something / spend souls), then say how it\n"
             "changed compared to the last snapshot:\n"
             "  + increased   - decreased   ~ unchanged   c changed\n"
-            "  = exact (type the number)   s show   r re-baseline   q quit\n"
+            "  = exact HUD value (e.g. = 191)   s show   r re-baseline   q quit\n"
             "Type a candidate number (1, 2, …) to select and save it."
         )
 
@@ -287,15 +292,17 @@ def run_diff_scan(row: dict, *, dry_run: bool = False) -> int:
                 print(f"[-] no such candidate (1..{len(cands)})")
                 continue
 
-            if action == "=":
-                raw = input("Value right now: ").strip()
+            if action == "=" or action.startswith("="):
+                raw = action[1:].strip()
+                if not raw:
+                    raw = input("Value right now: ").strip()
                 try:
                     value: int | float = float(raw) if dtype in _FLOAT_TYPES else int(raw, 0)
                 except ValueError:
-                    print("[-] bad number")
+                    print(f"[-] bad number {raw!r}; use = 191 (value on the same line)")
                     continue
                 cur = _snapshot(handle, regions)
-                masks, candidates = _exact_filter(cur, masks, value)
+                masks, candidates = _exact_filter(cur, masks, value, dtype)
                 prev = cur
                 print(f"[+] exact match: {candidates:,} candidate(s)")
             elif action in {"+", "-", "~", "c"}:
