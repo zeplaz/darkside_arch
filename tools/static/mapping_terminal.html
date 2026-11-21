@@ -763,9 +763,9 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
             <p class="note" id="item-map-how" style="margin:0 0 0.4rem"></p>
             <div class="cmd"><code id="item-cmd"></code><button type="button" class="copy" id="item-copy">COPY</button></div>
           </div>
-          <div class="card" id="item-poke-card" hidden>
-            <div class="lbl">TEST WRITE — verify the offset</div>
-            <p class="note" style="margin:0 0 0.4rem">Prove the offset is correct — writes a value straight into the running game. In a real run, <code>runtime.mem</code> / <code>runtime.dll</code> write these automatically when an item arrives.</p>
+          <details class="card" id="item-poke-card" hidden>
+            <summary>TEST WRITE — poke any mapped row</summary>
+            <p class="note" style="margin:0.4rem 0">Generic — works on any mapped row, independent of what's selected on the left. Prove an offset writes correctly; in a real run, the runtimes write these automatically.</p>
             <div class="row" style="gap:0.4rem">
               <select id="item-poke-target" aria-label="Poke target" style="flex:1 1 10rem;min-width:8rem"></select>
               <input id="item-poke-value" type="text" placeholder="value" aria-label="Poke value" style="flex:0 1 6rem;min-width:5rem">
@@ -773,10 +773,11 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
               <button type="button" class="ghost" id="btn-item-poke" data-tip="Write the value into the running game (WriteProcessMemory). Lists only mapped rows.">WRITE</button>
             </div>
             <p class="note" id="item-poke-note" style="margin-top:0.35rem"></p>
-          </div>
+          </details>
           <details class="card" id="item-manage-card">
             <summary>ADD / REMOVE WRITE ROWS</summary>
-            <div class="row" style="gap:0.4rem;margin-top:0.4rem">
+            <p class="note" style="margin:0.4rem 0"><b>ADD</b> appends a new row to the list on the left. <b>DISABLE / REMOVE</b> act on the item currently <b>selected on the left</b>.</p>
+            <div class="row" style="gap:0.4rem">
               <select id="item-add-select" aria-label="Item to add" style="flex:1 1 12rem;min-width:9rem"></select>
               <select id="item-add-type" aria-label="Type" style="flex:0 1 6rem;min-width:4.5rem">
                 <option value="uint8">uint8</option>
@@ -787,8 +788,9 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
               <button type="button" class="ghost" id="btn-item-add" data-tip="Append a new template row to targets.json (exact AP item name). Then map it with scan.">ADD</button>
             </div>
             <div class="row" style="gap:0.4rem;margin-top:0.4rem">
-              <button type="button" class="ghost" id="btn-item-toggle" data-tip="Enable / disable this row (keeps it in targets.json).">DISABLE</button>
-              <button type="button" class="danger" id="btn-item-remove" data-tip="Delete this row from targets.json entirely.">REMOVE</button>
+              <button type="button" class="ghost" id="btn-item-toggle" data-tip="Enable / disable the selected row (keeps it in targets.json).">DISABLE</button>
+              <button type="button" class="danger" id="btn-item-remove" data-tip="Delete the selected row from targets.json entirely.">REMOVE</button>
+              <span class="note" id="item-manage-sel" style="align-self:center"></span>
             </div>
             <p class="note" id="item-manage-note" style="margin-top:0.35rem"></p>
           </details>
@@ -1371,6 +1373,7 @@ function renderItemManage(item) {
   $("item-manage-note").textContent = "";
   const tog = $("btn-item-toggle");
   const rem = $("btn-item-remove");
+  $("item-manage-sel").textContent = item ? "Selected: " + item.label : "Select an item on the left first";
   if (item) {
     tog.disabled = false;
     rem.disabled = false;
@@ -1435,8 +1438,8 @@ function renderItemCard() {
       "ds_client cannot see the boss. <code>--send-goal</code> marks the seed complete until this row has a real offset.",
       [copyScan]);
   } else {
-    setItemNext("action", "Scan the HUD number for " + item.label,
-      "Game running. Copy the command into a terminal. Unmapped items wait in ap_state.db and apply as soon as this offset exists.",
+    setItemNext("action", "Map " + item.label,
+      item.how_line || "Game running. Copy the command into a terminal. Unmapped items wait in ap_state.db and apply as soon as this offset exists.",
       [copyScan]);
   }
 }

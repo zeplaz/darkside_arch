@@ -464,7 +464,12 @@ def _item_how(label: str, write: str, dtype: str) -> list[str]:
 def _item_scan_cmd(label: str, write: str) -> str:
     if write == "goal":
         return "python -m runtime.mem --send-goal"
+    if write == "stat" and label in _BAR_STATS:
+        return f'python -m tools scan --item "{label}" --diff'
     return f'python -m tools scan --item "{label}"'
+
+
+_BAR_STATS = frozenset({"Health", "Wrath", "Chaos"})
 
 
 def _item_how_line(label: str, write: str, dtype: str) -> str:
@@ -473,6 +478,8 @@ def _item_how_line(label: str, write: str, dtype: str) -> str:
         return "A 0→1 watch, not a HUD scan. Until the flag is real: python -m runtime.mem --send-goal."
     if write == "level":
         return f"Run in-game, type the weapon level ({dtype}), change it, type again — the offset auto-saves and enables this row."
+    if write == "stat" and label in _BAR_STATS:
+        return f"{label} is a HUD bar, not a number — use the diff scan: take damage / spend it, then answer + (up) / - (down) / ~ (same). The offset auto-saves."
     if write == "stat":
         return f"Run in-game, type the soul count ({dtype}), change it, type again — the offset auto-saves and enables this row."
     if write == "flag":
