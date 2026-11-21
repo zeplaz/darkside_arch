@@ -57,6 +57,9 @@ class ApCatalog:
         entry = self._items_by_id.get(ap_id)
         return entry.name if entry else None
 
+    def items(self) -> list[CatalogEntry]:
+        return list(self._items.values())
+
     def is_goal_label(self, name: str) -> bool:
         if name == "Victory":
             return True

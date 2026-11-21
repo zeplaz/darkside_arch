@@ -802,15 +802,32 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
             </div>
             <p class="note" id="item-poke-note" style="margin-top:0.35rem"></p>
           </div>
+          <div class="card" id="item-manage-card" hidden>
+            <div class="lbl">ADD / REMOVE WRITE ROWS</div>
+            <div class="row" style="gap:0.4rem">
+              <select id="item-add-select" aria-label="Item to add" style="flex:1 1 12rem;min-width:9rem"></select>
+              <select id="item-add-type" aria-label="Type" style="flex:0 1 6rem;min-width:4.5rem">
+                <option value="uint8">uint8</option>
+                <option value="uint16">uint16</option>
+                <option value="uint32" selected>uint32</option>
+                <option value="float">float</option>
+              </select>
+              <button type="button" class="ghost" id="btn-item-add" data-tip="Append a new template row to targets.json (exact AP item name). Then map it with scan.">ADD</button>
+            </div>
+            <div class="row" style="gap:0.4rem;margin-top:0.4rem">
+              <button type="button" class="ghost" id="btn-item-toggle" data-tip="Enable / disable this row (keeps it in targets.json).">DISABLE</button>
+              <button type="button" class="danger" id="btn-item-remove" data-tip="Delete this row from targets.json entirely.">REMOVE</button>
+            </div>
+            <p class="note" id="item-manage-note" style="margin-top:0.35rem"></p>
+          </div>
           <details class="card">
-            <summary>Apply rules (all items) · new row / disable</summary>
+            <summary>Apply rules (all items)</summary>
             <ul class="note" style="margin:0.3rem 0 0;padding-left:1.1rem">
               <li>Each ReceivedItems index is applied once — reconnects cannot duplicate.</li>
               <li>Unmapped rows wait. They never block other items.</li>
               <li>Levels: Chaoseater / Scythe / Gauntlet cap 4 / 4 / 4.</li>
               <li>7 Armageddon Blade Shards grant the Armageddon Blade once.</li>
-              <li>New row: copy a template in <code>targets.json</code> with the exact Items.py name as <code>label</code>.</li>
-              <li>Remove: <code>"enabled": false</code> or delete the row.</li>
+              <li>Add / remove rows with the <b>ADD / REMOVE WRITE ROWS</b> card above (or edit <code>targets.json</code> directly).</li>
             </ul>
           </details>
         </div>
@@ -1406,6 +1423,30 @@ function pokeTestValue(item) {
   if (item.write === "level") return String(item.cap || 4); // weapon Level 1..cap
   return "1";                                          // flag / count
 }
+function itemSlug(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+}
+function renderItemManage(item) {
+  const card = $("item-manage-card");
+  card.hidden = false;
+  const existing = new Set((catalog.inventory || []).flatMap(i => [i.id, i.label]));
+  const addable = (catalog.item_catalog || []).filter(i => !existing.has(i.name) && !existing.has("item_" + itemSlug(i.name)));
+  const sel = $("item-add-select");
+  sel.innerHTML = addable.map(i => `<option value="${esc(i.name)}">${esc(i.kind)} · ${esc(i.name)}</option>`).join("");
+  $("item-add-type").value = "uint32";
+  $("item-manage-note").textContent = "";
+  const tog = $("btn-item-toggle");
+  const rem = $("btn-item-remove");
+  if (item) {
+    tog.disabled = false;
+    rem.disabled = false;
+    tog.textContent = item.enabled ? "DISABLE" : "ENABLE";
+  } else {
+    tog.disabled = true;
+    rem.disabled = true;
+    tog.textContent = "DISABLE";
+  }
+}
 function renderPokeTargets(preferred) {
   const items = (catalog.inventory || []).filter(i => i.mapped && i.write !== "goal");
   const card = $("item-poke-card");
@@ -1420,6 +1461,7 @@ function renderPokeTargets(preferred) {
 function renderItemCard() {
   const item = (catalog.inventory || []).find(i => i.id === ui.item);
   renderPokeTargets(item);
+  renderItemManage(item);
   $("item-title").textContent = item ? item.label : "Pick an item write on the left";
   $("item-how-card").hidden = !item;
   $("item-cmd-card").hidden = !item;
@@ -2989,6 +3031,52 @@ $("btn-item-poke").onclick = async () => {
     await loadCatalog();
   } catch (e) {
     $("item-poke-note").textContent = e.message;
+    log("ERR", e.message);
+  }
+};
+
+$("btn-item-add").onclick = async () => {
+  const name = $("item-add-select").value;
+  const type = $("item-add-type").value;
+  if (!name) { $("item-manage-note").textContent = "Pick an item to add."; return; }
+  try {
+    const data = await post("/api/item-add", { name, type });
+    log("SAVE", data.action + " " + data.entry.id);
+    await loadCatalog();
+    ui.item = data.entry.id;
+    $("item-manage-note").textContent = "Added " + name + ". Map it: python -m tools scan --item \"" + name + "\"";
+  } catch (e) {
+    $("item-manage-note").textContent = e.message;
+    log("ERR", e.message);
+  }
+};
+
+$("btn-item-toggle").onclick = async () => {
+  const item = (catalog.inventory || []).find(i => i.id === ui.item);
+  if (!item) return;
+  try {
+    const data = await post("/api/item-toggle", { id: item.id });
+    log("SAVE", item.id + " enabled=" + data.enabled);
+    await loadCatalog();
+    $("item-manage-note").textContent = item.label + " " + (data.enabled ? "enabled" : "disabled") + ".";
+  } catch (e) {
+    $("item-manage-note").textContent = e.message;
+    log("ERR", e.message);
+  }
+};
+
+$("btn-item-remove").onclick = async () => {
+  const item = (catalog.inventory || []).find(i => i.id === ui.item);
+  if (!item) return;
+  if (!confirm("Delete \"" + item.label + "\" from targets.json?")) return;
+  try {
+    const data = await post("/api/item-remove", { id: item.id });
+    log("SAVE", "removed " + data.removed);
+    ui.item = "";
+    await loadCatalog();
+    renderItemCard();
+  } catch (e) {
+    $("item-manage-note").textContent = e.message;
     log("ERR", e.message);
   }
 };

@@ -133,3 +133,29 @@ def sync_sqlite(targets_path: Path = TARGETS_FILE, db_path: Path = DB_FILE) -> i
         return sync_target_index(conn, raw_targets(targets_path))
     finally:
         conn.close()
+
+
+def remove_target(target_id: str, targets_path: Path = TARGETS_FILE) -> bool:
+    """Delete a row by id. Returns False if no row matched."""
+    path = Path(targets_path)
+    data = json.loads(path.read_text(encoding="utf-8"))
+    rows = [t for t in data.get("targets", []) if not (isinstance(t, dict) and t.get("id") == target_id)]
+    if len(rows) == len(data.get("targets", [])):
+        return False
+    data["targets"] = rows
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    sync_sqlite(targets_path)
+    return True
+
+
+def toggle_target(target_id: str, targets_path: Path = TARGETS_FILE) -> dict:
+    """Flip ``enabled`` on a row by id and return it."""
+    path = Path(targets_path)
+    data = json.loads(path.read_text(encoding="utf-8"))
+    for row in data.get("targets", []):
+        if isinstance(row, dict) and row.get("id") == target_id:
+            row["enabled"] = not bool(row.get("enabled", True))
+            path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            sync_sqlite(targets_path)
+            return row
+    raise ValueError(f"no row with id {target_id!r}")

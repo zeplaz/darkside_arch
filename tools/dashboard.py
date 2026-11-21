@@ -515,6 +515,10 @@ def catalog_payload() -> dict[str, Any]:
     inv = inventory_facts()
     inv_mapped = sum(1 for row in inv if row["mapped"])
     gate = "NO_OFFSETS" if mapped_n == 0 else ("PARTIAL" if mapped_n < len(locations) else "COMPLETE")
+    item_catalog = [
+        {"name": e.name, "ap_id": e.ap_id, "kind": e.kind}
+        for e in sorted(load_ap_catalog().items(), key=lambda e: (e.kind, e.ap_id))
+    ]
     return {
         "regions": regions,
         "mapped": mapped_n,
@@ -522,6 +526,7 @@ def catalog_payload() -> dict[str, Any]:
         "ap": _ap_ops(),
         "inventory": inv,
         "inventory_mapped": inv_mapped,
+        "item_catalog": item_catalog,
         "gate": gate,
         "targets_rev": _mtime(TARGETS_FILE),
     }
@@ -1344,6 +1349,49 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                         )
                     result = poke_target(pid, target, parse_value(str(body.get("value") or ""), target.dtype))
                     _json_response(self, {"ok": True, **vars(result)})
+                    return
+                if path == "/api/item-catalog":
+                    items = load_ap_catalog().items()
+                    _json_response(
+                        self,
+                        {"items": [{"name": e.name, "ap_id": e.ap_id, "kind": e.kind} for e in sorted(items, key=lambda e: (e.kind, e.ap_id))]},
+                    )
+                    return
+                if path == "/api/item-add":
+                    import re
+
+                    name = str(body.get("name") or "").strip()
+                    dtype = str(body.get("type") or "uint32").strip()
+                    if not name:
+                        raise ValueError("pick an item name")
+                    slug = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+                    entry = {
+                        "id": "item_" + slug,
+                        "enabled": False,
+                        "event_type": "MEMORY_STATE",
+                        "category": "inventory",
+                        "label": name,
+                        "region": "",
+                        "offsets": ["0x0"],
+                        "type": dtype,
+                        "notes": "TEMPLATE — map with: python -m tools scan --item " + name,
+                    }
+                    action, entry = save_target(entry)
+                    _json_response(self, {"ok": True, "action": action, "entry": entry})
+                    return
+                if path == "/api/item-toggle":
+                    from tools.targets import toggle_target
+
+                    row = toggle_target(str(body.get("id") or "").strip())
+                    _json_response(self, {"ok": True, "enabled": bool(row.get("enabled", True)), "id": row.get("id")})
+                    return
+                if path == "/api/item-remove":
+                    from tools.targets import remove_target
+
+                    removed = remove_target(str(body.get("id") or "").strip())
+                    if not removed:
+                        raise ValueError("no row with that id")
+                    _json_response(self, {"ok": True, "removed": str(body.get("id") or "")})
                     return
             except (
                 OSError,
