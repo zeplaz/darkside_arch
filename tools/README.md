@@ -138,7 +138,9 @@ python -m tools poke --json --id soul_count --value 10000
 | `--pid` | Game PID (auto-detected if omitted). |
 | `--json` | Print one JSON result line. |
 
-A row is pokable only after it has a real `offsets` value (map it with `python -m tools scan --item NAME`). Today `soul_count` is the only mapped one; the weapon / key rows become pokable once mapped. The dashboard **ITEM WRITES** panel has a **POKE** box whose target dropdown auto-populates with every mapped row (and grows as you map more), and **DLL LAB** has a DLL-path POKE (`--poke-dll`) for the in-process proof.
+A row is pokable only after it has a real `offsets` value (map it with `python -m tools scan --item NAME`). Today `soul_count` is the only mapped one; the weapon / key rows become pokable once mapped.
+
+**Poke is a test tool, not the end state.** You poke to confirm an offset is correct (HUD changes). In a real run you do **not** poke by hand — `python -m runtime.mem` / `python -m runtime.dll` write those same bytes automatically when Archipelago sends you the item. Keep the poke command (or the dashboard **TEST WRITE** box) for verifying offsets and debugging: map → poke → confirm the HUD → trust it for live play. The dashboard **ITEM WRITES** panel has a **TEST WRITE** box (dropdown auto-populates with mapped rows, **TEST** fills a sensible value, **WRITE** applies it), and **DLL LAB** has a DLL-path POKE (`--poke-dll`) for the in-process proof.
 
 ---
 

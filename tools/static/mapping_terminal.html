@@ -792,11 +792,13 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
             <p class="note" id="item-related"></p>
           </div>
           <div class="card" id="item-poke-card" hidden>
-            <div class="lbl">POKE (write a value, mem path — no DLL)</div>
+            <div class="lbl">TEST WRITE — poke RAM</div>
+            <p class="note" style="margin:0 0 0.4rem">Writes a value straight into the running game to <b>prove this offset is correct</b>. This is a manual test only — in a real run, <code>runtime.mem</code> / <code>runtime.dll</code> write these automatically when an item arrives. The HUD should change instantly.</p>
             <div class="row" style="gap:0.4rem">
               <select id="item-poke-target" aria-label="Poke target" style="flex:1 1 10rem;min-width:8rem"></select>
-              <input id="item-poke-value" type="text" placeholder="value (e.g. 10000)" aria-label="Poke value" style="flex:0 1 6rem;min-width:5rem">
-              <button type="button" class="ghost" id="btn-item-poke" data-tip="Write a value into the running game from outside (WriteProcessMemory). Lists only mapped rows.">POKE</button>
+              <input id="item-poke-value" type="text" placeholder="value" aria-label="Poke value" style="flex:0 1 6rem;min-width:5rem">
+              <button type="button" class="ghost" id="btn-item-poke-test" data-tip="Fill a sensible test value for the selected row">TEST</button>
+              <button type="button" class="ghost" id="btn-item-poke" data-tip="Write the value into the running game (WriteProcessMemory). Lists only mapped rows.">WRITE</button>
             </div>
             <p class="note" id="item-poke-note" style="margin-top:0.35rem"></p>
           </div>
@@ -1398,6 +1400,11 @@ function setItemNext(tone, title, detail, actions = []) {
     b.onclick = a.run;
     box.appendChild(b);
   }
+}
+function pokeTestValue(item) {
+  if (item.write === "stat") return "10000";           // Souls → HUD jumps
+  if (item.write === "level") return String(item.cap || 4); // weapon Level 1..cap
+  return "1";                                          // flag / count
 }
 function renderPokeTargets(preferred) {
   const items = (catalog.inventory || []).filter(i => i.mapped && i.write !== "goal");
@@ -2959,6 +2966,14 @@ $("btn-export").onclick = async () => {
   }
 };
 
+$("btn-item-poke-test").onclick = () => {
+  const targetId = ($("item-poke-target").value || "").trim();
+  const item = (catalog.inventory || []).find(i => i.id === targetId);
+  if (!item) return;
+  $("item-poke-value").value = pokeTestValue(item);
+  $("item-poke-note").textContent = "Test value for " + item.label + " (" + item.dtype + "). Press WRITE — the HUD should change.";
+};
+
 $("btn-item-poke").onclick = async () => {
   const targetId = ($("item-poke-target").value || "").trim();
   const v = ($("item-poke-value").value || "").trim();
@@ -2966,7 +2981,7 @@ $("btn-item-poke").onclick = async () => {
     $("item-poke-note").textContent = "Pick a target and type a value (e.g. 10000).";
     return;
   }
-  $("item-poke-note").textContent = "Poking…";
+  $("item-poke-note").textContent = "Writing…";
   try {
     const data = await post("/api/poke", { id: targetId, value: v });
     $("item-poke-note").textContent = data.target_id + " @ " + hex(data.address) + ": " + data.before + " -> " + data.after + " (wrote " + data.value + ")";

@@ -42,7 +42,7 @@ Pick the AP name here. Never type labels — they must match [WORLD.md](WORLD.md
 - Chest loot: health / currency / wrath / lifestone / key / rare (from vanilla item)
 - Sort: name, AP id, status, loot
 
-**ITEM WRITES** is inventory / stats / goal (HUD `scan`), not chests. A mapped row gets a **POKE** box — type a value and write it straight into the running game (mem path, no DLL). CLI equivalent: `python -m tools poke --id soul_count --value 10000`.
+**ITEM WRITES** is inventory / stats / goal (HUD `scan`), not chests. A mapped row gets a **TEST WRITE** box: **TEST** fills a sensible value, **WRITE** pokes it into the running game (mem path, no DLL) so you can confirm the offset before trusting it. In a real run those bytes are written automatically by `runtime.mem` / `runtime.dll` when the item arrives — the box is for verifying and debugging offsets, not for normal play. CLI equivalent: `python -m tools poke --id soul_count --value 10000`.
 
 ## SAVE DIFF — identify
 
