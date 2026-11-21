@@ -776,24 +776,17 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
           <div class="card" id="item-card">
             <div class="loc-title" id="item-title">Pick an item on the left</div>
             <div class="loc-meta" id="item-meta"></div>
-          </div>
-          <div class="card how" id="item-how-card" hidden>
-            <div class="lbl" id="item-how-lbl">HUD SCAN</div>
-            <ol id="item-how-steps"></ol>
-          </div>
-          <div class="card" id="item-cmd-card" hidden>
-            <div class="lbl" id="item-cmd-lbl">COMMAND</div>
-            <div class="cmd"><code id="item-cmd"></code><button type="button" class="copy" id="item-copy">COPY</button></div>
-            <p class="note" id="item-cmd-note" style="margin-top:0.4rem"></p>
-          </div>
-          <div class="card" id="item-apply-card" hidden>
-            <div class="lbl">WHAT ds_client DOES</div>
             <p class="note" id="item-apply" style="margin-top:0.35rem"></p>
-            <p class="note" id="item-related"></p>
+            <p class="note" id="item-related" style="margin-top:0.15rem"></p>
+          </div>
+          <div class="card" id="item-map-card" hidden>
+            <div class="lbl" id="item-map-lbl">MAP IT — find the offset</div>
+            <p class="note" id="item-map-how" style="margin:0 0 0.4rem"></p>
+            <div class="cmd"><code id="item-cmd"></code><button type="button" class="copy" id="item-copy">COPY</button></div>
           </div>
           <div class="card" id="item-poke-card" hidden>
-            <div class="lbl">TEST WRITE — poke RAM</div>
-            <p class="note" style="margin:0 0 0.4rem">Writes a value straight into the running game to <b>prove this offset is correct</b>. This is a manual test only — in a real run, <code>runtime.mem</code> / <code>runtime.dll</code> write these automatically when an item arrives. The HUD should change instantly.</p>
+            <div class="lbl">TEST WRITE — verify the offset</div>
+            <p class="note" style="margin:0 0 0.4rem">Prove the offset is correct — writes a value straight into the running game. In a real run, <code>runtime.mem</code> / <code>runtime.dll</code> write these automatically when an item arrives.</p>
             <div class="row" style="gap:0.4rem">
               <select id="item-poke-target" aria-label="Poke target" style="flex:1 1 10rem;min-width:8rem"></select>
               <input id="item-poke-value" type="text" placeholder="value" aria-label="Poke value" style="flex:0 1 6rem;min-width:5rem">
@@ -802,9 +795,9 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
             </div>
             <p class="note" id="item-poke-note" style="margin-top:0.35rem"></p>
           </div>
-          <div class="card" id="item-manage-card" hidden>
-            <div class="lbl">ADD / REMOVE WRITE ROWS</div>
-            <div class="row" style="gap:0.4rem">
+          <details class="card" id="item-manage-card">
+            <summary>ADD / REMOVE WRITE ROWS</summary>
+            <div class="row" style="gap:0.4rem;margin-top:0.4rem">
               <select id="item-add-select" aria-label="Item to add" style="flex:1 1 12rem;min-width:9rem"></select>
               <select id="item-add-type" aria-label="Type" style="flex:0 1 6rem;min-width:4.5rem">
                 <option value="uint8">uint8</option>
@@ -819,7 +812,7 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
               <button type="button" class="danger" id="btn-item-remove" data-tip="Delete this row from targets.json entirely.">REMOVE</button>
             </div>
             <p class="note" id="item-manage-note" style="margin-top:0.35rem"></p>
-          </div>
+          </details>
           <details class="card">
             <summary>Apply rules (all items)</summary>
             <ul class="note" style="margin:0.3rem 0 0;padding-left:1.1rem">
@@ -1463,13 +1456,13 @@ function renderItemCard() {
   renderPokeTargets(item);
   renderItemManage(item);
   $("item-title").textContent = item ? item.label : "Pick an item write on the left";
-  $("item-how-card").hidden = !item;
-  $("item-cmd-card").hidden = !item;
-  $("item-apply-card").hidden = !item;
+  $("item-map-card").hidden = !item;
   if (!item) {
     $("item-meta").innerHTML = "";
+    $("item-apply").textContent = "";
+    $("item-related").textContent = "";
     setItemNext("action", "Pick an item write on the left",
-      "These are RAM sites ds_client pokes when ReceivedItems arrive. Chests stay on SAVE DIFF. Mapping is <code>python -m tools scan --item LABEL</code> while the HUD shows that number.");
+      "These are RAM sites ds_client pokes when ReceivedItems arrive. Chests stay on SAVE DIFF. Mapping: run the scan command, type the HUD number, change it, type again.");
     return;
   }
   const bits = [
@@ -1481,17 +1474,9 @@ function renderItemCard() {
     item.mapped ? (item.enabled ? "enabled" : "disabled") : "scan will enable the row",
   ].filter(Boolean);
   setHTML($("item-meta"), bits.map(x => `<span>${esc(x)}</span>`).join(""));
-  $("item-how-lbl").textContent = item.write === "goal" ? "GOAL — NOT A HUD SCAN"
-    : item.write === "flag" ? "FLAG — 0/1, NOT A COUNT"
-    : item.write === "stat" ? "HUD SOULS"
-    : item.write === "level" ? "HUD WEAPON LEVEL"
-    : "HUD COUNT";
-  $("item-how-steps").innerHTML = (item.how || []).map(s => `<li>${esc(s)}</li>`).join("");
-  $("item-cmd-lbl").textContent = item.write === "goal" ? "UNTIL MAPPED" : "SCAN COMMAND";
+  $("item-map-lbl").textContent = item.write === "goal" ? "GOAL — NOT A HUD SCAN" : "MAP IT — find the offset";
+  $("item-map-how").textContent = item.how_line || "";
   $("item-cmd").textContent = item.scan || "";
-  $("item-cmd-note").textContent = item.write === "goal"
-    ? "This command sends CLIENT_GOAL. It does not find a RAM offset."
-    : "Type the HUD number, change it in-game, type again. Heap hits become a pointer chain. Label must match this row exactly.";
   $("item-apply").textContent = item.apply || "";
   $("item-related").textContent = (item.related || []).length
     ? "Also map: " + item.related.join(" · ")

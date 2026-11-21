@@ -384,6 +384,7 @@ def _inventory_fact(raw: dict[str, Any], catalog: ApCatalog) -> dict[str, Any]:
         "ap_kind": entry.kind if entry else "",
         "apply": _item_apply(label, write, cap, dtype),
         "how": _item_how(label, write, dtype),
+        "how_line": _item_how_line(label, write, dtype),
         "scan": _item_scan_cmd(label, write),
         "related": _item_related(label),
         "notes": str(raw.get("notes") or ""),
@@ -464,6 +465,19 @@ def _item_scan_cmd(label: str, write: str) -> str:
     if write == "goal":
         return "python -m runtime.mem --send-goal"
     return f'python -m tools scan --item "{label}"'
+
+
+def _item_how_line(label: str, write: str, dtype: str) -> str:
+    """One concise line for the MAP card (the verbose steps stay in `_item_how`)."""
+    if write == "goal":
+        return "A 0→1 watch, not a HUD scan. Until the flag is real: python -m runtime.mem --send-goal."
+    if write == "level":
+        return f"Run in-game, type the weapon level ({dtype}), change it, type again — the offset auto-saves and enables this row."
+    if write == "stat":
+        return f"Run in-game, type the soul count ({dtype}), change it, type again — the offset auto-saves and enables this row."
+    if write == "flag":
+        return f"A 0/1 flag ({dtype}), not a HUD count. Scan only if you can see it flip 0→1."
+    return f"Run in-game, type the count ({dtype}), change it, type again — the offset auto-saves and enables this row."
 
 
 def _item_related(label: str) -> list[str]:
