@@ -1328,6 +1328,23 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                         LAB.poke(str(body.get("id") or ""), str(body.get("value") or "")),
                     )
                     return
+                if path == "/api/poke":
+                    from runtime.mem.watcher import find_process
+                    from tools.poke import parse_value, pokable_targets, poke_target
+
+                    pid = find_process(PROCESS_NAME)
+                    if pid is None:
+                        raise ValueError("darksiders1.exe is not running — launch the game first")
+                    target_id = str(body.get("id") or "").strip()
+                    target = pokable_targets().get(target_id)
+                    if target is None:
+                        raise ValueError(
+                            f"no mapped inventory/stat row for {target_id!r}; "
+                            "map it with python -m tools scan --item NAME first"
+                        )
+                    result = poke_target(pid, target, parse_value(str(body.get("value") or ""), target.dtype))
+                    _json_response(self, {"ok": True, **vars(result)})
+                    return
             except (
                 OSError,
                 ValueError,

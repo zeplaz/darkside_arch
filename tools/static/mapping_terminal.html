@@ -791,6 +791,14 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
             <p class="note" id="item-apply" style="margin-top:0.35rem"></p>
             <p class="note" id="item-related"></p>
           </div>
+          <div class="card" id="item-poke-card" hidden>
+            <div class="lbl">POKE (write a value, mem path — no DLL)</div>
+            <div class="row" style="gap:0.4rem">
+              <input id="item-poke-value" type="text" placeholder="value (e.g. 10000)" aria-label="Poke value" style="flex:1 1 8rem;min-width:6rem">
+              <button type="button" class="ghost" id="btn-item-poke" data-tip="Write a value into the running game from outside (WriteProcessMemory). Needs a mapped row.">POKE</button>
+            </div>
+            <p class="note" id="item-poke-note" style="margin-top:0.35rem"></p>
+          </div>
           <details class="card">
             <summary>Apply rules (all items) · new row / disable</summary>
             <ul class="note" style="margin:0.3rem 0 0;padding-left:1.1rem">
@@ -1396,6 +1404,9 @@ function renderItemCard() {
   $("item-how-card").hidden = !item;
   $("item-cmd-card").hidden = !item;
   $("item-apply-card").hidden = !item;
+  $("item-poke-card").hidden = !item || !item.mapped || item.write === "goal";
+  $("item-poke-value").value = "";
+  $("item-poke-note").textContent = "";
   if (!item) {
     $("item-meta").innerHTML = "";
     setItemNext("action", "Pick an item write on the left",
@@ -2937,6 +2948,26 @@ $("btn-export").onclick = async () => {
     log("ERR", e.message);
   }
 };
+
+$("btn-item-poke").onclick = async () => {
+  const item = (catalog.inventory || []).find(i => i.id === ui.item);
+  const v = ($("item-poke-value").value || "").trim();
+  if (!item || !v) {
+    $("item-poke-note").textContent = "Type a value (e.g. 10000) first.";
+    return;
+  }
+  $("item-poke-note").textContent = "Poking…";
+  try {
+    const data = await post("/api/poke", { id: item.id, value: v });
+    $("item-poke-note").textContent = data.target_id + " @ " + hex(data.address) + ": " + data.before + " -> " + data.after + " (wrote " + data.value + ")";
+    log("POKE", data.target_id + " " + data.before + " -> " + data.after);
+    await loadCatalog();
+  } catch (e) {
+    $("item-poke-note").textContent = e.message;
+    log("ERR", e.message);
+  }
+};
+
 document.querySelectorAll(".copy").forEach(b => b.onclick = async () => {
   const text = b.previousElementSibling.textContent;
   try { await navigator.clipboard.writeText(text); b.textContent = "COPIED"; }

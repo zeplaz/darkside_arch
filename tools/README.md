@@ -16,6 +16,7 @@ python -m tools <command> --help
 | [`capture`](#capture) | Same identify / RAM dump in the terminal. |
 | [`scan`](#scan) | HUD numbers (souls, weapon levels). Add `--sav --slots` only for a chest identity. |
 | [`identify`](#identify) | Identify a location from a `game_data` dump (Chests/Artifacts.json) — no save diff. |
+| [`poke`](#poke) | Write a value (Souls / item count / raw address) into the running game. |
 | [`locations`](#locations) | List checks: open / identified / mapped. |
 | [`sync-world`](#sync-world) | Refresh `docs/world_*.json` from Sacha’s world package. |
 | [`export-docs`](#export-docs) | Rebuild `docs/memory_map.md`. |
@@ -114,6 +115,30 @@ python -m tools identify --location NAME --object Artifact_Pawn_01 --dry-run
 | `--dry-run` | Print; do not write. |
 
 Writes the same `save_object` as SAVE IDENTITY, but records `source: "Artifacts.json"` / `"Chests.json"` so provenance is kept.
+
+---
+
+## `poke`
+
+Write a value into the running game — the "it actually does something" proof.
+
+```powershell
+python -m tools poke --id soul_count --value 10000     # mapped row (Souls, float)
+python -m tools poke --id soul_count --value 500       # spend / set
+python -m tools poke --addr 0x1F7B2A56AC0 --type float --value 500   # raw address, no row
+python -m tools poke --json --id soul_count --value 10000
+```
+
+| Flag | |
+|------|--|
+| `--id NAME` | `targets.json` id or label. Only **mapped** inventory/stat rows are pokable. |
+| `--addr HEX` | Raw absolute address (session-only). Pair with `--type`. |
+| `--value` | Required. Floats ok; hex ints with `0x`. |
+| `--type` | For `--addr`: `float` (default), `uint8/16/32/64`, … |
+| `--pid` | Game PID (auto-detected if omitted). |
+| `--json` | Print one JSON result line. |
+
+A row is pokable only after it has a real `offsets` value (map it with `python -m tools scan --item NAME`). Today `soul_count` is the only mapped one; the weapon / key rows become pokable once mapped. The dashboard **ITEM WRITES** panel has a **POKE** box for the same write, and **DLL LAB** has a DLL-path POKE (`--poke-dll`) for the in-process proof.
 
 ---
 
