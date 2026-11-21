@@ -423,6 +423,23 @@
           <option value="loot">SORT LOOT / KIND</option>
         </select>
       </div>
+      <div class="pad" id="item-tools" hidden>
+        <div class="row" style="gap:0.35rem;align-items:center">
+          <select id="item-add-select" aria-label="Item to add" style="flex:1 1 11rem;min-width:8rem"></select>
+          <select id="item-add-type" aria-label="Type" style="flex:0 1 4.5rem;min-width:3.8rem">
+            <option value="uint8">uint8</option>
+            <option value="uint16">uint16</option>
+            <option value="uint32" selected>uint32</option>
+            <option value="float">float</option>
+          </select>
+          <button type="button" class="ghost" id="btn-item-add" data-tip="Append a new template row (exact AP item name) to this list.">ADD</button>
+          <span class="note" id="item-tools-sel" style="margin-left:0.35rem"></span>
+          <span style="flex:1"></span>
+          <button type="button" class="ghost" id="btn-item-toggle" data-tip="Enable / disable the selected row.">DISABLE</button>
+          <button type="button" class="danger" id="btn-item-remove" data-tip="Delete the selected row.">REMOVE</button>
+        </div>
+        <p class="note" id="item-manage-note" style="margin-top:0.3rem"></p>
+      </div>
       <div class="scroll" id="location-list"></div>
     </section>
 
@@ -774,26 +791,6 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
             </div>
             <p class="note" id="item-poke-note" style="margin-top:0.35rem"></p>
           </details>
-          <details class="card" id="item-manage-card">
-            <summary>ADD / REMOVE WRITE ROWS</summary>
-            <p class="note" style="margin:0.4rem 0"><b>ADD</b> appends a new row to the list on the left. <b>DISABLE / REMOVE</b> act on the item currently <b>selected on the left</b>.</p>
-            <div class="row" style="gap:0.4rem">
-              <select id="item-add-select" aria-label="Item to add" style="flex:1 1 12rem;min-width:9rem"></select>
-              <select id="item-add-type" aria-label="Type" style="flex:0 1 6rem;min-width:4.5rem">
-                <option value="uint8">uint8</option>
-                <option value="uint16">uint16</option>
-                <option value="uint32" selected>uint32</option>
-                <option value="float">float</option>
-              </select>
-              <button type="button" class="ghost" id="btn-item-add" data-tip="Append a new template row to targets.json (exact AP item name). Then map it with scan.">ADD</button>
-            </div>
-            <div class="row" style="gap:0.4rem;margin-top:0.4rem">
-              <button type="button" class="ghost" id="btn-item-toggle" data-tip="Enable / disable the selected row (keeps it in targets.json).">DISABLE</button>
-              <button type="button" class="danger" id="btn-item-remove" data-tip="Delete the selected row from targets.json entirely.">REMOVE</button>
-              <span class="note" id="item-manage-sel" style="align-self:center"></span>
-            </div>
-            <p class="note" id="item-manage-note" style="margin-top:0.35rem"></p>
-          </details>
           <details class="card">
             <summary>Apply rules (all items)</summary>
             <ul class="note" style="margin:0.3rem 0 0;padding-left:1.1rem">
@@ -801,7 +798,7 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
               <li>Unmapped rows wait. They never block other items.</li>
               <li>Levels: Chaoseater / Scythe / Gauntlet cap 4 / 4 / 4.</li>
               <li>7 Armageddon Blade Shards grant the Armageddon Blade once.</li>
-              <li>Add / remove rows with the <b>ADD / REMOVE WRITE ROWS</b> card above (or edit <code>targets.json</code> directly).</li>
+              <li>Add / remove rows with the <b>ADD / REMOVE</b> bar above the list on the left (or edit <code>targets.json</code> directly).</li>
             </ul>
           </details>
         </div>
@@ -1363,8 +1360,6 @@ function itemSlug(name) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
 }
 function renderItemManage(item) {
-  const card = $("item-manage-card");
-  card.hidden = false;
   const existing = new Set((catalog.inventory || []).flatMap(i => [i.id, i.label]));
   const addable = (catalog.item_catalog || []).filter(i => !existing.has(i.name) && !existing.has("item_" + itemSlug(i.name)));
   const sel = $("item-add-select");
@@ -1373,7 +1368,7 @@ function renderItemManage(item) {
   $("item-manage-note").textContent = "";
   const tog = $("btn-item-toggle");
   const rem = $("btn-item-remove");
-  $("item-manage-sel").textContent = item ? "Selected: " + item.label : "Select an item on the left first";
+  $("item-tools-sel").textContent = item ? "Selected: " + item.label : "Select an item on the left first";
   if (item) {
     tog.disabled = false;
     rem.disabled = false;
@@ -1452,6 +1447,7 @@ function setPane(name) {
   $("check-filters").hidden = name !== "checks";
   $("capture-panel").hidden = name !== "checks";
   $("items-panel").hidden = name !== "items";
+  $("item-tools").hidden = name !== "items";
   $("work-mode-bar").hidden = name !== "checks";
   $("center-title").hidden = name !== "items";
   $("center-title").textContent = "ITEM WRITES";
