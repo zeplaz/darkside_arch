@@ -99,7 +99,7 @@ def _pointer_paths(process, address: int, module_name: str, max_results: int = 8
         return []
     base, size = int(mod.base_address), int(mod.size)
     try:
-        return list(
+        paths = list(
             process.scan_pointer_paths(
                 address,
                 max_depth=3,
@@ -111,6 +111,15 @@ def _pointer_paths(process, address: int, module_name: str, max_results: int = 8
     except Exception as exc:
         print(f"[WARN] Pointer scan failed: {exc}")
         return []
+    # Only accept paths rooted in the game module. A path rooted in another DLL
+    # (fmodex64.dll, renderer, …) reaches that library's heap object — audio /
+    # graphics data, not the game's save state. Rejecting those avoids saving a
+    # false "Health" that is really an FMOD volume float.
+    return [
+        p
+        for p in paths
+        if p.module is None or str(p.module).lower() == module_name.lower()
+    ]
 
 
 def pointer_chain(pid: int, address: int, module_name: str = PROCESS_NAME) -> Optional[list[int]]:

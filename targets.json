@@ -56,7 +56,7 @@
       ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 607. Identify with two save slots."
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 607. Identify with two save slots."
     },
     {
       "id": "chest_crossroads_currency_south_crater",
@@ -70,7 +70,7 @@
       ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 600."
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 600."
     },
     {
       "id": "chest_crossroads_currency_north_building",
@@ -84,7 +84,7 @@
       ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 605."
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 605."
     },
     {
       "id": "chest_crossroads_currency_subway",
@@ -98,7 +98,7 @@
       ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 604."
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 604."
     },
     {
       "id": "chest_crossroads_life_east_crater",
@@ -112,7 +112,7 @@
       ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 608."
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 608."
     },
     {
       "id": "chest_crossroads_life_ne_back_alley",
@@ -126,7 +126,7 @@
       ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 606."
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 606."
     },
     {
       "id": "chest_crossroads_life_west_of_library",
@@ -140,7 +140,7 @@
       ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 601."
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 601."
     },
     {
       "id": "chest_crossroads_rare_ice",
@@ -154,7 +154,7 @@
       ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 602. Skip until ice tools."
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 602. Skip until ice tools."
     },
     {
       "id": "chest_crossroads_secret_hydrants",
@@ -168,7 +168,7 @@
       ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 609. Identify with two save slots."
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 609. Identify with two save slots."
     },
     {
       "id": "artifact_crossroads_subway",
@@ -182,7 +182,7 @@
       ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 603."
+      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 603."
     },
     {
       "id": "goal_abaddon_defeated",
@@ -196,7 +196,7 @@
       ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE \u2014 do not invent a boss flag. Capture only after a real 0\u21921."
+      "notes": "TEMPLATE — do not invent a boss flag. Capture only after a real 0→1."
     },
     {
       "id": "item_armageddon_blade_shards",
@@ -209,7 +209,7 @@
         "0x0"
       ],
       "type": "uint32",
-      "notes": "TEMPLATE \u2014 count watch. AP apply sets this integer to received count."
+      "notes": "TEMPLATE — count watch. AP apply sets this integer to received count."
     },
     {
       "id": "item_armageddon_blade",
@@ -223,7 +223,7 @@
       ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE \u2014 Keen items/item_armageddonsword. Granted when AP shard count hits 7."
+      "notes": "TEMPLATE — Keen items/item_armageddonsword. Granted when AP shard count hits 7."
     },
     {
       "id": "item_progressive_chaoseater",
@@ -236,7 +236,7 @@
         "0x0"
       ],
       "type": "uint32",
-      "notes": "TEMPLATE \u2014 weapon Level integer. AP apply sets 1..4 from received count."
+      "notes": "TEMPLATE — weapon Level integer. AP apply sets 1..4 from received count."
     },
     {
       "id": "item_progressive_scythe",
@@ -249,7 +249,7 @@
         "0x0"
       ],
       "type": "uint32",
-      "notes": "TEMPLATE \u2014 weapon Level integer. AP apply sets 1..4 from received count."
+      "notes": "TEMPLATE — weapon Level integer. AP apply sets 1..4 from received count."
     },
     {
       "id": "item_progressive_gauntlet",
@@ -262,7 +262,7 @@
         "0x0"
       ],
       "type": "uint32",
-      "notes": "TEMPLATE \u2014 weapon Level integer. AP apply sets 1..4 from received count."
+      "notes": "TEMPLATE — weapon Level integer. AP apply sets 1..4 from received count."
     },
     {
       "id": "item_beholder_key",
@@ -275,7 +275,7 @@
         "0x0"
       ],
       "type": "uint32",
-      "notes": "TEMPLATE \u2014 count watch. Do not virtualize slots until this offset is real."
+      "notes": "TEMPLATE — count watch. Do not virtualize slots until this offset is real."
     },
     {
       "id": "item_heart_of_the_chosen",
@@ -288,7 +288,7 @@
         "0x0"
       ],
       "type": "uint32",
-      "notes": "TEMPLATE \u2014 count watch. Separate AP item from Beholder Key."
+      "notes": "TEMPLATE — count watch. Separate AP item from Beholder Key."
     },
     {
       "id": "item_empty_vessel",
@@ -297,7 +297,9 @@
       "category": "inventory",
       "label": "Empty Vessel",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint32",
       "notes": "TEMPLATE — container consumable (buy from Vulgrim). Count watch; map with scan --item."
     },
@@ -308,7 +310,9 @@
       "category": "inventory",
       "label": "Life Essence",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint32",
       "notes": "TEMPLATE — restores 3 Lifestones. Writes Health (see stat row). Restore apply; map with scan."
     },
@@ -319,7 +323,9 @@
       "category": "inventory",
       "label": "Greater Life Essence",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint32",
       "notes": "TEMPLATE — fully restores Lifestones. Writes Health (see stat row). Restore apply."
     },
@@ -330,7 +336,9 @@
       "category": "inventory",
       "label": "Possession",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint32",
       "notes": "TEMPLATE — maxes Chaos level. Writes Chaos (see stat row). Restore apply."
     },
@@ -341,7 +349,9 @@
       "category": "inventory",
       "label": "Rage Essence",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint32",
       "notes": "TEMPLATE — restores some Wrath. Writes Wrath (see stat row). Restore apply."
     },
@@ -352,7 +362,9 @@
       "category": "inventory",
       "label": "Greater Rage Essence",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint32",
       "notes": "TEMPLATE — fully restores Wrath. Writes Wrath (see stat row). Restore apply."
     },
@@ -363,7 +375,9 @@
       "category": "inventory",
       "label": "Undying",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint8",
       "notes": "TEMPLATE — equippable; on fatal strike restores Health + Wrath. Equip flag."
     },
@@ -391,9 +405,11 @@
       "category": "stat",
       "label": "Health",
       "region": "",
-      "offsets": ["0x0"],
-      "type": "int32",
-      "notes": "TEMPLATE — PlayerSaveData.Health (Lifestones). Life essences write here. Type guess; scan --type int32."
+      "offsets": [
+        "0x0"
+      ],
+      "type": "float",
+      "notes": "TEMPLATE — HUD bar, not a number. Re-scan with --diff --type float. Last hit was a false positive: fmodex64.dll audio value (137.0)."
     },
     {
       "id": "wrath",
@@ -402,7 +418,9 @@
       "category": "stat",
       "label": "Wrath",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "float",
       "notes": "TEMPLATE — PlayerSaveData.Wrath meter. Rage essences write here. Type guess; scan --type float."
     },
@@ -413,7 +431,9 @@
       "category": "stat",
       "label": "Chaos",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "int32",
       "notes": "TEMPLATE — PlayerSaveData.Chaos / ChaosLevel. Possession writes here. Type guess; scan --type int32."
     }
