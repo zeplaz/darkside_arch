@@ -138,7 +138,7 @@ python -m tools poke --json --id soul_count --value 10000
 | `--pid` | Game PID (auto-detected if omitted). |
 | `--json` | Print one JSON result line. |
 
-A row is pokable only after it has a real `offsets` value (map it with `python -m tools scan --item NAME`). Today `soul_count` is the only mapped one; the weapon / key rows become pokable once mapped. The dashboard **ITEM WRITES** panel has a **POKE** box for the same write, and **DLL LAB** has a DLL-path POKE (`--poke-dll`) for the in-process proof.
+A row is pokable only after it has a real `offsets` value (map it with `python -m tools scan --item NAME`). Today `soul_count` is the only mapped one; the weapon / key rows become pokable once mapped. The dashboard **ITEM WRITES** panel has a **POKE** box whose target dropdown auto-populates with every mapped row (and grows as you map more), and **DLL LAB** has a DLL-path POKE (`--poke-dll`) for the in-process proof.
 
 ---
 
