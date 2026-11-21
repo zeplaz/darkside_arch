@@ -288,7 +288,7 @@ def main_identify(argv: Optional[list[str]] = None) -> int:
     )
     p.add_argument("--location", required=True, help="Exact catalog name or unique substring")
     p.add_argument("--object", default="", help="game_data object Name (e.g. Artifact_Pawn_01)")
-    p.add_argument("--kind", default="", choices=["", "artifact", "chest", "door"], help="Filter the object picker")
+    p.add_argument("--kind", default="", choices=["", "artifact", "chest", "door", "quest"], help="Filter the object picker")
     p.add_argument("--dry-run", action="store_true", help="Print the result; do not write targets.json")
     args = p.parse_args(argv)
 

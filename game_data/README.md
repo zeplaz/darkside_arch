@@ -10,9 +10,9 @@ of the Keen `.json` schema. The dashboard and `tools/identify` read every
 |------|---------------|
 | `Chests.json` | A region dump containing chest objects (and a few waypoints / statics). |
 | `Artifacts.json` | A region dump containing artifact `ItemActor`s. |
-| `Sword.json` | A sword-altar region dump (`CI_03_SwordAltar`) — quest objects carry a `SaveDataModule` flag (e.g. `SwordPiece_05`), not a `Values` flag. |
+| `Sword.json` | A sword-altar region dump — quest objects carry a `SaveDataModule` flag (e.g. `SwordPiece_05`), not a `Values` flag. |
 | `*.s` | Chest/rarechest Keen scripts — only read to confirm the persist key (`Triggered`). |
-| `Scripts.json`, `scripts (1).json` | Reference dumps. Not scanned by `tools`. |
+| `Scripts.json`, `scripts (1).json` | Region dumps of vis-script/tutorial objects (also scanned; mostly quest flags). |
 | `*.dds` | Minimap tiles. Ignored. |
 
 ## Expected `RegionLayer` shape
@@ -44,8 +44,8 @@ of the Keen `.json` schema. The dashboard and `tools/identify` read every
 ```
 
 Only `Objects` are read. For each object, `tools.game_data` extracts:
-`name`, `classname`, `item_type`, `class_kind`, `world`, `region_id`,
-`layer_id` (defaults to `0`), `object_id`, and `source` (the filename).
+`name`, `classname`, `item_type`, `class_kind`, `flag_names`, `world`,
+`region_id`, `layer_id` (defaults to `0`), `object_id`, and `source` (the filename).
 
 ## How kinds are detected
 
@@ -54,11 +54,17 @@ Only `Objects` are read. For each object, `tools.game_data` extracts:
 | `artifact` | `ItemType` starts with `artifact_` (e.g. `artifact_pawn`, `artifact_master`, `artifact_general`) |
 | `chest` | classname contains `chest` / `casket` |
 | `door` | classname contains `door` |
+| `quest` | the object holds a `SaveDataModule` `FlagName` (e.g. `SwordPiece_05`) and is none of the above |
 
 Artifacts are `ItemActor` objects, **not** `chest_*` objects — and unlike
 chests they write **no** `Triggered`/`Destroyed`/`Open` flag to the save, which
 is why they cannot be identified by SAVE DIFF. Their identity comes from here
 instead (`GAME DATA…` in the dashboard, or `python -m tools identify`).
+
+Quest objects (sword pieces, tutorials, one-shot scripts) persist by **flag
+name** (`FlagInfo.FlagName` under a `SaveDataModule`), e.g. `SwordPiece_05` —
+a third mechanism alongside chest `Values.Triggered` and artifact inventory.
+Those flag names are surfaced as `flag_names` on the object.
 
 ## Adding a region
 

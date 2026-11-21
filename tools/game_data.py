@@ -77,16 +77,45 @@ def class_kind(classname: str, item_type: str = "") -> str:
     return ""
 
 
+def _flag_names(obj: dict[str, Any]) -> list[str]:
+    """Quest flag names anywhere in the object (``SaveDataModule.FlagInfoList[].FlagName``).
+
+    Sword pieces / quest objects persist this way instead of a WorldObject
+    ``Values`` key (e.g. ``SwordPiece_05`` under ``QuestItems``)."""
+    names: list[str] = []
+
+    def walk(node: Any) -> None:
+        if isinstance(node, dict):
+            if node.get("classname") == "FlagInfo":
+                props = node.get("properties") or {}
+                name = props.get("FlagName")
+                if isinstance(name, str) and name:
+                    names.append(name)
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+
+    walk(obj)
+    return names
+
+
 def _placed(obj: dict[str, Any], source: str) -> Optional[dict[str, Any]]:
     props = obj.get("properties") or {}
     try:
         classname = str(obj.get("classname") or "")
         item_type = str(props.get("ItemType") or "")
+        flags = _flag_names(obj)
+        kind = class_kind(classname, item_type)
+        if not kind and flags:
+            kind = "quest"
         return {
             "name": str(props.get("Name") or ""),
             "classname": classname,
             "item_type": item_type,
-            "class_kind": class_kind(classname, item_type),
+            "class_kind": kind,
+            "flag_names": flags,
             "world": "overworld",
             "region_id": int(props["RegionID"]),
             # Artifact dumps omit LayerID; default to 0 until a dump provides it.
