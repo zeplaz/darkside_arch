@@ -44,8 +44,7 @@ Keen world objects live in `PlayerSaveData.WorldData[].Regions[].Layers[].WorldO
 | `Destroyed` | Breakables (the X/Y props already in an early hotel save) |
 | `Open` | Doors |
 | `Triggered` | Chests / one-shots |
-
-Artifacts (and armor / cubes) write **none** of these — collecting one only adds an inventory item (`items/artifact_*`) and bumps `Stats.NumberOfArtifactsCollected`, with no source-location record. Identify those from a `game_data` region dump instead (`python -m tools identify`, or **GAME DATA…** in the dashboard).
+| `Persisting` | Artifacts — collecting one marks its pickup object `Persisting` (plus `Stats.NumberOfArtifactsCollected` +1 and an `items/artifact_*` inventory item) |
 
 `Seraphim Hotel Life Chest 1` is `overworld` / RegionID `2` / LayerID `6` / ObjectID `342` / `Triggered` (`SB_G_Chest_HealthChest_01`, `/overworld/CI_StartBld`). Slot 1 = closed, slot 2 = open (`NumberOfChestsOpened` 0→1, Health 81→200).
 

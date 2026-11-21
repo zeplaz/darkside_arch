@@ -118,7 +118,7 @@ Flow: type the HUD value (session 1) → it enumerates pointer chains → **relo
 
 ## `identify`
 
-Identify a location from a `game_data` object dump instead of a two-slot save diff. Used when the save has no per-object flag (artifacts) or when you already know the Keen object.
+Identify a location from a `game_data` object dump instead of a two-slot save diff. Used for armor / cubes (no save flag) or when you already know the Keen object. (Artifacts *can* be save-diffed — they persist a `Persisting` flag.)
 
 ```powershell
 python -m tools identify --location "Crossroads Subway Station Artifact" --object Artifact_Pawn_01

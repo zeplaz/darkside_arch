@@ -67,7 +67,7 @@ def annotate_flag(delta: dict[str, Any]) -> dict[str, Any]:
     if placed:
         delta = {**delta, "name": placed["name"], "classname": placed["classname"], "class_kind": placed["class_kind"]}
     if not delta.get("class_kind"):
-        inferred = {"Destroyed": "breakable", "Open": "door", "Activated": "other"}.get(delta["value_key"], "")
+        inferred = {"Destroyed": "breakable", "Open": "door", "Activated": "other", "Persisting": "artifact"}.get(delta["value_key"], "")
         if inferred:
             delta = {**delta, "class_kind": inferred}
     return delta
@@ -79,7 +79,7 @@ def object_flag_deltas(
     out: list[dict[str, Any]] = []
     for key, left, right in rows:
         kind, world, rid, lid, oid, field = key
-        if kind != "object" or field not in FLAG_KEYS:
+        if kind != "object" or field not in (*FLAG_KEYS, "Persisting"):
             continue
         out.append(
             annotate_flag(
@@ -97,13 +97,21 @@ def object_flag_deltas(
     return out
 
 
+def _persist_key(loc: Optional[WorldLocation]) -> str:
+    """The flag an AP kind actually persists. Chests → Triggered; artifacts mark
+    their pickup ``Persisting`` (they never write Triggered)."""
+    if loc and loc.kind == "artifact":
+        return "Persisting"
+    return persist_flag()
+
+
 def filter_flags(
     flags: list[dict[str, Any]], loc: Optional[WorldLocation] = None
 ) -> tuple[list[dict[str, Any]], int, bool]:
-    """Keep the persist key for this AP kind (chests → Triggered). Drop doors/breakables."""
+    """Keep the persist key for this AP kind (chests → Triggered, artifacts → Persisting)."""
     shown = list(flags)
     if loc and loc.kind in {"chest", "artifact", "armor", "cube"}:
-        key = persist_flag()
+        key = _persist_key(loc)
         shown = [d for d in shown if d["value_key"] == key]
         if loc.kind == "chest":
             chests = [d for d in shown if d.get("class_kind") == "chest"]
@@ -122,7 +130,7 @@ def pick_flag_delta(
         match = [d for d in deltas if _ids_equal(d, placed)]
         if len(match) == 1:
             return match[0]
-    fresh = [d for d in deltas if d["value_key"] == persist_flag() and _is_set(d)]
+    fresh = [d for d in deltas if d["value_key"] == _persist_key(loc) and _is_set(d)]
     if len(fresh) == 1:
         return fresh[0]
     if len(deltas) == 1:

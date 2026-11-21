@@ -1554,13 +1554,14 @@ function locTalk(loc) {
   }
   return { kind, closed: "untriggered", opened: "triggered", openVerb: "Trigger", opening: "Triggering" };
 }
-function flagKind(d) { return d.class_kind || (d.value_key === "Destroyed" ? "breakable" : d.value_key === "Open" ? "door" : ""); }
+function flagKind(d) { return d.class_kind || (d.value_key === "Destroyed" ? "breakable" : d.value_key === "Open" ? "door" : d.value_key === "Persisting" ? "artifact" : ""); }
 function matchFlags(flags, loc) {
   const kind = loc?.kind || "";
   if (!["chest", "artifact", "armor", "cube"].includes(kind)) return flags;
-  let shown = flags.filter(d => d.value_key === "Triggered");
-  if (kind === "chest" || kind === "artifact") {
-    const typed = shown.filter(d => flagKind(d) === kind);
+  const key = kind === "artifact" ? "Persisting" : "Triggered";
+  let shown = flags.filter(d => d.value_key === key);
+  if (kind === "chest") {
+    const typed = shown.filter(d => flagKind(d) === "chest");
     if (typed.length) shown = typed;
   }
   return shown;

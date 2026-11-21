@@ -67,7 +67,7 @@ Identity is `world` + RegionID + LayerID + ObjectID + key. ObjectID is not globa
 
 **SWAP** if the table says `true → (absent)` (you set open slot first). **EXPORT … JSON** writes `saves/_scratch/slots/`.
 
-**Artifacts / armor / cubes have no save flag**, so SAVE DIFF finds nothing for them. Identify those from a `game_data` dump instead — **GAME DATA…** in the SAVE DIFF panel (or `python -m tools identify --location NAME --kind artifact`). Every identity records a `source` (`Chests.json` / `Artifacts.json` / `save-diff`), shown in the location card and stored in the `target_index` table of `darksiders_debug.db` alongside each row's stage (`open` / `identified` / `mapped`).
+**Artifacts** persist a `Persisting` flag on their pickup object (plus `NumberOfArtifactsCollected` +1), so SAVE DIFF *can* identify them — it looks for `Persisting`, not `Triggered`. **Armor / cubes** still have no such flag; identify those from a `game_data` dump (**GAME DATA…**, or `python -m tools identify --location NAME --kind artifact`). Every identity records a `source` (`Chests.json` / `Artifacts.json` / `save-diff`), shown in the location card and stored in the `target_index` table of `darksiders_debug.db` alongside each row's stage (`open` / `identified` / `mapped`).
 
 ## RAM DUMP — live flag
 
