@@ -9,7 +9,9 @@
       "category": "location_flag",
       "label": "Seraphim Hotel Life Chest 1",
       "region": "Seraphim Hotel",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint8",
       "bitmask": "0x01",
       "save_object": {
@@ -28,7 +30,9 @@
       "category": "location_flag",
       "label": "Seraphim Hotel Life Chest 2",
       "region": "Seraphim Hotel",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint8",
       "bitmask": "0x01",
       "save_object": {
@@ -47,10 +51,12 @@
       "category": "location_flag",
       "label": "Crossroads Back Alley Downstairs Chest",
       "region": "Crossroads",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 607. Identify with two save slots."
+      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 607. Identify with two save slots."
     },
     {
       "id": "chest_crossroads_currency_south_crater",
@@ -59,10 +65,12 @@
       "category": "location_flag",
       "label": "Crossroads South Crater Chest",
       "region": "Crossroads",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 600."
+      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 600."
     },
     {
       "id": "chest_crossroads_currency_north_building",
@@ -71,10 +79,12 @@
       "category": "location_flag",
       "label": "Crossroads North Building Chest",
       "region": "Crossroads",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 605."
+      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 605."
     },
     {
       "id": "chest_crossroads_currency_subway",
@@ -83,10 +93,12 @@
       "category": "location_flag",
       "label": "Crossroads Subway Station Chest",
       "region": "Crossroads",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 604."
+      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 604."
     },
     {
       "id": "chest_crossroads_life_east_crater",
@@ -95,10 +107,12 @@
       "category": "location_flag",
       "label": "Crossroads East Crater Chest",
       "region": "Crossroads",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 608."
+      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 608."
     },
     {
       "id": "chest_crossroads_life_ne_back_alley",
@@ -107,10 +121,12 @@
       "category": "location_flag",
       "label": "Crossroads Back Alley Chest",
       "region": "Crossroads",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 606."
+      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 606."
     },
     {
       "id": "chest_crossroads_life_west_of_library",
@@ -119,10 +135,12 @@
       "category": "location_flag",
       "label": "Crossroads West of Library Chest",
       "region": "Crossroads",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 601."
+      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 601."
     },
     {
       "id": "chest_crossroads_rare_ice",
@@ -131,10 +149,12 @@
       "category": "location_flag",
       "label": "Crossroads Chest Blocked by Ice",
       "region": "Crossroads",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 602. Skip until ice tools."
+      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 602. Skip until ice tools."
     },
     {
       "id": "chest_crossroads_secret_hydrants",
@@ -143,10 +163,12 @@
       "category": "location_flag",
       "label": "Crossroads Secret Chest Destroy Fire Hydrants",
       "region": "Crossroads",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 609. Identify with two save slots."
+      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 609. Identify with two save slots."
     },
     {
       "id": "artifact_crossroads_subway",
@@ -155,10 +177,12 @@
       "category": "location_flag",
       "label": "Crossroads Subway Station Artifact",
       "region": "Crossroads",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — Sacha data/Crossroads.json ID 603."
+      "notes": "TEMPLATE \u2014 Sacha data/Crossroads.json ID 603."
     },
     {
       "id": "goal_abaddon_defeated",
@@ -167,10 +191,12 @@
       "category": "misc",
       "label": "Abaddon the Destroyer defeated",
       "region": "Leviathan's Drift Upper Area",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — do not invent a boss flag. Capture only after a real 0→1."
+      "notes": "TEMPLATE \u2014 do not invent a boss flag. Capture only after a real 0\u21921."
     },
     {
       "id": "item_armageddon_blade_shards",
@@ -179,9 +205,11 @@
       "category": "inventory",
       "label": "Armageddon Blade Shards",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint32",
-      "notes": "TEMPLATE — count watch. AP apply sets this integer to received count."
+      "notes": "TEMPLATE \u2014 count watch. AP apply sets this integer to received count."
     },
     {
       "id": "item_armageddon_blade",
@@ -190,10 +218,12 @@
       "category": "inventory",
       "label": "Armageddon Blade",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint8",
       "bitmask": "0x01",
-      "notes": "TEMPLATE — Keen items/item_armageddonsword. Granted when AP shard count hits 7."
+      "notes": "TEMPLATE \u2014 Keen items/item_armageddonsword. Granted when AP shard count hits 7."
     },
     {
       "id": "item_progressive_chaoseater",
@@ -202,9 +232,11 @@
       "category": "inventory",
       "label": "Progressive Chaoseater",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint32",
-      "notes": "TEMPLATE — weapon Level integer. AP apply sets 1..4 from received count."
+      "notes": "TEMPLATE \u2014 weapon Level integer. AP apply sets 1..4 from received count."
     },
     {
       "id": "item_progressive_scythe",
@@ -213,9 +245,11 @@
       "category": "inventory",
       "label": "Progressive Scythe",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint32",
-      "notes": "TEMPLATE — weapon Level integer. AP apply sets 1..4 from received count."
+      "notes": "TEMPLATE \u2014 weapon Level integer. AP apply sets 1..4 from received count."
     },
     {
       "id": "item_progressive_gauntlet",
@@ -224,9 +258,11 @@
       "category": "inventory",
       "label": "Progressive Gauntlet",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint32",
-      "notes": "TEMPLATE — weapon Level integer. AP apply sets 1..4 from received count."
+      "notes": "TEMPLATE \u2014 weapon Level integer. AP apply sets 1..4 from received count."
     },
     {
       "id": "item_beholder_key",
@@ -235,9 +271,11 @@
       "category": "inventory",
       "label": "Beholder Key",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint32",
-      "notes": "TEMPLATE — count watch. Do not virtualize slots until this offset is real."
+      "notes": "TEMPLATE \u2014 count watch. Do not virtualize slots until this offset is real."
     },
     {
       "id": "item_heart_of_the_chosen",
@@ -246,20 +284,28 @@
       "category": "inventory",
       "label": "Heart of the Chosen",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x0"
+      ],
       "type": "uint32",
-      "notes": "TEMPLATE — count watch. Separate AP item from Beholder Key."
+      "notes": "TEMPLATE \u2014 count watch. Separate AP item from Beholder Key."
     },
     {
       "id": "soul_count",
-      "enabled": false,
+      "enabled": true,
       "event_type": "MEMORY_STATE",
       "category": "stat",
       "label": "Soul_Count",
       "region": "",
-      "offsets": ["0x0"],
+      "offsets": [
+        "0x3981510",
+        "0x948",
+        "0xFE0",
+        "0xF88"
+      ],
       "type": "float",
-      "notes": "Keen PlayerSaveData.Souls is float. Scan with --type float. TEMPLATE — replace offsets via: python -m tools scan"
+      "notes": "pointer path to 0x1F7B2A56AC0",
+      "module": "darksiders1.exe"
     }
   ]
 }

@@ -109,7 +109,7 @@ def upsert_target(new_target: dict, targets_path: Path = TARGETS_FILE) -> str:
     else:
         targets.append(new_target)
 
-    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return action
 
 
