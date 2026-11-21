@@ -13,7 +13,7 @@ It is a workspace for writing [targets.json](../targets.json). Player runtimes a
 
 **Target build:** Darksiders **Warmastered** Steam **x64** only. Do not SAVE DIFF / inject on the 2016 32-bit retail game.
 
-First open shows a **START** splash (navigates only — Map a check / DLL LAB). Reopen with **START** in the header. Center **WORK MODE** bar switches the middle panel. Header pill **WAR** must be green before DIFF SAVES (install from the SAVE DIFF setup card if missing). DLL checklist rows are tinted **DONE** / **PENDING** / **BLOCKED**.
+Center **WORK MODE** bar switches the middle panel. Header pill **WAR** must be green before DIFF SAVES (install from the SAVE DIFF setup card if missing). DLL checklist rows are tinted **DONE** / **PENDING** / **BLOCKED**.
 
 | Tab | Does | Writes |
 |-----|------|--------|

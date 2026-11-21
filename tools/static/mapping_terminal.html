@@ -233,7 +233,7 @@
     .g-INFO, .g-FILE { color: var(--dim); }
     .foot { padding: 0.5rem 0.6rem; border-top: 1px solid var(--line); flex: 0 0 auto; display: flex; flex-direction: column; gap: 0.3rem; }
 
-    /* tooltip + help + splash */
+    /* tooltip + help */
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-thumb { background: var(--line2); }
     #tip {
@@ -250,26 +250,6 @@
       width: min(56rem, calc(100vw - 1.2rem)); max-height: calc(100dvh - 1.2rem); overflow: auto;
       background: var(--panel); border: 1px solid var(--key); padding: 0 1rem 1rem;
     }
-    .splash {
-      position: fixed; z-index: 55; inset: 0; display: flex; align-items: center; justify-content: center;
-      padding: 1rem; background: rgba(0,0,0,.82);
-    }
-    .splash-card {
-      width: min(40rem, 100%); max-height: calc(100dvh - 2rem); overflow: auto;
-      background: var(--panel); border: 1px solid var(--key); padding: 1.1rem 1.2rem 1.2rem;
-    }
-    .splash-card h1 {
-      margin: 0 0 0.35rem; font-size: 1.05em; letter-spacing: 0.14em; color: var(--hi);
-    }
-    .splash-card .lead { color: var(--dim); margin: 0 0 1rem; }
-    .splash-choice {
-      display: block; width: 100%; text-align: left; margin: 0 0 0.55rem; padding: 0.75rem 0.85rem;
-      background: var(--bg); border: 1px solid var(--line2);
-    }
-    .splash-choice:hover { border-color: var(--key); }
-    .splash-choice b { display: block; color: var(--hi); letter-spacing: 0.08em; margin-bottom: 0.25rem; }
-    .splash-choice span { color: var(--dim); font-size: 0.92em; }
-    .splash-foot { display: flex; justify-content: space-between; gap: 0.5rem; margin-top: 0.8rem; flex-wrap: wrap; }
     .mode-bar {
       display: flex; flex-direction: column; align-items: stretch; gap: 0.25rem; min-width: 0; flex: 1 1 auto;
     }
@@ -396,7 +376,6 @@
       <span class="pill" id="pill-war" data-tip="whatisaphone/war — Keen .sav decode for SAVE DIFF. Warmastered x64 only."><span class="dot"></span>WAR <b>…</b></span>
     </div>
     <div class="acts">
-      <button type="button" id="splash-btn" data-tip="Show the start screen again.">START</button>
       <button type="button" id="help-btn" data-tip="How mapping works. Shortcut: ?">? HELP</button>
       <button type="button" id="refresh-btn" data-tip="Re-read the world catalog, targets.json and memory_map.md.">RELOAD</button>
     </div>
@@ -850,24 +829,6 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
   </div>
 
   <div id="tip" role="tooltip"></div>
-  <div id="splash" class="splash" hidden>
-    <div class="splash-card" role="dialog" aria-labelledby="splash-h">
-      <h1 id="splash-h">DARKSIDE_ARCH</h1>
-      <p class="lead">Warmastered <b>x64</b> only. Only navigates — nothing starts here. Center <b>WORK MODE</b> switches the middle panel.</p>
-      <button type="button" class="splash-choice" id="splash-map" data-tip="Opens SAVE DIFF work mode.">
-        <b>1 · MAP A CHECK</b>
-        <span>SAVE DIFF on Warmastered saves (needs war). Two slots → Keen identity. Not the 2016 32-bit build.</span>
-      </button>
-      <button type="button" class="splash-choice" id="splash-dll" data-tip="Opens the DLL LAB work mode. Pick TEST or LIVE on that tab.">
-        <b>2 · DLL LAB</b>
-        <span>Opens the DLL work tab. You choose TEST (no AP) or LIVE (ap_config) there — nothing starts from this screen.</span>
-      </button>
-      <div class="splash-foot">
-        <button type="button" class="ghost" id="splash-skip">Skip — open workspace</button>
-        <button type="button" class="ghost" id="splash-help">? Help</button>
-      </div>
-    </div>
-  </div>
   <div id="help-scrim" class="scrim" hidden></div>
   <aside id="help-panel" class="help" hidden role="dialog" aria-labelledby="help-h">
     <div class="help-bar">
@@ -999,7 +960,7 @@ function post(path, body) {
   });
 }
 
-/* ---------- tooltips + help + splash ---------- */
+/* ---------- tooltips + help ---------- */
 const tipEl = $("tip");
 let tipTarget = null;
 function placeTip(el, clientX, clientY) {
@@ -1021,7 +982,6 @@ function hideTip() {
   tipEl.style.display = "none";
 }
 function helpOpen() { return !$("help-panel").hidden; }
-function splashOpen() { return !$("splash").hidden; }
 // Stay up for the whole hover. Ignore child enter/leave inside the same [data-tip].
 document.addEventListener("pointerover", e => {
   if (helpOpen()) return;
@@ -1051,33 +1011,14 @@ function setHelp(on) {
   $("help-btn").classList.toggle("on", on);
   hideTip();
 }
-function setSplash(on) {
-  $("splash").hidden = !on;
-  $("splash-btn").classList.toggle("on", on);
-  hideTip();
-  if (!on) {
-    try { localStorage.setItem("darkside_splash_seen", "1"); } catch (_) {}
-  }
-}
-function enterFromSplash(work) {
-  setSplash(false);
-  setPane("checks");
-  setWork(work);
-}
-$("help-btn").onclick = () => { setSplash(false); setHelp(!helpOpen()); };
+$("help-btn").onclick = () => setHelp(!helpOpen());
 $("help-close").onclick = () => setHelp(false);
 $("help-scrim").onclick = () => setHelp(false);
-$("splash-btn").onclick = () => { setHelp(false); setSplash(true); };
-$("splash-skip").onclick = () => setSplash(false);
-$("splash-help").onclick = () => { setSplash(false); setHelp(true); };
-$("splash-map").onclick = () => enterFromSplash("diff");
-$("splash-dll").onclick = () => enterFromSplash("dll");
 
 document.addEventListener("keydown", e => {
   const typing = e.target.matches("input,select,textarea");
   if (e.key === "Escape") {
     if (helpOpen()) return setHelp(false);
-    if (splashOpen()) return setSplash(false);
     if (typing) { e.target.blur(); return; }
   }
   if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -3082,9 +3023,6 @@ document.querySelectorAll(".copy").forEach(b => b.onclick = async () => {
   }
   setPane(ui.pane === "items" ? "items" : "checks");
   loadSavSlots();
-  let seen = false;
-  try { seen = localStorage.getItem("darkside_splash_seen") === "1"; } catch (_) {}
-  if (!seen) setSplash(true);
   poll();
 })();
 </script>
