@@ -12,9 +12,10 @@ python -m tools <command> --help
 
 | Run | Use |
 |-----|-----|
-| [`dashboard`](#dashboard) | **Main entry.** Identify from two save slots, then RAM DUMP. |
+| [`dashboard`](#dashboard) | **Main entry.** Identify (two save slots or `game_data`), then RAM DUMP. |
 | [`capture`](#capture) | Same identify / RAM dump in the terminal. |
 | [`scan`](#scan) | HUD numbers (souls, weapon levels). Add `--sav --slots` only for a chest identity. |
+| [`identify`](#identify) | Identify a location from a `game_data` dump (Chests/Artifacts.json) — no save diff. |
 | [`locations`](#locations) | List checks: open / identified / mapped. |
 | [`sync-world`](#sync-world) | Refresh `docs/world_*.json` from Sacha’s world package. |
 | [`export-docs`](#export-docs) | Rebuild `docs/memory_map.md`. |
@@ -67,7 +68,7 @@ python -m tools capture --sav FILE.sav --slots 1 2 --location "…" --dry-run
 | `--next` | First unmapped check in `--region`, no menu. |
 | `--dry-run` | Print; do not write `targets.json`. |
 
-Without `--sav`, this is the RAM capture (heap around `save_object`, else `.data`).
+Without `--sav`, this is the RAM capture. It requires a `save_object` (identify first) and anchors on the heap around it — rows without an identity are refused, not diffed as `.data`.
 
 ---
 
@@ -77,6 +78,7 @@ HUD counts for item writes. Not a chest 0→1 unless you pass `--sav`.
 
 ```powershell
 python -m tools scan                                          # souls (Soul_Count, float)
+python -m tools scan --item Soul_Count --diff                 # find souls by how it changed (no exact number)
 python -m tools scan --item "Progressive Chaoseater"          # weapon level 1..4
 python -m tools scan --sav FILE.sav --slots 1 2 --item "Seraphim Hotel Life Chest 1"
 python -m tools scan --item "Progressive Chaoseater" --type uint32 --dry-run
@@ -86,10 +88,32 @@ python -m tools scan --item "Progressive Chaoseater" --type uint32 --dry-run
 |------|--|
 | `--item NAME` | `targets.json` / catalog label. Default is souls. |
 | `--type` | Override the row type (`float`, `uint8`, …). |
+| `--diff` | Unknown-initial-value diff scan: change the value, then `+` increased / `-` decreased / `~` unchanged / `c` changed (or `= exact`). No exact HUD number needed. |
 | `--sav` `--slots` | Chest identity (same as `save-diff --location`). Not a HUD scan. |
 | `--dry-run` | Print; do not write. |
 
-Dashboard **ITEM WRITES** shows the command for the selected row. Type the HUD number, change it in-game, type again. Heap hits become a pointer chain.
+Dashboard **ITEM WRITES** shows the command for the selected row. Type the HUD number, change it in-game, type again. Heap hits become a pointer chain. Use `--diff` when the stored float does not match the HUD number bit-for-bit.
+
+---
+
+## `identify`
+
+Identify a location from a `game_data` object dump instead of a two-slot save diff. Used when the save has no per-object flag (artifacts) or when you already know the Keen object.
+
+```powershell
+python -m tools identify --location "Crossroads Subway Station Artifact" --object Artifact_Pawn_01
+python -m tools identify --location "Crossroads Subway Station Artifact" --kind artifact   # pick from a list
+python -m tools identify --location NAME --object Artifact_Pawn_01 --dry-run
+```
+
+| Flag | |
+|------|--|
+| `--location NAME` | Exact catalog name or unique substring. |
+| `--object NAME` | `game_data` object `Name` (e.g. `Artifact_Pawn_01`). Omit to pick from a list. |
+| `--kind` | Filter the picker: `artifact` \| `chest` \| `door`. |
+| `--dry-run` | Print; do not write. |
+
+Writes the same `save_object` as SAVE IDENTITY, but records `source: "Artifacts.json"` / `"Chests.json"` so provenance is kept.
 
 ---
 
@@ -216,7 +240,7 @@ python -m tools save-install --json TEMPLATE.json --sav TEMPLATE.sav --userid YO
 | `id` | Stable key. Required. |
 | `label` | Exact world name (join key with Sacha’s `data/*.json`). |
 | `offsets` | Module-relative hex. `["0x0"]` = not a RAM watch. |
-| `save_object` | Keen identity: `world`, `region_id`, `layer_id`, `object_id`, `value_key`. Not a live AP watch. |
+| `save_object` | Keen identity: `world`, `region_id`, `layer_id`, `object_id`, `value_key`, plus `source` provenance (`Chests.json` / `Artifacts.json` / `save-diff`). Not a live AP watch. |
 | `type` | `bool`, `uint8/16/32/64`, `int8/16/32/64`, `float`, `double`. |
 | `bitmask` | Optional; not on float / double. |
 | `category` | `location_flag` \| `inventory` \| `stat` \| `misc`. |

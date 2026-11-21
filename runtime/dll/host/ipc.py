@@ -41,6 +41,11 @@ class IpcServer:
         self._watches = list(watches)
         self._send_watches()
 
+    @property
+    def has_client(self) -> bool:
+        with self._client_lock:
+            return self._client is not None
+
     def _send_watches(self) -> None:
         payload = json.dumps({"op": "watches", "items": self._watches}, separators=(",", ":"))
         with self._client_lock:

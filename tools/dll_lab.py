@@ -47,6 +47,7 @@ class DllLab:
         self._last_inject: Optional[str] = None
         self._building = False
         self._mode = "test"  # UI selection
+        self._overlay = False  # UI toggle: pass --overlay to the next host
         self._host_mode: Optional[str] = None  # mode the running host was started with
         self._tcp_cache: tuple[float, bool] = (0.0, False)
 
@@ -115,6 +116,45 @@ class DllLab:
         self._append("lab", f"mode={mode}")
         return {"ok": True, **self.status()}
 
+    def set_overlay(self, enabled: bool) -> dict[str, Any]:
+        with self._lock:
+            self._overlay = bool(enabled)
+        self._append("lab", f"overlay={'on' if enabled else 'off'}")
+        return {"ok": True, **self.status()}
+
+    def poke(self, target_id: str, value: str) -> dict[str, Any]:
+        """Direct external write to a mapped inventory/stat row (the Souls grant)."""
+        target_id = (target_id or "").strip()
+        value = (value or "").strip()
+        if not target_id or not value:
+            raise RuntimeError("POKE needs a target and value (e.g. soul_count=10000)")
+        from tools.poke import parse_value, pokable_targets, poke_target
+
+        pid = find_process()
+        if pid is None:
+            raise RuntimeError("darksiders1.exe is not running — launch the game first")
+        target = pokable_targets().get(target_id)
+        if target is None:
+            raise RuntimeError(
+                f"no mapped inventory/stat row for {target_id!r} — map it with "
+                "`python -m tools scan --item Soul_Count` first"
+            )
+        result = poke_target(pid, target, parse_value(value, target.dtype))
+        msg = (
+            f"poke {result.target_id} @ 0x{result.address:X}: "
+            f"{result.before} -> {result.after}"
+        )
+        self._append("lab", msg)
+        return {
+            "ok": True,
+            "label": result.target_id,
+            "address": f"0x{result.address:X}",
+            "before": result.before,
+            "after": result.after,
+            "note": msg,
+            **self.status(),
+        }
+
     def status(self) -> dict[str, Any]:
         with self._lock:
             proc = self._proc
@@ -123,6 +163,7 @@ class DllLab:
             building = self._building
             log_id = self._log_id
             mode = self._mode
+            overlay = self._overlay
             host_mode = self._host_mode
         alive = proc is not None and proc.poll() is None
         pid = find_process(PROCESS_NAME)
@@ -130,6 +171,7 @@ class DllLab:
         ap = self._ap_summary()
         return {
             "mode": mode,
+            "overlay": overlay,
             "host_mode": host_mode if alive else None,
             "ap": ap,
             "host_running": alive,
@@ -264,6 +306,7 @@ class DllLab:
             self.set_mode(mode)
         with self._lock:
             want = self._mode
+            overlay_on = self._overlay
             if self._proc is not None and self._proc.poll() is None:
                 note = f"host already running ({self._host_mode})"
                 return {"ok": True, "note": note, **self.status()}
@@ -283,6 +326,8 @@ class DllLab:
         cmd = [sys.executable, "-m", "runtime.dll"]
         if want == "test":
             cmd.append("--no-ap")
+        if overlay_on:
+            cmd.append("--overlay")
         proc = subprocess.Popen(
             cmd,
             cwd=str(REPO_ROOT),

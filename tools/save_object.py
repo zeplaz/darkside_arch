@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 from typing import Any, Optional
 
-from tools.game_data import FLAG_KEYS, find_by_ids, hotel_chest, persist_flag
+from tools.game_data import FLAG_KEYS, find_by_ids, find_object, hotel_chest, persist_flag, placed_objects
 from tools.save_brief import load_save
 from tools.save_diff import diff_saves
 from tools.save_install import APP_ID, steam_userdata_roots
@@ -19,6 +20,7 @@ def parse_save_object(raw: object) -> Optional[dict[str, Any]]:
         return None
     world = str(raw.get("world") or "").strip()
     key = str(raw.get("value_key") or raw.get("key") or "").strip()
+    source = str(raw.get("source") or "").strip()
     try:
         rid = int(raw.get("region_id"))
         lid = int(raw.get("layer_id"))
@@ -33,6 +35,7 @@ def parse_save_object(raw: object) -> Optional[dict[str, Any]]:
         "layer_id": lid,
         "object_id": oid,
         "value_key": key,
+        "source": source,
     }
 
 
@@ -170,6 +173,7 @@ def diff_sav_slots(
 
 
 def identify_location(loc: WorldLocation, obj: dict[str, Any]) -> tuple[str, dict]:
+    obj = {**obj, "source": str(obj.get("source") or "save-diff")}
     parsed = parse_save_object(obj)
     if parsed is None:
         raise ValueError("save_object needs world, region_id, layer_id, object_id, value_key")
@@ -187,12 +191,27 @@ def identify_location(loc: WorldLocation, obj: dict[str, Any]) -> tuple[str, dic
         "bitmask": existing.get("bitmask", "0x01"),
         "save_object": parsed,
         "notes": (existing.get("notes") or "").strip()
-        or f"Keen {format_save_object(parsed)}. RAM offset not mapped.",
+        or f"Keen {format_save_object(parsed)} (from {parsed['source']}). RAM offset not mapped.",
     }
     if ram:
         entry["module"] = existing.get("module")
         entry["type"] = existing.get("type") or "uint8"
     return save_target(entry)
+
+
+def identify_from_placed(loc: WorldLocation, placed: dict[str, Any]) -> tuple[str, dict]:
+    """Identify a location from a game_data placed object (chest/artifact JSON)."""
+    from tools.game_data import persist_flag
+
+    obj = {
+        "world": str(placed.get("world") or "overworld"),
+        "region_id": int(placed["region_id"]),
+        "layer_id": int(placed.get("layer_id") or 0),
+        "object_id": int(placed["object_id"]),
+        "value_key": str(placed.get("value_key") or persist_flag()),
+        "source": str(placed.get("source") or ""),
+    }
+    return identify_location(loc, obj)
 
 
 def write_identity(
@@ -240,3 +259,62 @@ def write_identity_from_slots(
         print(f"[-] {exc}")
         return 1
     return write_identity(loc, result.get("pick"), dry_run=dry_run, flags=result.get("match") or result["flags"])
+
+
+def _pick_placed(objs: list[dict[str, Any]]) -> Optional[dict[str, Any]]:
+    for i, obj in enumerate(objs, start=1):
+        print(
+            f"  {i:3}  [{obj['class_kind'] or '?'}] {obj['name'] or '(unnamed)'}"
+            f"  r={obj['region_id']} L={obj['layer_id']} obj={obj['object_id']}"
+            f"  ({obj['source']})"
+        )
+    raw = input("\nPick: ").strip()
+    if not raw.isdigit() or not 1 <= int(raw) <= len(objs):
+        print("[-] Cancelled.")
+        return None
+    return objs[int(raw) - 1]
+
+
+def main_identify(argv: Optional[list[str]] = None) -> int:
+    """Identify a location from a game_data dump (Chests.json / Artifacts.json)
+    instead of a two-slot save diff. Used when the save has no per-object flag
+    (artifacts) or when you already know the Keen object."""
+    from tools.world_catalog import resolve_location
+
+    p = argparse.ArgumentParser(
+        prog="python -m tools identify",
+        description="Identify a location from a game_data placed object (no save diff).",
+        epilog='python -m tools identify --location "Crossroads Subway Station Artifact" --object Artifact_Pawn_01',
+    )
+    p.add_argument("--location", required=True, help="Exact catalog name or unique substring")
+    p.add_argument("--object", default="", help="game_data object Name (e.g. Artifact_Pawn_01)")
+    p.add_argument("--kind", default="", choices=["", "artifact", "chest", "door"], help="Filter the object picker")
+    p.add_argument("--dry-run", action="store_true", help="Print the result; do not write targets.json")
+    args = p.parse_args(argv)
+
+    loc = resolve_location(location=args.location)
+    if loc is None:
+        return 1
+
+    if args.object:
+        obj = find_object(args.object)
+        if obj is None:
+            print(f"[ERROR] No game_data object named {args.object!r}. Run with --kind to list.")
+            return 1
+        placed = obj
+    else:
+        objs = placed_objects(kind=args.kind)
+        if not objs:
+            print(f"[-] No placed objects in game_data (kind={args.kind or 'any'}).")
+            return 1
+        placed = _pick_placed(objs)
+        if placed is None:
+            return 1
+
+    print(f"[*] {loc.name}  <-  {placed['name']} ({placed['source']})")
+    if args.dry_run:
+        print(json.dumps(placed, indent=2))
+        return 0
+    action, entry = identify_from_placed(loc, placed)
+    print(f"[OK] {action} {entry['id']} Keen {entry['save_object']}")
+    return 0

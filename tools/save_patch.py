@@ -27,6 +27,7 @@ from tools.save_install import (
 VENDOR_WAR = Path(__file__).resolve().parent / "vendor" / "war"
 WAR_REPO = "https://github.com/whatisaphone/war"
 EDITED_DIR = Path("saves") / "edited"
+DECODED_DIR = Path("saves") / "decoded"
 
 WAR_INSTALL_HINT = (
     "git clone https://github.com/whatisaphone/war.git tools/vendor/war\n"
@@ -137,9 +138,11 @@ def ensure_war_installed() -> dict[str, Any]:
     return war_status()
 
 
-def run_war(war: list[str], args: list[str]) -> None:
+def run_war(war: list[str], args: list[str], label: str = "") -> None:
     cmd = [*war, *args]
-    print("[WAR]", " ".join(cmd))
+    if label:
+        print(f"[war] {label}", flush=True)
+    print("      $ " + " ".join(cmd), flush=True)
     subprocess.run(cmd, check=True)
 
 
@@ -186,7 +189,7 @@ def decode_sav_slot(sav: Path, slot: int, war: Optional[list[str]] = None) -> di
     with tempfile.TemporaryDirectory(prefix="ds-sav-slot-") as tmp:
         work = Path(tmp) / "slot.sav"
         work.write_bytes(buf)
-        run_war(war, ["sav", "decode", str(work)])
+        run_war(war, ["sav", "decode", str(work)], label=f"decode slot {slot}")
         js = decoded_json_path(work)
         if not js.is_file():
             raise FileNotFoundError(f"war decode did not write {js}")
@@ -204,22 +207,52 @@ def patch_sav_userid(sav: Path, user_id: int, dest: Path, war: list[str]) -> int
         work = Path(tmp)
         work_sav = work / "slot.sav"
         shutil.copy2(sav, work_sav)
-        run_war(war, ["sav", "decode", str(work_sav)])
+        run_war(war, ["sav", "decode", str(work_sav)], label="decode autosave")
         work_json = decoded_json_path(work_sav)
         if not work_json.is_file():
             raise FileNotFoundError(f"war decode did not write {work_json}")
         old = read_json_userid(work_json)
         if old is None:
             raise ValueError("decoded save has no GameInfo.UserId")
+        print(f"[save] UserId {old} -> {user_id}", flush=True)
         patch_json_userid(work_json, user_id)
         backup(dest)
         shutil.copy2(work_sav, dest)
-        run_war(war, ["sav", "encode", str(dest), str(work_json)])
+        run_war(war, ["sav", "encode", str(dest), str(work_json)], label=f"encode autosave -> {dest}")
         return int(old)
+
+
+def encode_json_to_sav(json_path: Path, sav_target: Path, war: list[str]) -> Path:
+    """Encode a Keen JSON dump into the autosave slot of a .sav (war sav encode).
+
+    ``war sav encode`` reads the existing ``sav_target`` (preserving its manual
+    slots 0-9) and overwrites only the autosave slot (-1) with the JSON content.
+    The target is backed up first (timestamped) so a bad encode cannot eat the
+    only copy.
+    """
+    json_path = json_path.resolve()
+    sav_target = sav_target.resolve()
+    if not json_path.is_file():
+        raise FileNotFoundError(json_path)
+    if not sav_target.is_file():
+        raise FileNotFoundError(sav_target)
+    if json_path.suffix.lower() != ".json":
+        raise ValueError("encode source must be a .json Keen dump")
+    if ".sav" not in sav_target.name.lower():
+        raise ValueError("encode target must be a .sav")
+    backup(sav_target)
+    run_war(war, ["sav", "encode", str(sav_target), str(json_path)], label=f"encode {json_path} -> {sav_target}")
+    print(f"[save] encoded -> {sav_target}", flush=True)
+    return sav_target
 
 
 def default_edited_path(sav: Path) -> Path:
     return EDITED_DIR / sav.name
+
+
+def default_decoded_path(sav: Path, slot: int) -> Path:
+    slot_name = "autosave" if slot == -1 else f"slot_{slot}"
+    return DECODED_DIR / f"{sav.stem}.{slot_name}.json"
 
 
 def is_steam_save_path(path: Path) -> bool:
@@ -238,6 +271,7 @@ def copy_into_steam(patched: Path, user_id: int) -> list[Path]:
         target.parent.mkdir(parents=True, exist_ok=True)
         backup(target)
         shutil.copy2(patched, target)
+        print(f"[save] copied -> {target}", flush=True)
         written.append(target)
     return written
 
@@ -290,8 +324,14 @@ def main(argv: Optional[list[str]] = None) -> int:
     try:
         war = find_war(args.war)
         dest = (args.out or sav).expanduser().resolve()
+        print("save-patch: recode Warmastered .sav UserId via whatisaphone/war")
+        print(f"  source : {sav}")
+        print(f"  userid : {args.userid}")
+        print(f"  output : {dest}")
+        print(f"  war    : {' '.join(war)}")
+        print()
         old = patch_sav_userid(sav, args.userid, dest, war)
-        print(f"[OK] UserId {old} -> {args.userid} via war ({dest})")
+        print(f"[OK] UserId {old} -> {args.userid}  ({dest})", flush=True)
 
         copies: list[Path] = []
         if args.dest:
@@ -306,12 +346,18 @@ def main(argv: Optional[list[str]] = None) -> int:
             target.parent.mkdir(parents=True, exist_ok=True)
             backup(target)
             shutil.copy2(dest, target)
-            print(f"[OK] copied -> {target}")
+            print(f"[OK] copied -> {target}", flush=True)
         if args.install:
-            print("     Quit the game fully. Launch from Steam. Load Game.")
+            print("[OK] installed. Quit the game fully, launch from Steam, Load Game.", flush=True)
+        elif args.dest:
+            print(f"[OK] copied -> {args.dest}", flush=True)
+        else:
+            print("[OK] done. Re-run with --install (or use the dashboard SAVES tab) to copy into Steam.", flush=True)
         return 0
     except subprocess.CalledProcessError as exc:
-        print(f"[ERROR] war failed ({exc.returncode})")
+        cmd = " ".join(str(c) for c in (exc.cmd or []))
+        print(f"[ERROR] war failed (exit {exc.returncode}): {cmd}")
+        print("        war is the .sav codec. Warmastered x64 saves only — not the 2016 32-bit build.")
         return 1
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"[ERROR] {exc}")

@@ -295,11 +295,12 @@ def _entry(row: dict, module: str, offsets: Sequence[int], notes: str) -> dict:
 def main(argv: Optional[list[str]] = None) -> int:
     p = argparse.ArgumentParser(
         prog="python -m tools scan",
-        description="HUD numbers by exact value, or chest identity from two save slots.",
+        description="HUD numbers by exact value or --diff, or chest identity from two save slots.",
         epilog='python -m tools scan --sav FILE.sav --slots 1 2 --item "Seraphim Hotel Life Chest 1"',
     )
     p.add_argument("--item", default="", help=f"targets.json / catalog label (default {SOULS_LABEL!r} for HUD scan)")
     p.add_argument("--type", dest="dtype", choices=sorted(TYPE_SPECS), help="Override the row's type")
+    p.add_argument("--diff", action="store_true", help="Diff scan: unknown initial value + increased/decreased/changed, no exact HUD number")
     p.add_argument("--sav", type=Path, help="Warmastered .sav — chest save-diff, not a RAM scan")
     p.add_argument("--slots", nargs=2, type=int, metavar=("BEFORE", "AFTER"), help="Keen slots: -1 autosave, 0..9")
     p.add_argument("--dry-run", action="store_true", help="Print the result; do not write targets.json")
@@ -331,6 +332,10 @@ def main(argv: Optional[list[str]] = None) -> int:
         return 2
     if args.dtype:
         row = {**row, "type": args.dtype}
+    if args.diff:
+        from tools.diff_scan import run_diff_scan
+
+        return run_diff_scan(row, dry_run=args.dry_run)
     return run_value_scan(row, dry_run=args.dry_run)
 
 

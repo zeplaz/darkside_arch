@@ -73,6 +73,9 @@ fn pack_triple(object_id: u32, region_id: u32, layer_id: u32) -> [u8; 12] {
 
 fn find_triples(object_id: u32, region_id: u32, layer_id: u32) -> Vec<usize> {
     let needle = pack_triple(object_id, region_id, layer_id);
+    // `needle` is a local on this thread's stack; without this, the scanner
+    // matches its own needle every poll and reports a false 0→1 "open".
+    let needle_addr = needle.as_ptr() as usize;
     let mut hits = Vec::new();
     let mut address = 0usize;
     loop {
@@ -95,6 +98,12 @@ fn find_triples(object_id: u32, region_id: u32, layer_id: u32) -> Vec<usize> {
         }
 
         if mbi.State == MEM_COMMIT && is_writable_protect(mbi.Protect.0) && size >= 12 {
+            let region_end = base.saturating_add(size);
+            if needle_addr >= base && needle_addr < region_end {
+                // our own stack — skip
+                address = next;
+                continue;
+            }
             let slice = unsafe { std::slice::from_raw_parts(base as *const u8, size) };
             let mut off = 0usize;
             while off + 12 <= slice.len() {
@@ -163,7 +172,10 @@ pub fn poll_opens(watches: &[Watch]) -> Vec<OpenEvent> {
     let reported = reported_guard.as_mut().unwrap();
 
     for w in watches {
-        let key = (w.object_id, w.region_id, w.layer_id);
+        // Note: region/layer/object order (NOT object/region/layer) so the key
+        // tuple's memory layout never matches the packed scan needle — otherwise
+        // the dedup maps on the heap self-match and fire false "open"s.
+        let key = (w.region_id, w.layer_id, w.object_id);
         if reported.contains(&key) {
             continue;
         }

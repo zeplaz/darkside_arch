@@ -19,7 +19,7 @@ First open shows a **START** splash (navigates only — Map a check / DLL LAB). 
 |-----|------|--------|
 | **SAVE DIFF** | Two in-game slots → which Keen WorldObject this AP name is | `save_object` only. Row stays disabled. |
 | **RAM DUMP** | Closed then open F8 → live 0→1 byte | RAM `offsets` (mem path). |
-| **SAVES** | Decode / encode UserId, copy into Steam | Files under `saves/edited/`, then Steam remote. |
+| **SAVES** | Decode / encode (JSON + UserId), copy into Steam | Files under `saves/decoded/`, `saves/edited/`, then Steam remote. |
 | **DLL LAB** | **TEST** / **LIVE** host + build + inject | Nothing in `targets.json` from this tab. |
 
 ### DLL LAB
@@ -67,6 +67,8 @@ Identity is `world` + RegionID + LayerID + ObjectID + key. ObjectID is not globa
 
 **SWAP** if the table says `true → (absent)` (you set open slot first). **EXPORT … JSON** writes `saves/_scratch/slots/`.
 
+**Artifacts / armor / cubes have no save flag**, so SAVE DIFF finds nothing for them. Identify those from a `game_data` dump instead — **GAME DATA…** in the SAVE DIFF panel (or `python -m tools identify --location NAME --kind artifact`). Every identity records a `source` (`Chests.json` / `Artifacts.json` / `save-diff`), shown in the location card and stored in the `target_index` table of `darksiders_debug.db` alongside each row's stage (`open` / `identified` / `mapped`).
+
 ## RAM DUMP — live flag
 
 Do this after SAVE IDENTITY. Those flags live on the heap, not in `.data`.
@@ -76,9 +78,14 @@ Do this after SAVE IDENTITY. Those flags live on the heap, not in `.data`.
 3. Open it. **F8** or DIFF — 1.5 s.
 4. If more than one 0→1 remains, click the row. **SAVE RAM**. Extra F8 keeps only bytes that stayed 1 in every diff.
 
-Identified rows search the heap for the packed ObjectID+RegionID+LayerID triple, then nearby, then ObjectID alone, and diff around those hits. No identity diffs 34 MB of `.data` (wrong place). A heap byte is saved only with a static pointer chain from `darksiders1.exe`. Last capture: `snapshots/last_capture.npz`.
+Identified rows search the heap for the packed ObjectID+RegionID+LayerID triple, then nearby, then ObjectID alone, and diff around those hits. A row without an identity is refused — finish SAVE DIFF first (the old 34 MB `.data` fallback returned thousands of unrelated bytes). A heap byte is saved only with a static pointer chain from `darksiders1.exe`. Last capture: `snapshots/last_capture.npz`.
 
-## SAVES — UserId / install
+## SAVES — decode / encode / install
+
+- **DECODE TO JSON** — `war sav decode` of one slot → `saves/decoded/`. Slot `-1` is autosave, `0`–`9` the manual list.
+- **ENCODE FROM JSON** — `war sav encode` of a Keen JSON back into the **autosave** slot of a `.sav`. Slots 0–9 are preserved; the target is backed up first.
+
+To rewrite the save to your own Steam account (the UserId flow):
 
 1. **ENCODE TO EDITED** — war rewrite of autosave UserId → `saves/edited/`.
 2. Quit Darksiders. Steam cloud fights a live copy.

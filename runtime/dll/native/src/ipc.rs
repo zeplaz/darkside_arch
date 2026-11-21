@@ -9,6 +9,7 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::scan::{self, Watch};
+use crate::poke;
 
 const HOST: &str = "127.0.0.1:27111";
 
@@ -17,6 +18,12 @@ struct HostMsg {
     op: String,
     #[serde(default)]
     items: Vec<Watch>,
+    #[serde(default)]
+    address: Option<u64>,
+    #[serde(default)]
+    bytes: String,
+    #[serde(default)]
+    label: String,
 }
 
 pub fn run_session() -> Result<(), String> {
@@ -71,6 +78,8 @@ pub fn run_session() -> Result<(), String> {
                                 &stream_for_scan,
                                 &format!("watches={}", watches_reader.lock().map(|w| w.len()).unwrap_or(0)),
                             );
+                        } else if msg.op == "poke" {
+                            handle_poke(&stream_for_scan, &msg);
                         }
                     }
                 }
@@ -120,4 +129,32 @@ fn send_log(stream: &Arc<Mutex<TcpStream>>, msg: &str) -> Result<(), String> {
     writeln!(s, "{}", json!({"op":"log","msg": msg})).map_err(|e| e.to_string())?;
     s.flush().ok();
     Ok(())
+}
+
+fn decode_hex(s: &str) -> Result<Vec<u8>, ()> {
+    if s.len() % 2 != 0 {
+        return Err(());
+    }
+    (0..s.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&s[i..i + 2], 16).map_err(|_| ()))
+        .collect()
+}
+
+fn handle_poke(stream: &Arc<Mutex<TcpStream>>, msg: &HostMsg) {
+    let label = msg.label.as_str();
+    let result = match (msg.address, decode_hex(&msg.bytes)) {
+        (Some(addr), Ok(data)) => {
+            let ok = poke::write_bytes(addr as usize, &data);
+            json!({"op":"poke_result","ok":ok,"address":addr,"label":label,"n":data.len()})
+        }
+        (None, _) => json!({"op":"poke_result","ok":false,"error":"missing address","label":label}),
+        (_, Err(_)) => json!({"op":"poke_result","ok":false,"error":"bad hex bytes","label":label}),
+    };
+    let mut s = match stream.lock() {
+        Ok(s) => s,
+        Err(_) => return,
+    };
+    let _ = writeln!(s, "{result}");
+    let _ = s.flush();
 }

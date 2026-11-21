@@ -454,7 +454,7 @@
         <div class="mode-bar" id="work-mode-bar">
           <div class="lbl">WORK MODE — pick what this panel does</div>
           <div class="seg" id="work-seg" role="tablist" aria-label="Work mode">
-            <button type="button" class="on" id="work-tab-diff" data-tip="MODE: identify a chest from two save slots (Keen save_object). Start here for mapping.">SAVE DIFF</button>
+            <button type="button" class="on" id="work-tab-diff" data-tip="MODE: identify a check — two save slots (chests) or GAME DATA… (artifacts/armor/cubes). Writes the Keen save_object.">SAVE DIFF</button>
             <button type="button" id="work-tab-ram" data-tip="MODE: find the live RAM 0→1 flag (mem path). Needs identity first.">RAM DUMP</button>
             <button type="button" id="work-tab-saves" data-tip="MODE: encode UserId / install saves to Steam. Not mapping.">SAVES</button>
             <button type="button" id="work-tab-dll" data-tip="MODE: DLL inject lab. TEST = no AP. LIVE = ap_config.json. Not sideload.">DLL LAB</button>
@@ -544,6 +544,7 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
               <div class="what">Diff the two slots</div>
               <div class="btns">
                 <button type="button" class="primary" id="btn-save-diff" data-tip="Decode both slots and list WorldObject Triggered/Destroyed/Open changes.">DIFF SAVES</button>
+                <button type="button" class="primary" id="btn-game-data" hidden data-tip="Identify from a game_data object (Chests/Artifacts.json) by name — for artifacts and other kinds the save never flags.">GAME DATA…</button>
               </div>
               <div class="why" id="why-s2">Closed slot first, opened slot second. Takes a couple of seconds (war decode).</div>
               <div class="msg" id="msg-s2"></div>
@@ -577,7 +578,7 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
           <div id="work-ram" hidden>
             <div class="card how">
               <div class="lbl">AFTER SAVE DIFF — FINDS THE LIVE FLAG</div>
-              <p class="note" id="ram-note">Identified rows (SAVE DIFF first) scan the heap for the packed ObjectID+RegionID+LayerID triple from the Keen dumps, then nearby, and diff only around those. Rows without an identity diff 34 MB of .data, where those flags are not. The closed dump samples for 4 s and the open dump for 1.5 s — stand still for both. F8 still dumps while this tab is hidden.</p>
+              <p class="note" id="ram-note">Identified rows (SAVE DIFF first) scan the heap for the packed ObjectID+RegionID+LayerID triple from the Keen dumps, then nearby, and diff only around those. Rows without an identity are refused — RAM DUMP never diffs the 34 MB of .data where those flags are not. The closed dump samples for 4 s and the open dump for 1.5 s — stand still for both. F8 still dumps while this tab is hidden.</p>
             </div>
             <div class="steps">
             <div class="step" id="step-1">
@@ -645,6 +646,14 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
                 <button type="button" class="ghost" id="btn-dll-simulate" data-tip="TEST only — hotel chest 1 without the game">SIMULATE</button>
                 <button type="button" id="btn-dll-inject" data-tip="Inject into darksiders1.exe (not sideload)">INJECT</button>
               </div>
+              <div class="dll-actions" style="margin-top:0.4rem">
+                <label class="note" style="display:inline-flex;align-items:center;gap:0.35rem;white-space:nowrap">
+                  <input type="checkbox" id="dll-overlay-toggle" data-tip="Pass --overlay to the next host (topmost INJECTED ✓ status)"> OVERLAY
+                </label>
+                <input id="dll-poke-target" type="text" placeholder="soul_count" aria-label="Poke target" style="flex:1 1 9rem;min-width:7rem">
+                <input id="dll-poke-value" type="text" placeholder="10000" aria-label="Poke value" style="flex:0 1 5rem;min-width:4.5rem">
+                <button type="button" class="ghost" id="btn-dll-poke" data-tip="Write a value into the game (mapped inventory/stat row) — the Souls grant">POKE</button>
+              </div>
               <p class="note" id="dll-action-note"></p>
             </div>
             <div class="card dll-card-check">
@@ -678,6 +687,32 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
                 <button type="button" class="ghost" id="btn-brief-saves" data-tip="Decode every occupied slot. Same as BRIEF ALL on SAVE DIFF.">BRIEF ALL</button>
               </div>
               <p class="note" id="sav-slots-note"></p>
+            </div>
+            <div class="card">
+              <div class="lbl">DECODE TO JSON</div>
+              <p class="note"><b>war sav decode</b> → Keen JSON. Slot <code>-1</code> is autosave, <code>0–9</code> the list. Writes <code>saves/decoded/</code>.</p>
+              <div class="row" style="margin-top:0.4rem">
+                <input id="sav-decode-slot" type="text" inputmode="numeric" placeholder="-1" aria-label="Slot to decode" style="flex:0 1 5rem">
+                <input id="sav-decode-out" type="text" placeholder="saves/decoded/…" aria-label="Decode dest JSON" style="flex:1 1 12rem">
+              </div>
+              <div class="row" style="margin-top:0.4rem">
+                <button type="button" class="primary" id="btn-decode-json" data-tip="Decode one slot to JSON under saves/decoded/.">DECODE TO JSON</button>
+              </div>
+              <p class="note" id="decode-note"></p>
+            </div>
+            <div class="card">
+              <div class="lbl">ENCODE FROM JSON</div>
+              <p class="note"><b>war sav encode</b> — write a Keen JSON back into the <b>autosave</b> slot of a .sav. Slots 0–9 are preserved; the target is backed up first.</p>
+              <div class="row" style="margin-top:0.4rem">
+                <input id="sav-encode-json" type="text" placeholder=".json path" aria-label="JSON to encode" style="flex:1 1 12rem">
+              </div>
+              <div class="row" style="margin-top:0.4rem">
+                <input id="sav-encode-sav" type="text" placeholder="target .sav path" aria-label="Target sav" style="flex:1 1 12rem">
+              </div>
+              <div class="row" style="margin-top:0.4rem">
+                <button type="button" class="primary" id="btn-encode-json" data-tip="war sav encode JSON into a .sav (autosave slot).">ENCODE FROM JSON</button>
+              </div>
+              <p class="note" id="encode-json-note"></p>
             </div>
             <div class="card" id="slot-brief-saves" hidden>
               <div class="row" style="justify-content:space-between">
@@ -824,13 +859,14 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
         <h3>WAR (SAVE DECODE)</h3>
         <p>SAVE DIFF needs <a href="https://github.com/whatisaphone/war">whatisaphone/war</a> as a <b>.sav codec</b> only — not as a 32-bit game mod. Header pill <b>WAR</b> must be green. If missing: SAVE DIFF → <b>INSTALL WAR</b> (Rust + git), or copy the commands shown there.</p>
         <h3>CAPTURE A CHECK</h3>
-        <p>Two Warmastered save slots. Chests / artifacts / cubes are Keen WorldObjects (<code>Triggered</code>). Not a RAM 0→1.</p>
+        <p><b>Chests</b> write a <code>Triggered</code> flag on their Keen WorldObject — identify them from two save slots. <b>Artifacts / armor / cubes</b> write <em>no</em> per-object flag — identify them from a <code>game_data</code> dump (<b>GAME DATA…</b>). Neither is a RAM 0→1.</p>
         <ol>
           <li>Save while untouched. Open or collect it. Save again in another slot.</li>
-          <li>Pick the AP name. Set the two slot numbers. <b>DIFF SAVES</b>.</li>
+          <li>Pick the AP name. <b>Chest</b>: set two slot numbers → <b>DIFF SAVES</b>. <b>Artifact</b>: <b>GAME DATA…</b> and type the Keen object name.</li>
           <li><b>SAVE IDENTITY</b>. Mem path needs RAM DUMP next; DLL LAB can use identity alone.</li>
         </ol>
-        <p>CLI: <code>python -m tools scan --sav FILE --slots 1 2 --item "NAME"</code></p>
+        <p>CLI chests: <code>python -m tools scan --sav FILE --slots 1 2 --item "NAME"</code></p>
+        <p>CLI artifacts: <code>python -m tools identify --location "NAME" --kind artifact</code></p>
         <p>Inspect: <code>python -m tools save-brief --slot 1 FILE.sav</code>. Encode/install: SAVES tab, or <code>python -m tools save-patch --sav FILE --userid ID --out saves\edited\FILE.sav --install</code>.</p>
         <h3>SAVES TAB</h3>
         <p>ENCODE writes <code>saves/edited/</code> (autosave only). INSTALL copies that file into Steam <code>remote\</code> and <code>autocloud\save\</code>. Type INSTALL to confirm. Refuses while the game is attached.</p>
@@ -857,8 +893,10 @@ cargo install --path tools/vendor/war/crates/war-cli</pre>
         <ul>
           <li><code>python -m tools capture --sav FILE --slots 1 2 --location NAME</code></li>
           <li><code>python -m tools scan --sav FILE --slots 1 2 --item NAME</code> — same save-diff</li>
+          <li><code>python -m tools identify --location NAME --kind artifact</code> — identity from game_data (artifacts/armor/cubes)</li>
           <li><code>python -m tools capture --location NAME</code> — RAM capture in the terminal (heap around its save_object)</li>
-          <li><code>python -m tools scan --item NAME</code> — HUD numbers / item counts (default: souls).</li>
+          <li><code>python -m tools scan --item NAME</code> — HUD numbers / item counts (default: souls)</li>
+          <li><code>python -m tools scan --item Soul_Count --diff</code> — find a changing value without typing exact HUD numbers</li>
           <li><code>python -m ds_client --no-ap</code> — log changes to SQLite; they show in ACTIVITY.</li>
         </ul>
         <h3>KEYS</h3>
@@ -1599,7 +1637,9 @@ function renderSaveDiffPanel(loc) {
     ? "Install war first (SETUP card above). Decodes Warmastered .sav slots."
     : "Decode both slots and list WorldObject Triggered/Destroyed/Open changes.";
   $("btn-save-obj").disabled = !pick || pending === "save-obj";
-  const saveBusy = pending === "save-brief" || pending === "save-export" || pending === "save-diff";
+  const gd = $("btn-game-data");
+  if (gd) gd.hidden = !loc;
+  const saveBusy = pending === "save-brief" || pending === "save-export" || pending === "save-decode" || pending === "save-diff";
   $("btn-brief-all").disabled = saveBusy;
   $("btn-brief-all").textContent = pending === "save-brief" ? "DECODING…" : "BRIEF ALL";
   $("btn-brief-before").disabled = saveBusy;
@@ -1607,15 +1647,23 @@ function renderSaveDiffPanel(loc) {
   $("btn-export-before").disabled = saveBusy;
   $("btn-export-after").disabled = saveBusy;
   if ($("btn-encode")) {
-    const encBusy = pending === "save-encode" || pending === "save-install";
+    const encBusy = pending === "save-encode" || pending === "save-encode-json" || pending === "save-install";
     $("btn-encode").disabled = encBusy;
     $("btn-encode").textContent = pending === "save-encode" ? "ENCODING…" : "ENCODE TO EDITED";
     $("btn-install").disabled = encBusy;
     $("btn-install").textContent = pending === "save-install" ? "COPYING…" : "INSTALL TO STEAM";
+    if ($("btn-encode-json")) {
+      $("btn-encode-json").disabled = encBusy;
+      $("btn-encode-json").textContent = pending === "save-encode-json" ? "ENCODING…" : "ENCODE FROM JSON";
+    }
   }
   if ($("btn-brief-saves")) {
     $("btn-brief-saves").disabled = saveBusy;
     $("btn-brief-saves").textContent = pending === "save-brief" ? "DECODING…" : "BRIEF ALL";
+  }
+  if ($("btn-decode-json")) {
+    $("btn-decode-json").disabled = saveBusy;
+    $("btn-decode-json").textContent = pending === "save-decode" ? "DECODING…" : "DECODE TO JSON";
   }
   renderSlotBriefs();
   const box = $("save-cand-box");
@@ -1716,22 +1764,26 @@ function renderCapture() {
     $("loc-title").textContent = loc.label;
     statusEl.hidden = false;
     statusEl.className = "loc-status " + (loc.mapped ? "map" : loc.identified ? "id" : "needs");
-    statusEl.textContent = loc.mapped ? "MAPPED" : loc.identified ? "IDENTIFIED" : "NEEDS SAVE DIFF";
+    statusEl.textContent = loc.mapped ? "MAPPED" : loc.identified ? "IDENTIFIED" : (["artifact", "armor", "cube"].includes(loc.kind) ? "NEEDS GAME DATA" : "NEEDS SAVE DIFF");
     card.classList.add(loc.mapped ? "is-mapped" : loc.identified ? "has-id" : "needs-id");
     setHTML($("loc-meta"), [
       esc(loc.ap_region || loc.region), esc(loc.kind), "AP " + loc.ap_id,
       loc.vanilla_item ? ("vanilla " + esc(loc.vanilla_item)) : "",
       loc.mapped ? `<span style="color:var(--ok)">RAM ${esc(loc.offset)}${loc.enabled ? "" : " (disabled)"}</span>`
         : loc.identified ? `<span style="color:var(--key)">Keen ${esc(loc.save_key)}</span>`
-        : `<span style="color:var(--warn)">no Keen object yet</span>`
+        : `<span style="color:var(--warn)">no Keen object yet</span>`,
+      loc.provenance ? `<span style="color:var(--mute)">source ${esc(loc.provenance)}</span>` : ""
     ].filter(Boolean).map(x => `<span>${x}</span>`).join(""));
     if (needsId) {
+      const viaGameData = ["artifact", "armor", "cube"].includes(loc.kind);
       gateEl.hidden = false;
       gateEl.innerHTML = ui.work === "ram"
-        ? "RAM DUMP is locked until SAVE DIFF writes a Keen identity for this check."
+        ? "RAM DUMP is locked until this check has a Keen identity."
         : ui.work === "dll"
-          ? "DLL inject can watch this only after SAVE IDENTITY (Keen object)."
-          : "Do SAVE DIFF here first — two slots → DIFF SAVES → SAVE IDENTITY. Then RAM DUMP or DLL LAB.";
+          ? "DLL inject can watch this only after IDENTITY (Keen object)."
+          : viaGameData
+            ? "SAVE DIFF has no per-object flag for " + locKindLabel(loc) + " — identify it from <b>GAME DATA</b> (game_data JSON), then RAM DUMP or DLL LAB."
+            : "Do SAVE DIFF here first — two slots → DIFF SAVES → SAVE IDENTITY. Then RAM DUMP or DLL LAB.";
     } else if (loc.identified && !loc.mapped && ui.work === "diff") {
       gateEl.hidden = false;
       gateEl.innerHTML = "Keen identity saved. Mem path: switch to <b>RAM DUMP</b>. DLL path: <b>DLL LAB</b> can use this now.";
@@ -1784,8 +1836,8 @@ function renderCapture() {
   const ramNote = $("ram-note");
   if (ramNote) {
     ramNote.textContent = loc && !loc.identified && !loc.mapped
-      ? ("Locked for " + loc.label + " — finish SAVE DIFF first. Without a Keen identity this diffs ~34 MB of .data and almost never finds the " + talk.kind + " flag.")
-      : ("Identified rows (SAVE DIFF first) scan the heap for the packed ObjectID+RegionID+LayerID triple from the Keen dumps, then nearby, and diff only around those. Rows without an identity diff 34 MB of .data, where " + talk.kind + " flags are not. The closed dump samples for 4 s and the open dump for 1.5 s — stand still for both. F8 still dumps while this tab is hidden.");
+      ? ("Locked for " + loc.label + " — finish SAVE DIFF first. RAM DUMP refuses rows without a Keen identity instead of diffing ~34 MB of .data where it would never find the " + talk.kind + " flag.")
+      : ("Identified rows (SAVE DIFF first) scan the heap for the packed ObjectID+RegionID+LayerID triple from the Keen dumps, then nearby, and diff only around those. Rows without an identity are refused — never a 34 MB .data diff. The closed dump samples for 4 s and the open dump for 1.5 s — stand still for both. F8 still dumps while this tab is hidden.");
   }
   $("what-1").textContent = "Pick the AP name for the " + talk.kind + " you are facing";
   $("why-1").textContent = "The dump cannot see which " + talk.kind + " it is. The name you pick is what gets written.";
@@ -1857,8 +1909,10 @@ function renderCapture() {
       diff: "Dumping AFTER (two samples)",
       save: "Writing targets.json",
       "save-encode": "Encoding autosave UserId",
+      "save-encode-json": "Encoding JSON to .sav",
       "save-install": "Copying into Steam",
       "save-brief": "Decoding slots",
+      "save-decode": "Decoding slot to JSON",
     }[busy] || "Working";
     setNext("busy action", what, busy === "diff" ? "Two dumps ~1s apart. Stand still." : "About a second.");
   } else if (ui.work === "saves") {
@@ -1888,7 +1942,7 @@ function renderCapture() {
     } else if (!loc.identified && !loc.mapped) {
       setNext("warn", "Blocked — SAVE DIFF first",
         "<b>" + esc(loc.label) + "</b> (AP " + loc.ap_id + ") has <b>no Keen object</b> yet. "
-          + "Without it, RAM DUMP scans ~34 MB of .data and almost never finds this " + talk.kind + ". "
+          + "Without it, RAM DUMP is refused (a 34 MB .data diff would never find this " + talk.kind + "). "
           + "Go to SAVE DIFF: two slots → DIFF SAVES → SAVE IDENTITY.",
         [{ label: "GO TO SAVE DIFF", cls: "primary", run: () => setWork("diff") }]);
     } else if (stage === "diffed") {
@@ -2101,6 +2155,49 @@ $("btn-brief-saves").onclick = () => {
   syncSavFields();
   $("btn-brief-all").click();
 };
+$("btn-decode-json").onclick = () => {
+  ui.savPath = $("sav-path-saves").value.trim() || ui.savPath;
+  savePrefs();
+  if (!ui.savPath) { $("decode-note").textContent = "Need a .sav path."; return; }
+  const slot = Number(($("sav-decode-slot").value || "").trim() || "-1");
+  $("decode-note").textContent = "";
+  runStep("s1", "save-decode", async () => {
+    try {
+      const data = await post("/api/save-decode", {
+        path: ui.savPath,
+        slot,
+        dest: $("sav-decode-out").value.trim(),
+      });
+      const b = data.brief || {};
+      $("decode-note").textContent = "wrote " + data.path
+        + " · UserId " + (b.userid ?? "—")
+        + " · spawn " + ([b.spawn_world, b.spawn_region, b.spawn_point].filter(Boolean).join(" / ") || "—")
+        + " · chests " + (b.chests_opened ?? "—");
+      if (!$("sav-encode-json").value) $("sav-encode-json").value = data.path;
+      log("SAVE", "decode slot " + slot + " → " + data.path);
+    } catch (e) {
+      $("decode-note").textContent = e.message;
+      throw e;
+    }
+  });
+};
+$("btn-encode-json").onclick = () => {
+  const json = $("sav-encode-json").value.trim();
+  const sav = $("sav-encode-sav").value.trim() || ui.savPath;
+  if (!json) { $("encode-json-note").textContent = "Need a .json path (DECODE TO JSON first)."; return; }
+  if (!sav) { $("encode-json-note").textContent = "Need a target .sav path."; return; }
+  $("encode-json-note").textContent = "";
+  runStep("s1", "save-encode-json", async () => {
+    try {
+      const data = await post("/api/save-encode-json", { json, sav });
+      $("encode-json-note").textContent = "encoded → " + data.path + " · " + (data.note || "");
+      log("SAVE", "encode " + json + " → " + data.path);
+    } catch (e) {
+      $("encode-json-note").textContent = e.message;
+      throw e;
+    }
+  });
+};
 $("btn-encode").onclick = () => {
   ui.savPath = $("sav-path-saves").value.trim() || ui.savPath;
   ui.userid = $("sav-userid").value.trim();
@@ -2303,6 +2400,22 @@ $("btn-save-obj").onclick = () => {
   });
 };
 
+$("btn-game-data").onclick = () => {
+  const loc = selected();
+  if (!loc) return;
+  const name = window.prompt("Keen object Name from game_data (Chests.json / Artifacts.json):", "");
+  if (!name) return;
+  runStep("s3", "identify-gamedata", async () => {
+    const data = await post("/api/identify-from-name", { id: loc.id, object: name.trim() });
+    pickObj = null;
+    saveDiff = null;
+    log("SAVE", data.action + " " + data.entry.id + " Keen " + JSON.stringify(data.entry.save_object));
+    await loadCatalog();
+    const src = data.entry.save_object && data.entry.save_object.source ? data.entry.save_object.source : "game_data";
+    setMsg("s3", "ok", "Saved identity from " + src + ". RAM offset still needed for AP.");
+  });
+};
+
 $("btn-save").onclick = () => {
   const loc = selected();
   const cap = st?.capture;
@@ -2434,11 +2547,21 @@ function syncDllControls(s) {
     busy: busy === "inject",
     label: busy === "inject" ? "INJECTING" : "INJECT",
   });
+  if ($("dll-overlay-toggle")) $("dll-overlay-toggle").disabled = host || !!busy;
+  dllSetBtn($("btn-dll-poke"), {
+    enabled: game && !busy,
+    lit: game,
+    ghost: !game,
+    busy: busy === "poke",
+    label: busy === "poke" ? "POKING" : "POKE",
+  });
 }
 function renderDllStatus(s) {
   if (!s) return;
   lastDllStatus = s;
   const mode = s.mode || "test";
+  const ovToggle = $("dll-overlay-toggle");
+  if (ovToggle) ovToggle.checked = !!s.overlay;
   $("dll-mode-test").classList.toggle("on", mode === "test");
   $("dll-mode-live").classList.toggle("on", mode === "live");
   const ap = s.ap || {};
@@ -2732,7 +2855,7 @@ $("work-tab-ram").onclick = () => {
   if (loc && !loc.identified && !loc.mapped) {
     const ok = window.confirm(
       loc.label + " has no Keen identity yet.\n\n"
-      + "RAM DUMP without SAVE DIFF scans ~34 MB and almost never finds the flag.\n\n"
+      + "RAM DUMP without SAVE DIFF is refused — a 34 MB .data diff never finds the flag.\n\n"
       + "Open RAM DUMP anyway? (Buttons stay locked until you SAVE IDENTITY.)"
     );
     if (!ok) return;
@@ -2767,6 +2890,18 @@ $("btn-dll-log-clear").onclick = () => {
   dllLogLines = [];
   $("dll-log").textContent = "";
 };
+$("btn-dll-poke").onclick = () => {
+  const t = ($("dll-poke-target").value || "").trim();
+  const v = ($("dll-poke-value").value || "").trim();
+  if (!t || !v) {
+    $("dll-action-note").textContent = "POKE needs target + value (e.g. soul_count=10000)";
+    return;
+  }
+  dllAction("/api/dll/poke", { id: t, value: v }, "poke");
+};
+$("dll-overlay-toggle").addEventListener("change", e => {
+  dllAction("/api/dll/overlay", { enabled: e.target.checked }, "overlay");
+});
 $("region-select").addEventListener("change", e => {
   ui.region = e.target.value;
   savePrefs();

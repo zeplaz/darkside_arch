@@ -10,8 +10,8 @@ import json
 from pathlib import Path
 from typing import Sequence
 
-from runtime.mem.models import PROCESS_NAME, TARGETS_FILE, load_targets
-from runtime.mem.sinks import DB_FILE, init_db, sync_memory_map_from_targets
+from runtime.mem.models import PROCESS_NAME, TARGETS_FILE, load_targets, provenance_of_raw, stage_of_raw
+from runtime.mem.sinks import DB_FILE, init_db, sync_memory_map_from_targets, sync_target_index
 
 
 def raw_targets(path: Path = TARGETS_FILE) -> list[dict]:
@@ -40,6 +40,16 @@ def is_identified(raw: dict) -> bool:
     from tools.save_object import parse_save_object
 
     return parse_save_object(raw.get("save_object")) is not None
+
+
+def stage_of(raw: dict) -> str:
+    """``mapped`` | ``identified`` | ``open`` — the row's mapping stage."""
+    return stage_of_raw(raw or {})
+
+
+def provenance_of(raw: dict) -> str:
+    """Where the row's identity came from (e.g. ``Artifacts.json``, ``save-diff``)."""
+    return provenance_of_raw(raw or {})
 
 
 def find_row(label: str, rows: Sequence[dict] | None = None) -> dict | None:
@@ -115,10 +125,11 @@ def save_target(entry: dict, targets_path: Path = TARGETS_FILE) -> tuple[str, di
 
 
 def sync_sqlite(targets_path: Path = TARGETS_FILE, db_path: Path = DB_FILE) -> int:
-    """Mirror targets.json into SQLite memory_map (stale rows removed)."""
+    """Mirror targets.json into SQLite: memory_map (mapped) + target_index (all)."""
     _, targets = load_targets(targets_path)
     conn = init_db(db_path)
     try:
-        return sync_memory_map_from_targets(conn, targets)
+        sync_memory_map_from_targets(conn, targets)
+        return sync_target_index(conn, raw_targets(targets_path))
     finally:
         conn.close()

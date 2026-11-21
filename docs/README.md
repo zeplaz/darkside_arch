@@ -7,6 +7,7 @@
 | [DASHBOARD.md](DASHBOARD.md) | Mapping entry: SAVE DIFF, RAM DUMP, SAVES, DLL LAB pointer. |
 | [WORLD.md](WORLD.md) | Sacha fork pin, two-JSON split, hotel / Crossroads queue. |
 | [SAVES.md](SAVES.md) | Keen `.sav` slots, ObjectIDs, war, UserId install. |
+| [../game_data/README.md](../game_data/README.md) | Keen `RegionLayer` dump format (Chests / Artifacts JSON) and provenance. |
 | [memory_map.md](memory_map.md) | Generated RAM table. Never edit by hand (`python -m tools export-docs`). |
 | [world_locations.json](world_locations.json) / [world_items.json](world_items.json) | Catalog from `sync-world`. Do not hand-edit. |
 | [proposed/](proposed/) | Our test JSON only (hotel **2000 / 2001**). Not part of Sacha’s world. |

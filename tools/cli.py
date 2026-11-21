@@ -8,9 +8,10 @@ from typing import Optional
 
 # name -> (module:function, one-line help). Order is the order shown in --help.
 COMMANDS: dict[str, tuple[str, str]] = {
-    "dashboard": ("tools.dashboard:main", "Browser UI: two save slots → DIFF SAVES, then live RAM watches"),
+    "dashboard": ("tools.dashboard:main", "Browser UI: two save slots -> DIFF SAVES, then live RAM watches"),
     "capture": ("tools.snapshot:main_capture", "Identify a location from two .sav slots (RAM dump last resort)"),
-    "scan": ("tools.scanner:main", "HUD numbers, or --sav/--slots for a chest identity"),
+    "scan": ("tools.scanner:main", "HUD numbers (exact or --diff), or --sav/--slots for a chest identity"),
+    "identify": ("tools.save_object:main_identify", "Identify a location from a game_data dump (Chests/Artifacts.json), no save diff"),
     "locations": ("tools.world_catalog:main_locations", "List location checks with todo/done status"),
     "sync-world": ("tools.world_catalog:main_sync_world", "Refresh docs/world_*.json from worlds/darksiders/data"),
     "export-docs": ("tools.export_docs:main", "Write docs/memory_map.md from targets.json"),
@@ -18,7 +19,10 @@ COMMANDS: dict[str, tuple[str, str]] = {
     "save-diff": ("tools.save_diff:main", "Diff two Keen slots or JSON dumps; --location writes save_object"),
     "save-install": ("tools.save_install:main", "Rewrite the Steam UserId on an AP template save"),
     "save-patch": ("tools.save_patch:main", "Change .sav UserId via whatisaphone/war decode-encode"),
+    "save-to-svd": ("tools.save_to_svd:main", "Rebuild a .sav as svd_fmt_0_0.sav (all slots UserId-patched, 2026 save)"),
     "dll-inject": ("tools.dll_inject:main", "Inject darkside_arch.dll into a running darksiders1.exe"),
+    "poke": ("tools.poke:main", "Write a value (Souls / item count / raw address) into the running game"),
+    "dll-selftest": ("tools.dll_selftest:main", "Smoke-test darkside_arch.dll (load + IPC + poke) without the game"),
 }
 
 

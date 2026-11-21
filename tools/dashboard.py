@@ -51,7 +51,9 @@ from tools.save_brief import brief_save, default_export_path, export_slot_json
 from tools.save_patch import (
     EDITED_DIR,
     copy_into_steam,
+    default_decoded_path,
     default_edited_path,
+    encode_json_to_sav,
     ensure_war_installed,
     find_war,
     is_steam_save_path,
@@ -67,7 +69,7 @@ from tools.save_object import (
     parse_save_object,
 )
 from tools.save_patch import occupied_slots
-from tools.targets import build_target_entry, find_row, is_identified, is_template, raw_targets, save_target
+from tools.targets import build_target_entry, find_row, is_identified, is_template, provenance_of, raw_targets, save_target, stage_of, sync_sqlite
 from tools.dll_lab import LAB, DEFAULT_SIM
 from tools.world_catalog import is_mapped, load_catalog
 
@@ -102,6 +104,11 @@ def _read_json(handler: BaseHTTPRequestHandler) -> dict:
     if length <= 0:
         return {}
     return json.loads(handler.rfile.read(length).decode("utf-8") or "{}")
+
+
+def _save_log(msg: str) -> None:
+    """Terminal feedback for save/decode/encode/install ops (server console)."""
+    print(f"[save] {msg}", flush=True)
 
 
 def _mtime(path: Path) -> float:
@@ -497,6 +504,8 @@ def catalog_payload() -> dict[str, Any]:
             "in_ap": loc.in_ap,
             "mapped": mapped,
             "identified": identified,
+            "stage": stage_of(raw) if raw else "open",
+            "provenance": provenance_of(raw) if raw else "",
             "save_key": format_save_object(save_obj) if save_obj else "",
             "enabled": bool((raw or {}).get("enabled", True)) if raw else False,
             "offset": _target_offset(raw) if raw and mapped else "",
@@ -549,7 +558,7 @@ class CaptureSession:
     deltas: list[dict[str, Any]] = field(default_factory=list)
     raw_zero_to_one: int = 0
     ram: Optional[RamCapture] = None  # baseline held in memory between steps
-    scope: str = ""  # describe(ram.stats): heap anchors or module .data
+    scope: str = ""  # describe(ram.stats): heap anchors (module scope is refused)
     wait: str = ""  # "" | "baseline" | "diff"
     hold_s: float = 0.0
     foreground: bool = False
@@ -1147,6 +1156,35 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                     out = export_slot_json(sav, slot, dest)
                     _json_response(self, {"ok": True, "path": str(out), "slot": slot})
                     return
+                if path == "/api/save-decode":
+                    sav = _sav_from(body.get("path"))
+                    slot = int(body.get("slot"))
+                    dest_raw = str(body.get("dest") or "")
+                    dest = Path(dest_raw) if dest_raw else default_decoded_path(sav, slot)
+                    _save_log(f"decode {sav} slot {slot} -> {dest}")
+                    out = export_slot_json(sav, slot, dest)
+                    info = _public_brief(brief_save(out))
+                    _save_log(f"decoded -> {out}")
+                    _json_response(
+                        self,
+                        {"ok": True, "path": str(out), "slot": slot, "brief": info},
+                    )
+                    return
+                if path == "/api/save-encode-json":
+                    json_path = Path(str(body.get("json") or ""))
+                    sav_target = Path(str(body.get("sav") or ""))
+                    _save_log(f"encode {json_path} -> {sav_target}")
+                    out = encode_json_to_sav(json_path, sav_target, find_war())
+                    _save_log(f"encoded -> {out}")
+                    _json_response(
+                        self,
+                        {
+                            "ok": True,
+                            "path": str(out),
+                            "note": "war wrote the autosave slot only. slots 0–9 unchanged.",
+                        },
+                    )
+                    return
                 if path == "/api/save-diff":
                     loc = _find_catalog_loc(str(body.get("id") or ""))
                     if loc is None:
@@ -1164,6 +1202,40 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                     action, entry = identify_location(loc, body)
                     _json_response(self, {"ok": True, "action": action, "entry": entry})
                     return
+                if path == "/api/game-data/objects":
+                    from tools.game_data import placed_objects
+
+                    kind = str(body.get("kind") or "")
+                    _json_response(self, {"objects": placed_objects(kind=kind)})
+                    return
+                if path == "/api/identify-from-placed":
+                    loc = _find_catalog_loc(str(body.get("id") or ""))
+                    if loc is None:
+                        raise ValueError("pick a location first")
+                    placed = body.get("object")
+                    if not isinstance(placed, dict):
+                        raise ValueError("pass an object dict")
+                    from tools.save_object import identify_from_placed
+
+                    action, entry = identify_from_placed(loc, placed)
+                    _json_response(self, {"ok": True, "action": action, "entry": entry})
+                    return
+                if path == "/api/identify-from-name":
+                    loc = _find_catalog_loc(str(body.get("id") or ""))
+                    if loc is None:
+                        raise ValueError("pick a location first")
+                    from tools.game_data import find_object
+                    from tools.save_object import identify_from_placed
+
+                    obj = find_object(str(body.get("object") or ""))
+                    if obj is None:
+                        raise ValueError(
+                            f"no game_data object named {body.get('object')!r}; "
+                            "use /api/game-data/objects to list"
+                        )
+                    action, entry = identify_from_placed(loc, obj)
+                    _json_response(self, {"ok": True, "action": action, "entry": entry})
+                    return
                 if path == "/api/save-encode":
                     sav = _sav_from(body.get("path"))
                     userid = int(body.get("userid"))
@@ -1177,6 +1249,7 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                             "encode writes saves/edited/, not Steam. Use INSTALL after encode."
                         )
                     old = patch_sav_userid(sav, userid, dest, find_war())
+                    _save_log(f"UserId {old} -> {userid}  {dest}")
                     _json_response(
                         self,
                         {
@@ -1201,7 +1274,9 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                         raise ValueError(
                             "source looks like the live Steam file. Encode to saves/edited/ first."
                         )
+                    _save_log(f"install {patched} -> Steam (userid {userid})")
                     dests = copy_into_steam(patched, userid)
+                    _save_log(f"installed {len(dests)} files. Launch from Steam. Load Game.")
                     _json_response(
                         self,
                         {
@@ -1244,6 +1319,15 @@ def _make_handler(db_path: Path, monitor: GameMonitor):
                         ),
                     )
                     return
+                if path == "/api/dll/overlay":
+                    _json_response(self, LAB.set_overlay(bool(body.get("enabled"))))
+                    return
+                if path == "/api/dll/poke":
+                    _json_response(
+                        self,
+                        LAB.poke(str(body.get("id") or ""), str(body.get("value") or "")),
+                    )
+                    return
             except (
                 OSError,
                 ValueError,
@@ -1270,6 +1354,7 @@ def run_dashboard(
         print(f"[ERROR] Missing UI file {PAGE_PATH}")
         return 1
     init_db(db_path).close()
+    sync_sqlite()  # refresh memory_map + target_index (stage/provenance) from targets.json
     monitor = GameMonitor()
     monitor.start()
     start_capture_aux()

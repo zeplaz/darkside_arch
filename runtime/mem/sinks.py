@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, Protocol, Sequence
 
-from runtime.mem.models import WatchTarget, Event
+from runtime.mem.models import WatchTarget, Event, provenance_of_raw, stage_of_raw
 
 DB_FILE = Path("darksiders_debug.db")
 FLUSH_EVERY_EVENTS = 32
@@ -166,6 +166,20 @@ def init_db(db_path: Path = DB_FILE) -> sqlite3.Connection:
         )
         """
     )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS target_index (
+            target_id TEXT PRIMARY KEY,
+            label TEXT NOT NULL,
+            category TEXT NOT NULL DEFAULT 'misc',
+            region TEXT,
+            stage TEXT NOT NULL DEFAULT 'open',
+            provenance TEXT,
+            save_object_json TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
     conn.commit()
     return conn
 
@@ -250,6 +264,68 @@ def list_memory_map(conn: sqlite3.Connection) -> list[sqlite3.Row]:
                     WHEN 'stat' THEN 2
                     ELSE 3
                 END,
+                label COLLATE NOCASE
+            """
+        )
+    )
+
+
+def sync_target_index(conn: sqlite3.Connection, rows: Sequence[dict]) -> int:
+    """Mirror every targets.json row (open / identified / mapped) into
+    ``target_index`` with its stage and provenance, so the database shows what
+    stage each target is at and where its identity came from."""
+    ids: list[str] = []
+    for raw in rows:
+        if not isinstance(raw, dict) or not raw.get("id"):
+            continue
+        tid = str(raw["id"])
+        ids.append(tid)
+        save_object = raw.get("save_object")
+        conn.execute(
+            """
+            INSERT INTO target_index (
+                target_id, label, category, region, stage, provenance,
+                save_object_json, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(target_id) DO UPDATE SET
+                label=excluded.label,
+                category=excluded.category,
+                region=excluded.region,
+                stage=excluded.stage,
+                provenance=excluded.provenance,
+                save_object_json=excluded.save_object_json,
+                updated_at=CURRENT_TIMESTAMP
+            """,
+            (
+                tid,
+                str(raw.get("label") or ""),
+                str(raw.get("category") or "misc"),
+                str(raw.get("region") or "") or None,
+                stage_of_raw(raw),
+                provenance_of_raw(raw) or None,
+                json.dumps(save_object) if isinstance(save_object, dict) else None,
+            ),
+        )
+    if ids:
+        conn.execute(
+            f"DELETE FROM target_index WHERE target_id NOT IN ({','.join('?' * len(ids))})",
+            ids,
+        )
+    else:
+        conn.execute("DELETE FROM target_index")
+    conn.commit()
+    return len(ids)
+
+
+def list_target_index(conn: sqlite3.Connection) -> list[sqlite3.Row]:
+    return list(
+        conn.execute(
+            """
+            SELECT * FROM target_index
+            ORDER BY
+                CASE stage WHEN 'open' THEN 0 WHEN 'identified' THEN 1 WHEN 'mapped' THEN 2 ELSE 3 END,
+                CASE category WHEN 'location_flag' THEN 0 ELSE 1 END,
                 label COLLATE NOCASE
             """
         )

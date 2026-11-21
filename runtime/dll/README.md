@@ -15,7 +15,7 @@ pip install -r requirements-dev.txt
 python -m tools dashboard
 ```
 
-Open **DLL LAB**. Pick mode, then follow the checklist on the page.
+Open **DLL LAB**. Pick mode, then follow the checklist on the page. The tab also has **OVERLAY** (topmost `INJECTED ✓` status — tick it before START HOST) and **POKE** (write a value like `soul_count=10000` into the game once it is running).
 
 | Mode | Host | What to do |
 |------|------|------------|
@@ -57,6 +57,8 @@ python -m runtime.dll --no-ap --simulate-open "{\"region_id\":2,\"layer_id\":6,\
 |------|--|
 | `--no-ap` | Host only (TEST) |
 | `--no-apply` | Skip RPM item writes |
+| `--overlay` | Topmost status overlay: `DSH INJECTED ✓ · watching N · CHECK …` |
+| `--poke-dll ID=VALUE` | Once the DLL connects, write `VALUE` to a mapped target **via the DLL** (e.g. `soul_count=10000`) |
 | `--simulate-open '{...}'` | One fake open, then exit |
 
 ---
@@ -81,6 +83,26 @@ python -m runtime.dll --no-ap --simulate-open "{\"region_id\":2,\"layer_id\":6,\
 2. Scans this process for packed `ObjectID|RegionID|LayerID`
 3. Nearby byte `0→1` → `{"op":"open",...}`
 4. Host joins identity → catalog → LocationChecks (LIVE) or log (TEST)
+5. Handles `poke` — writes bytes into this process at a host-resolved address (in-process write proof, `--poke-dll`)
+
+## Prove it in-game (the "actually does something" run)
+
+Run the game in **borderless / windowed** if the overlay hides behind fullscreen.
+
+```powershell
+# 1. map the Souls offset once (game must be running, in-game):
+python -m tools scan --item Soul_Count
+
+# 2. overlay + injected write in one host (TEST, no Archipelago):
+python -m runtime.dll --no-ap --overlay --poke-dll soul_count=10000
+#    then: python -m tools dll-inject   (after launching Darksiders)
+
+# 3. or write Souls directly from outside (no DLL needed):
+python -m tools poke --id soul_count --value 10000
+```
+
+Success = the overlay shows `DSH INJECTED ✓`, the HUD Soul count jumps to `10000`,
+and opening an identified chest logs `CHECK …`.
 
 ## Layout
 

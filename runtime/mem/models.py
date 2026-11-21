@@ -156,6 +156,33 @@ def _build_target(raw: dict, default_module: str) -> Optional[WatchTarget]:
     )
 
 
+def _offsets_are_template(offsets: object) -> bool:
+    """True for a missing offset list or the ``["0x0"]`` placeholder."""
+    if not offsets:
+        return True
+    try:
+        return [int(o, 0) if isinstance(o, str) else int(o) for o in offsets] == [0]
+    except (TypeError, ValueError):
+        return True
+
+
+def stage_of_raw(raw: dict) -> str:
+    """``mapped`` (real offsets) | ``identified`` (save_object only) | ``open``."""
+    if raw.get("offsets") and not _offsets_are_template(raw.get("offsets")):
+        return "mapped"
+    if raw.get("save_object"):
+        return "identified"
+    return "open"
+
+
+def provenance_of_raw(raw: dict) -> str:
+    """Where a row's identity came from (e.g. ``Artifacts.json``, ``save-diff``)."""
+    save_object = raw.get("save_object")
+    if isinstance(save_object, dict):
+        return str(save_object.get("source") or "")
+    return ""
+
+
 def load_targets(path: Path = TARGETS_FILE) -> tuple[int, tuple[WatchTarget, ...]]:
     """Enabled, mapped targets. Disabled rows and 0x0 templates are skipped."""
     if not path.exists():

@@ -39,6 +39,54 @@ def _apply_connect_args(args: argparse.Namespace) -> None:
     patch_config(**changes)
 
 
+def _poke_dll_loop(spec: str, server: IpcServer) -> None:
+    """Resolve a targets.json row externally, then ask the DLL to write it in-process."""
+    import time
+
+    target_id, _sep, value_raw = spec.partition("=")
+    target_id = target_id.strip()
+    value_raw = value_raw.strip()
+    if not target_id or not value_raw:
+        print("[dll/poke] usage: --poke-dll ID=VALUE (e.g. soul_count=10000)")
+        return
+
+    from tools.poke import parse_value, pokable_targets, resolve_write
+    from runtime.mem.watcher import find_process
+
+    target = pokable_targets().get(target_id)
+    if target is None:
+        print(
+            f"[dll/poke] no mapped inventory/stat row for {target_id!r}. "
+            "Map it first: python -m tools scan --item Soul_Count"
+        )
+        return
+    try:
+        value = parse_value(value_raw, target.dtype)
+    except ValueError as exc:
+        print(f"[dll/poke] bad value {value_raw!r}: {exc}")
+        return
+
+    deadline = time.monotonic() + 120
+    pid = None
+    while time.monotonic() < deadline:
+        pid = find_process()
+        if pid is not None and server.has_client:
+            break
+        time.sleep(1)
+    if pid is None or not server.has_client:
+        print("[dll/poke] timed out waiting for the game + injected DLL")
+        return
+
+    try:
+        addr, data = resolve_write(pid, target, value)
+        server.send_json(
+            {"op": "poke", "address": addr, "bytes": data.hex(), "label": target.id}
+        )
+        print(f"[dll/poke] sent {target.id} @ 0x{addr:X} ({data.hex()}) to the DLL")
+    except OSError as exc:
+        print(f"[dll/poke] {exc}")
+
+
 def main(argv: Optional[list[str]] = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     parser = argparse.ArgumentParser(
@@ -73,6 +121,18 @@ def main(argv: Optional[list[str]] = None) -> int:
         help='Fire one open event then exit, e.g. '
         '\'{"region_id":2,"layer_id":6,"object_id":342}\'',
     )
+    parser.add_argument(
+        "--overlay",
+        action="store_true",
+        help="Show a topmost status overlay (DSH INJECTED + watch/check status)",
+    )
+    parser.add_argument(
+        "--poke-dll",
+        metavar="ID=VALUE",
+        default="",
+        help="When the DLL connects, write VALUE to a mapped target via the DLL "
+        "(e.g. soul_count=10000)",
+    )
     args = parser.parse_args(argv)
     _apply_connect_args(args)
 
@@ -93,13 +153,21 @@ def main(argv: Optional[list[str]] = None) -> int:
     else:
         print("[dll] --no-ap: skipping websocket")
 
-    handler = OpenHandler(catalog=catalog, runtime=ap_runtime, identities=identities)
+    overlay = None
+    if args.overlay:
+        from tools.overlay import Overlay
+
+        overlay = Overlay("DSH — waiting for injected DLL")
+
+    handler = OpenHandler(catalog=catalog, runtime=ap_runtime, identities=identities, overlay=overlay)
 
     if args.simulate_open:
         try:
             payload = json.loads(args.simulate_open)
         except json.JSONDecodeError as exc:
             print(f"[ERROR] --simulate-open JSON: {exc}")
+            if overlay is not None:
+                overlay.close()
             if ap_runtime:
                 ap_runtime.stop()
             ap_state.close()
@@ -113,6 +181,8 @@ def main(argv: Optional[list[str]] = None) -> int:
 
             time.sleep(0.5)
             ap_runtime.stop()
+        if overlay is not None:
+            overlay.close()
         ap_state.close()
         return 0
 
@@ -126,6 +196,13 @@ def main(argv: Optional[list[str]] = None) -> int:
         stop=stop,
         watches=watches_payload(identities),
     )
+    if args.poke_dll:
+        threading.Thread(
+            target=_poke_dll_loop,
+            args=(args.poke_dll, server),
+            name="dll-poke",
+            daemon=True,
+        ).start()
     print("[dll] waiting for Rust DLL (Ctrl+C to stop)")
     try:
         server.serve_forever()
@@ -135,6 +212,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         stop.set()
         if apply_thread is not None:
             apply_thread.join(timeout=2.0)
+        if overlay is not None:
+            overlay.close()
         if ap_runtime is not None:
             ap_runtime.stop()
         ap_state.close()

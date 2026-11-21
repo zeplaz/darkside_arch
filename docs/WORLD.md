@@ -35,7 +35,7 @@ python -m tools sync-world
 |--|--|--|
 | Location **name** + AP **id** | Sacha `data/*.json` | Join key. `targets.json` `label` is byte-for-byte the same |
 | `vanilla item` | Sacha JSON | Hint only — several Hollows rows currently say Currency for armor/keys |
-| Keen **object** | This repo `save_object` | `world` + RegionID + LayerID + ObjectID + `Triggered`/`Destroyed`/`Open` |
+| Keen **object** | This repo `save_object` | `world` + RegionID + LayerID + ObjectID + `Triggered`/`Destroyed`/`Open` + `source` provenance (`Chests.json` / `Artifacts.json` / `save-diff`) |
 | RAM **offset** | This repo `targets.json` only | Warmastered x64 / ASLR. Never write RVAs into the world |
 | Live game | Warmastered Steam x64 | Never map on 2016 32-bit — Keen IDs diverge |
 
@@ -65,6 +65,8 @@ Hotel is **our** mapping test, not a world location. Do not send it to Sacha. [p
 | `Crossroads East Crater Chest` | AP 608 Health |
 | `Crossroads Secret Chest Destroy Fire Hydrants` | AP 609 Currency |
 
-Identify with two in-game save slots → dashboard **DIFF SAVES** ([DASHBOARD.md](DASHBOARD.md)). That is not a RAM watch.
+Identify chests with two in-game save slots → dashboard **DIFF SAVES** ([DASHBOARD.md](DASHBOARD.md)). That is not a RAM watch.
+
+Artifacts (and armor / cubes) write **no** save flag, so SAVE DIFF cannot identify them. Use **GAME DATA…** in the dashboard or `python -m tools identify --location NAME --kind artifact`, backed by a `game_data/` region dump (see [game_data/README.md](../game_data/README.md)). Each `save_object` records its `source`, and the `target_index` table in `darksiders_debug.db` tracks every row's stage (`open` / `identified` / `mapped`).
 
 Later `0x0` templates: inventory `Beholder Key` (id 60), `Heart of the Chosen` (id 90), `Progressive Chaoseater` (id 100, cap 4), `Progressive Scythe` (id 110, cap 4), `Progressive Gauntlet` (id 113, cap 4), `Armageddon Blade Shards` (id 103), `Armageddon Blade` (id 102); stat `Soul_Count`; goal `Abaddon the Destroyer defeated`.

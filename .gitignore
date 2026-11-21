@@ -58,3 +58,17 @@ game_data/*.apworld
 
 # Rust DLL build
 runtime/dll/native/target/
+
+# Local-only sandbox / ACL repair artifacts (never commit)
+.tmp/
+_acl_test.txt
+acl-backup-*.json
+acl-backup-*.json.ps1
+acl-report-*.jsonl
+
+# Offline build artifacts (sandbox verification build; safe to delete)
+dll_target/
+
+# One-off offline-build helper scripts (safe to delete)
+runtime/dll/native/_vendor.py
+runtime/dll/native/_checksum.py

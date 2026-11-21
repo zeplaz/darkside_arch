@@ -7,13 +7,15 @@ Two scopes:
   (order from ``game_data/Chests.json``), then nearby, then ObjectID alone, and
   diff only small windows around those anchors. Chest WorldObjects live on the
   heap. The ``.s`` scripts name the save flag ``Triggered``; they are not RVAs.
-* ``module``: the game's writable PE sections (.data/.bss). Static addresses, but
-  ~34 MB where opening a chest flips ~1,500 unrelated bytes. Kept for rows that
-  have no ``save_object`` yet.
+* ``module`` (``module_regions`` only, for ``tools diff-scan``): the game's
+  writable PE sections (.data/.bss). ``start_capture`` refuses rows with no
+  ``save_object`` rather than diffing this ~34 MB, where opening a chest flips
+  ~1,500 unrelated bytes and the real flag is unrecoverable.
 
 A candidate must be 0 in every baseline sample and 1 in every after sample, so
 bytes that tick on either side are dropped. Exact-value ``tools scan`` is for
-known HUD numbers (souls).
+known HUD numbers (souls); ``tools scan --diff`` is for a changing number when
+the exact value is unknown.
 """
 
 from __future__ import annotations
@@ -298,13 +300,17 @@ class RamCapture:
 def start_capture(save_object: Optional[dict[str, Any]] = None, *, sleep: Sleep = time.sleep) -> RamCapture:
     """Pick the scope, then sample the baseline over BASELINE_WINDOW_S."""
     with _open_game() as (pid, handle):
-        if save_object:
-            regions, stats = heap_anchor_regions(
-                handle, int(save_object["object_id"]), int(save_object["region_id"]), int(save_object["layer_id"])
+        if not save_object:
+            raise ValueError(
+                "This row has no save_object identity yet, so a RAM DUMP would diff the whole "
+                "~34 MB .data section and return thousands of unrelated bytes (not the flag).\n"
+                "Identify it first with SAVE DIFF — two save slots, closed then open:\n"
+                "    python -m tools scan --sav FILE.sav --slots CLOSED OPEN --item \"NAME\"\n"
+                "then re-run the RAM DUMP; it will anchor on the heap ObjectID instead."
             )
-        else:
-            regions = module_regions(handle, win32.get_module_base(handle, PROCESS_NAME))
-            stats = {"scope": "module", "scanned_mb": round(sum(r.size for r in regions) / 2**20)}
+        regions, stats = heap_anchor_regions(
+            handle, int(save_object["object_id"]), int(save_object["region_id"]), int(save_object["layer_id"])
+        )
         base: list[Optional[np.ndarray]] = []
         unstable: list[np.ndarray] = []
         for k, sample in enumerate(_samples(handle, regions, BASELINE_SAMPLES, BASELINE_WINDOW_S, sleep)):
@@ -392,7 +398,7 @@ def main_capture(argv: Optional[list[str]] = None) -> int:
         + (
             f"    Heap capture near Keen obj={save_object['object_id']} r={save_object['region_id']} L={save_object['layer_id']}.\n"
             if save_object
-            else "    No save_object for this row: diffing module .data (identify it with --sav --slots first).\n"
+            else "    No save_object for this row — RAM DUMP is refused. Identify it with --sav --slots first.\n"
         )
         + f"    1) Stand still next to it, closed. Enter = baseline ({BASELINE_WINDOW_S:.0f} s, keep still).\n"
         "    2) Open it, wait for popups to close, stand still. Enter = after.\n"

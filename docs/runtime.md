@@ -13,7 +13,7 @@ Two player runtimes for **Darksiders Warmastered x64** only (not 2016 32-bit). S
 
 [`targets.json`](../targets.json):
 
-- `save_object` — Keen identity (SAVE DIFF); required for DLL joins and mem heap dumps
+- `save_object` — Keen identity (SAVE DIFF for chests, `game_data` dump for artifacts); records a `source` provenance. Required for DLL joins and mem heap dumps.
 - `offsets` — required for mem location watches; ignored for dll **locations**; still used for item/stat/goal under both
 - AP names — join to world catalogs
 

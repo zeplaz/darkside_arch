@@ -18,11 +18,30 @@ class OpenHandler:
         catalog: ApCatalog,
         runtime: Optional[ApRuntime],
         identities: Optional[dict[IdentityKey, LocationIdentity]] = None,
+        overlay=None,
     ) -> None:
         self.catalog = catalog
         self.runtime = runtime
         self.identities = identities if identities is not None else load_location_identities()
+        self.overlay = overlay
         self._reported: Set[IdentityKey] = set()
+        self._connected = False
+        self._watches = 0
+        self._last_check = ""
+        self._refresh_overlay()
+
+    def _refresh_overlay(self) -> None:
+        if self.overlay is None:
+            return
+        if not self._connected:
+            self.overlay.set_text("DSH — waiting for injected DLL")
+            return
+        line = "DSH INJECTED ✓"
+        if self._watches:
+            line += f" · watching {self._watches} identities"
+        if self._last_check:
+            line += f" · CHECK {self._last_check}"
+        self.overlay.set_text(line)
 
     def reload(self) -> int:
         self.identities = load_location_identities()
@@ -41,12 +60,30 @@ class OpenHandler:
         op = msg.get("op")
         if op == "hello":
             print(f"[dll/ipc] dll hello {msg}")
+            self._connected = True
+            self._refresh_overlay()
             return
         if op == "log":
-            print(f"[dll] {msg.get('msg', msg)}")
+            text = str(msg.get("msg", msg))
+            print(f"[dll] {text}")
+            if text.startswith("watches="):
+                try:
+                    self._watches = int(text[len("watches="):].strip())
+                    self._refresh_overlay()
+                except ValueError:
+                    pass
             return
         if op == "open":
             self._on_open(msg)
+            return
+        if op == "poke_result":
+            ok = bool(msg.get("ok"))
+            label = str(msg.get("label") or "")
+            addr = msg.get("address")
+            if ok:
+                print(f"[dll/poke] OK {label} @ {addr} ({msg.get('n')} bytes) — the DLL wrote the game")
+            else:
+                print(f"[dll/poke] FAILED {label}: {msg.get('error')}")
             return
         print(f"[dll/ipc] unknown op: {msg}")
 
@@ -82,5 +119,7 @@ class OpenHandler:
             print(f"[dll] {ident.label!r} not in world catalog")
             return
         print(f"[dll] CHECK {ident.label} (AP {loc_id}) via {key}")
+        self._last_check = ident.label
+        self._refresh_overlay()
         if self.runtime is not None:
             self.runtime.submit_location_checks([loc_id])

@@ -19,6 +19,13 @@ Same slot, two files. JSON is a schema dump, not a memory map. Gitignored under 
 
 Steam saves: `<Steam>\userdata\<id>\462780\remote\autocloud\save\` (`svd_fmt_0_0.sav` and/or `keen_savegame_0_0.sav`). Change UserId with `save-patch` (whatisaphone/war). Do not poke dwords in the `.sav`.
 
+General decode / encode round-trip (dashboard **SAVES** tab):
+
+- **DECODE TO JSON** runs `war sav decode <slot>` and writes `saves/decoded/<name>.<slot>.json`.
+- **ENCODE FROM JSON** runs `war sav encode <target.sav> <dump.json>`, writing the JSON back into the **autosave** slot and leaving slots 0–9 alone. It backs up the target first.
+
+`war sav decode` only reads the autosave slot, so other slots are copied onto autosave in a temp copy before decode (see `decode_sav_slot` in `tools/save_patch.py`). `war sav encode` needs an existing `.sav` to write into — it never creates a fresh file.
+
 ## Mapping bag (`keen_savegame_0_0`) — late game
 
 | | |
@@ -37,6 +44,8 @@ Keen world objects live in `PlayerSaveData.WorldData[].Regions[].Layers[].WorldO
 | `Destroyed` | Breakables (the X/Y props already in an early hotel save) |
 | `Open` | Doors |
 | `Triggered` | Chests / one-shots |
+
+Artifacts (and armor / cubes) write **none** of these — collecting one only adds an inventory item (`items/artifact_*`) and bumps `Stats.NumberOfArtifactsCollected`, with no source-location record. Identify those from a `game_data` region dump instead (`python -m tools identify`, or **GAME DATA…** in the dashboard).
 
 `Seraphim Hotel Life Chest 1` is `overworld` / RegionID `2` / LayerID `6` / ObjectID `342` / `Triggered` (`SB_G_Chest_HealthChest_01`, `/overworld/CI_StartBld`). Slot 1 = closed, slot 2 = open (`NumberOfChestsOpened` 0→1, Health 81→200).
 

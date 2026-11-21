@@ -8,6 +8,7 @@
 //! Build: `cargo build --release` → `target/release/darkside_arch.dll`
 
 mod ipc;
+mod poke;
 mod scan;
 
 use std::sync::atomic::{AtomicBool, Ordering};
