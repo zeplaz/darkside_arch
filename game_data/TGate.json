@@ -1,0 +1,2285 @@
+{
+  "classname": "RegionLayer",
+  "properties": {
+    "Root": {
+      "classname": "WorldGroup",
+      "properties": {
+        "Objects": [
+          {
+            "classname": "base/spawnpoint",
+            "properties": {
+              "EncounterName": "CI_03_TormentedGate_Walk",
+              "NPCName": "CI_03_TormentedGate_Walk",
+              "ClassToSpawn": "torturedgate/torturedgate",
+              "PatrolPathName": "CI_03_TormentedGate_WalkPath",
+              "AmbientBehaviorType": 2,
+              "Position": [
+                9870.37,
+                -13852.69,
+                521.69
+              ],
+              "Rotation": [
+                0.0,
+                -0.0,
+                76.999985
+              ],
+              "Color": [
+                0.99215686,
+                1.0,
+                0.65882355
+              ],
+              "Render": true,
+              "ObjectID": 56,
+              "RegionID": 4,
+              "LayerID": 16,
+              "Name": "CI_03_TormentedGate_Spawn_Walk"
+            }
+          },
+          {
+            "classname": "base/waypoint",
+            "properties": {
+              "Position": [
+                11601.45,
+                -13681.03,
+                461.69
+              ],
+              "Rotation": [
+                0.0,
+                -0.0,
+                103.0
+              ],
+              "ObjectID": 55,
+              "RegionID": 4,
+              "LayerID": 16,
+              "Name": "CI_03_TormentedGate_WarpWar_Look"
+            }
+          },
+          {
+            "classname": "base/waypoint",
+            "properties": {
+              "Position": [
+                12287.45,
+                -13575.03,
+                319.68997
+              ],
+              "Rotation": [
+                0.0,
+                -0.0,
+                103.0
+              ],
+              "ObjectID": 54,
+              "RegionID": 4,
+              "LayerID": 16,
+              "Name": "CI_03_TormentedGate_WarpWar_Cam"
+            }
+          },
+          {
+            "classname": "base/waypoint",
+            "properties": {
+              "Position": [
+                12178.45,
+                -13561.03,
+                287.69
+              ],
+              "Rotation": [
+                0.0,
+                0.0,
+                -88.999916
+              ],
+              "ObjectID": 53,
+              "RegionID": 4,
+              "LayerID": 16,
+              "Name": "CI_03_TormentedGate_WarpWar"
+            }
+          },
+          {
+            "classname": "base/monsterzonebarrier",
+            "properties": {
+              "FilterList": [
+                "Monster"
+              ],
+              "Position": [
+                12917.18,
+                -13431.15,
+                422.0
+              ],
+              "Rotation": [
+                0.0,
+                -0.0,
+                10.0
+              ],
+              "Scale": [
+                1108.0,
+                1250.0,
+                600.0
+              ],
+              "Shape": 1,
+              "ObjectID": 52,
+              "RegionID": 4,
+              "LayerID": 16,
+              "Name": "CI_03_MonsterZoneBarrier"
+            }
+          },
+          {
+            "classname": "base/spawnpoint",
+            "properties": {
+              "EncounterName": "SkipArenaByKillingMe",
+              "ClassToSpawn": "wicked_male/wicked_male",
+              "InitialBehaviorEnum": 4,
+              "Position": [
+                12655.799,
+                -13099.727,
+                257.4401
+              ],
+              "ObjectID": 47,
+              "RegionID": 4,
+              "LayerID": 16,
+              "Name": "SkipArena_Spawn_01"
+            }
+          },
+          {
+            "classname": "base/blocker",
+            "properties": {
+              "Position": [
+                13366.92,
+                -13500.0,
+                197.88
+              ],
+              "Scale": [
+                500.0,
+                500.0,
+                100.0
+              ],
+              "ObjectID": 45,
+              "RegionID": 4,
+              "LayerID": 16,
+              "Name": "Blocker_02"
+            }
+          },
+          {
+            "classname": "base/waypoint",
+            "properties": {
+              "Position": [
+                3896.9731,
+                -11663.872,
+                768.1753
+              ],
+              "Rotation": [
+                0.0,
+                0.0,
+                -80.0
+              ],
+              "ObjectID": 43,
+              "RegionID": 4,
+              "LayerID": 16,
+              "Name": "CI_03_TormentedGate_WalkPoint"
+            }
+          },
+          {
+            "classname": "base/waypoint",
+            "properties": {
+              "Position": [
+                12120.47,
+                -13557.42,
+                288.68
+              ],
+              "Rotation": [
+                0.0,
+                0.0,
+                90.0
+              ],
+              "ObjectID": 42,
+              "RegionID": 4,
+              "LayerID": 16,
+              "Name": "CI_03_TormentedGate_StartWalkPoint"
+            }
+          },
+          {
+            "classname": "base/spawnpoint",
+            "properties": {
+              "EncounterName": "CI_03_TormentedGate",
+              "NPCName": "CI_03_TormentedGate",
+              "ClassToSpawn": "torturedgate/torturedgate",
+              "Position": [
+                13382.37,
+                -13503.69,
+                258.69
+              ],
+              "Rotation": [
+                0.0,
+                0.0,
+                90.0
+              ],
+              "Color": [
+                0.99215686,
+                1.0,
+                0.65882355
+              ],
+              "Render": true,
+              "ObjectID": 41,
+              "RegionID": 4,
+              "LayerID": 16,
+              "Name": "CI_03_TormentedGate_Spawn"
+            }
+          },
+          {
+            "classname": "base/visscriptmodulesystem",
+            "properties": {
+              "ModuleSystem": {
+                "classname": "ModuleSystem",
+                "properties": {
+                  "EntityIDGen": 288,
+                  "Entities": [
+                    {
+                      "classname": "StartModule",
+                      "properties": {
+                        "EventLinks": [
+                          [
+                            0,
+                            54,
+                            0
+                          ]
+                        ],
+                        "ID": 2,
+                        "LocationX": -377,
+                        "LocationY": 48
+                      }
+                    },
+                    {
+                      "classname": "InvokeMethodModule",
+                      "properties": {
+                        "MethodName": "doImbue",
+                        "VariableLinks": [
+                          [
+                            true,
+                            0,
+                            10
+                          ]
+                        ],
+                        "ID": 7,
+                        "Comment": "Tell the tormented gate to do his Reveal/Imbue",
+                        "LocationX": 1163,
+                        "LocationY": -961
+                      }
+                    },
+                    {
+                      "classname": "SpawnMonsterEventModule",
+                      "properties": {
+                        "NumberToSpawn": 1,
+                        "EventLinks": [
+                          [
+                            0,
+                            139,
+                            0
+                          ]
+                        ],
+                        "VariableLinks": [
+                          [
+                            false,
+                            2,
+                            10
+                          ],
+                          [
+                            true,
+                            0,
+                            11
+                          ]
+                        ],
+                        "ID": 8,
+                        "LocationX": 305,
+                        "LocationY": 71
+                      }
+                    },
+                    {
+                      "classname": "PopSpawnPointsModule",
+                      "properties": {
+                        "EncounterName": "CI_03_TormentedGate",
+                        "EventLinks": [
+                          [
+                            0,
+                            8,
+                            0
+                          ]
+                        ],
+                        "VariableLinks": [
+                          [
+                            false,
+                            0,
+                            11
+                          ]
+                        ],
+                        "ID": 9,
+                        "LocationX": 24,
+                        "LocationY": 71
+                      }
+                    },
+                    {
+                      "classname": "VisScriptVariableWorldObjectList",
+                      "properties": {
+                        "ID": 10,
+                        "Comment": "Save the gate object",
+                        "LocationX": 463,
+                        "LocationY": 377
+                      }
+                    },
+                    {
+                      "classname": "VisScriptVariableWorldObjectList",
+                      "properties": {
+                        "ID": 11,
+                        "LocationX": 62,
+                        "LocationY": 245
+                      }
+                    },
+                    {
+                      "classname": "ObjectMoverModule",
+                      "properties": {
+                        "ObjectName": "War",
+                        "MovementType": 2,
+                        "MoveVal": 0.0,
+                        "WaypointName": "CI_03_TormentedGate_RevealViewpoint",
+                        "RotateObject": true,
+                        "EventLinks": [
+                          [
+                            0,
+                            177,
+                            0
+                          ],
+                          [
+                            0,
+                            137,
+                            0
+                          ],
+                          [
+                            0,
+                            214,
+                            0
+                          ],
+                          [
+                            0,
+                            227,
+                            1
+                          ]
+                        ],
+                        "ID": 20,
+                        "LocationX": 1045,
+                        "LocationY": -478
+                      }
+                    },
+                    {
+                      "classname": "SaveDataModule",
+                      "properties": {
+                        "FlagInfoList": [
+                          {
+                            "classname": "FlagInfo",
+                            "properties": {
+                              "FlagLevel": "CI_03",
+                              "FlagName": "CI_03_GateSequenceComplete"
+                            }
+                          }
+                        ],
+                        "EventLinks": [
+                          [
+                            1,
+                            9,
+                            0
+                          ],
+                          [
+                            0,
+                            202,
+                            0
+                          ]
+                        ],
+                        "ID": 54,
+                        "Comment": "CI_03_GateSequenceComplete",
+                        "LocationX": -179,
+                        "LocationY": 48
+                      }
+                    },
+                    {
+                      "classname": "DelayModule",
+                      "properties": {
+                        "Delay": 55.0,
+                        "EventLinks": [
+                          [
+                            0,
+                            79,
+                            2
+                          ]
+                        ],
+                        "ID": 78,
+                        "LocationX": 2719,
+                        "LocationY": -1296
+                      }
+                    },
+                    {
+                      "classname": "ObjectToggleModule",
+                      "properties": {
+                        "EventLinks": [
+                          [
+                            0,
+                            249,
+                            0
+                          ]
+                        ],
+                        "VariableLinks": [
+                          [
+                            true,
+                            0,
+                            286
+                          ]
+                        ],
+                        "ID": 79,
+                        "Comment": "TEMP: Manually Remove The Gate For Now",
+                        "LocationX": 2919,
+                        "LocationY": -1342
+                      }
+                    },
+                    {
+                      "classname": "CinematicModule",
+                      "properties": {
+                        "CinematicName": "CI_03_TormentedGate_Cinematic_Return",
+                        "EventLinks": [
+                          [
+                            0,
+                            201,
+                            0
+                          ]
+                        ],
+                        "ID": 81,
+                        "LocationX": 846,
+                        "LocationY": -788
+                      }
+                    },
+                    {
+                      "classname": "SaveDataModule",
+                      "properties": {
+                        "FlagInfoList": [
+                          {
+                            "classname": "FlagInfo",
+                            "properties": {
+                              "FlagLevel": "CI_03",
+                              "FlagName": "CI_03FoundAllProwlers"
+                            }
+                          }
+                        ],
+                        "EventLinks": [
+                          [
+                            1,
+                            81,
+                            0
+                          ],
+                          [
+                            1,
+                            7,
+                            0
+                          ],
+                          [
+                            1,
+                            132,
+                            0
+                          ],
+                          [
+                            0,
+                            280,
+                            0
+                          ]
+                        ],
+                        "ID": 106,
+                        "Comment": "CI_03FoundAllProwlers",
+                        "LocationX": 630,
+                        "LocationY": -811
+                      }
+                    },
+                    {
+                      "classname": "PropertySetModule",
+                      "properties": {
+                        "PropertyName": "TalkTime",
+                        "StringValue": "10",
+                        "VariableLinks": [
+                          [
+                            true,
+                            0,
+                            10
+                          ]
+                        ],
+                        "ID": 132,
+                        "Comment": "Set Talk Time for Gate",
+                        "LocationX": 1087,
+                        "LocationY": -1090
+                      }
+                    },
+                    {
+                      "classname": "MaskOfShadowsTriggerModule",
+                      "properties": {
+                        "ID": 137,
+                        "LocationX": 1699,
+                        "LocationY": -568
+                      }
+                    },
+                    {
+                      "classname": "PropertySetModule",
+                      "properties": {
+                        "PropertyName": "GateScriptModule",
+                        "StringValue": "CI_03_TormentedGate_Script",
+                        "VariableLinks": [
+                          [
+                            true,
+                            0,
+                            10
+                          ]
+                        ],
+                        "ID": 139,
+                        "LocationX": 627,
+                        "LocationY": 71
+                      }
+                    },
+                    {
+                      "classname": "ExternalCallModule",
+                      "properties": {
+                        "EventName": "openGate",
+                        "EventLinks": [
+                          [
+                            0,
+                            176,
+                            0
+                          ],
+                          [
+                            0,
+                            243,
+                            0
+                          ]
+                        ],
+                        "ID": 141,
+                        "LocationX": -319,
+                        "LocationY": -500
+                      }
+                    },
+                    {
+                      "classname": "ObjectToggleModule",
+                      "properties": {
+                        "ObjectList": [
+                          "CI_03_TormentedGate_Blocker"
+                        ],
+                        "ID": 147,
+                        "Comment": "TEMP: Manually Remove The Gate Blocker",
+                        "LocationX": 2549,
+                        "LocationY": -1531
+                      }
+                    },
+                    {
+                      "classname": "DelayModule",
+                      "properties": {
+                        "Delay": 3.0,
+                        "EventLinks": [
+                          [
+                            0,
+                            184,
+                            0
+                          ],
+                          [
+                            0,
+                            194,
+                            0
+                          ]
+                        ],
+                        "ID": 174,
+                        "LocationX": 484,
+                        "LocationY": -478
+                      }
+                    },
+                    {
+                      "classname": "SaveDataModule",
+                      "properties": {
+                        "FlagInfoList": [
+                          {
+                            "classname": "FlagInfo",
+                            "properties": {
+                              "FlagLevel": "CI_03",
+                              "FlagName": "CI_03_GateSequenceComplete"
+                            }
+                          }
+                        ],
+                        "ID": 175,
+                        "LocationX": 258,
+                        "LocationY": -1306
+                      }
+                    },
+                    {
+                      "classname": "VisScriptCallModule",
+                      "properties": {
+                        "VisualScriptSystemName": "CI_03_Enc08_Script",
+                        "ExternalCallName": "TorturedGateStart",
+                        "ID": 176,
+                        "Comment": "Pause AI",
+                        "LocationX": -57,
+                        "LocationY": -586
+                      }
+                    },
+                    {
+                      "classname": "VisScriptCallModule",
+                      "properties": {
+                        "VisualScriptSystemName": "CI_03_Enc08_Script",
+                        "ExternalCallName": "TorturedGateEnd",
+                        "ID": 177,
+                        "Comment": "UnPause AI",
+                        "LocationX": 1311,
+                        "LocationY": -478
+                      }
+                    },
+                    {
+                      "classname": "DelayModule",
+                      "properties": {
+                        "Delay": 27.0,
+                        "EventLinks": [
+                          [
+                            0,
+                            180,
+                            0
+                          ],
+                          [
+                            0,
+                            247,
+                            0
+                          ]
+                        ],
+                        "ID": 179,
+                        "LocationX": 1200,
+                        "LocationY": -788
+                      }
+                    },
+                    {
+                      "classname": "VisScriptCallModule",
+                      "properties": {
+                        "VisualScriptSystemName": "CI_03_Enc08_Script",
+                        "ExternalCallName": "TorturedGateEnd",
+                        "ID": 180,
+                        "Comment": "UnPause AI",
+                        "LocationX": 1360,
+                        "LocationY": -788
+                      }
+                    },
+                    {
+                      "classname": "VisScriptCallModule",
+                      "properties": {
+                        "VisualScriptSystemName": "CI_03_Enc08_Script",
+                        "ExternalCallName": "TorturedGateEnd",
+                        "ID": 182,
+                        "Comment": "UnPause AI",
+                        "LocationX": 260,
+                        "LocationY": -1376
+                      }
+                    },
+                    {
+                      "classname": "LoaderModule",
+                      "properties": {
+                        "Load": [
+                          [
+                            4,
+                            27
+                          ],
+                          [
+                            295,
+                            0
+                          ],
+                          [
+                            295,
+                            1
+                          ],
+                          [
+                            295,
+                            2
+                          ],
+                          [
+                            295,
+                            3
+                          ],
+                          [
+                            295,
+                            8
+                          ]
+                        ],
+                        "Unload": [
+                          [
+                            4,
+                            10
+                          ],
+                          [
+                            306,
+                            4
+                          ]
+                        ],
+                        "ID": 184,
+                        "Comment": "Load Base SR Arena Layers",
+                        "LocationX": 655,
+                        "LocationY": -615
+                      }
+                    },
+                    {
+                      "classname": "LoaderModule",
+                      "properties": {
+                        "Load": [
+                          [
+                            4,
+                            10
+                          ],
+                          [
+                            16,
+                            0
+                          ],
+                          [
+                            16,
+                            1
+                          ],
+                          [
+                            311,
+                            -1
+                          ]
+                        ],
+                        "Unload": [
+                          [
+                            4,
+                            27
+                          ],
+                          [
+                            295,
+                            -1
+                          ]
+                        ],
+                        "ID": 185,
+                        "Comment": "Unload SR Arena Region",
+                        "LocationX": 238,
+                        "LocationY": -1138
+                      }
+                    },
+                    {
+                      "classname": "InvokeMethodModule",
+                      "properties": {
+                        "ObjectNames": [
+                          "CI_03_CombatBarrier_SR"
+                        ],
+                        "MethodName": "turnOff",
+                        "EventLinks": [
+                          [
+                            0,
+                            285,
+                            0
+                          ]
+                        ],
+                        "ID": 190,
+                        "LocationX": 1677,
+                        "LocationY": -1297
+                      }
+                    },
+                    {
+                      "classname": "InvokeMethodModule",
+                      "properties": {
+                        "ObjectNames": [
+                          "CI_03_CombatBarrier_SR"
+                        ],
+                        "MethodName": "turnOn",
+                        "EventLinks": [
+                          [
+                            0,
+                            20,
+                            0
+                          ]
+                        ],
+                        "ID": 191,
+                        "LocationX": 847,
+                        "LocationY": -478
+                      }
+                    },
+                    {
+                      "classname": "PlayVideoModule",
+                      "properties": {
+                        "VideoName": "Scene_TGate2.oo",
+                        "EventLinks": [
+                          [
+                            0,
+                            191,
+                            0
+                          ],
+                          [
+                            0,
+                            218,
+                            0
+                          ]
+                        ],
+                        "ID": 194,
+                        "Comment": "Play Video Scene_TGate2",
+                        "LocationX": 646,
+                        "LocationY": -478
+                      }
+                    },
+                    {
+                      "classname": "PlayVideoModule",
+                      "properties": {
+                        "VideoName": "Scene_TGate2b.oo",
+                        "CamPositionObject": "CI_03_TormentedGate_WarpWar_Cam",
+                        "CamLookatObject": "CI_03_TormentedGate_WarpWar_Look",
+                        "PlayerPositionObject": "CI_03_TormentedGate_WarpWar",
+                        "EventLinks": [
+                          [
+                            0,
+                            190,
+                            0
+                          ],
+                          [
+                            0,
+                            271,
+                            0
+                          ],
+                          [
+                            0,
+                            268,
+                            0
+                          ],
+                          [
+                            0,
+                            267,
+                            0
+                          ],
+                          [
+                            0,
+                            272,
+                            0
+                          ],
+                          [
+                            0,
+                            8,
+                            3
+                          ]
+                        ],
+                        "ID": 195,
+                        "Comment": "Play Video Scene_TGate3",
+                        "LocationX": 1464,
+                        "LocationY": -1296
+                      }
+                    },
+                    {
+                      "classname": "ObjectMoverModule",
+                      "properties": {
+                        "ObjectName": "War",
+                        "MovementType": 2,
+                        "MoveVal": 0.0,
+                        "WaypointName": "CI_03_TormentedGate_RevealViewpoint",
+                        "RotateObject": true,
+                        "EventLinks": [
+                          [
+                            0,
+                            179,
+                            0
+                          ]
+                        ],
+                        "ID": 201,
+                        "LocationX": 1032,
+                        "LocationY": -788
+                      }
+                    },
+                    {
+                      "classname": "VisScriptCallModule",
+                      "properties": {
+                        "VisualScriptSystemName": "CI_03_TormentedGate_Script",
+                        "ExternalCallName": "CI_03_RemoveGateCollision",
+                        "ID": 202,
+                        "LocationX": 111,
+                        "LocationY": -56
+                      }
+                    },
+                    {
+                      "classname": "ExternalCallModule",
+                      "properties": {
+                        "EventName": "CI_03_RemoveGateCollision",
+                        "EventLinks": [
+                          [
+                            0,
+                            147,
+                            2
+                          ]
+                        ],
+                        "ID": 203,
+                        "LocationX": 2247,
+                        "LocationY": -1485
+                      }
+                    },
+                    {
+                      "classname": "InvokeMethodModule",
+                      "properties": {
+                        "MethodName": "gateJump",
+                        "EventLinks": [
+                          [
+                            0,
+                            78,
+                            0
+                          ]
+                        ],
+                        "VariableLinks": [
+                          [
+                            true,
+                            0,
+                            286
+                          ]
+                        ],
+                        "ID": 211,
+                        "LocationX": 2505,
+                        "LocationY": -1296
+                      }
+                    },
+                    {
+                      "classname": "SaveDataModule",
+                      "properties": {
+                        "FlagInfoList": [
+                          {
+                            "classname": "FlagInfo",
+                            "properties": {
+                              "FlagLevel": "CI_03",
+                              "FlagName": "MaskOfShadowsOn"
+                            }
+                          }
+                        ],
+                        "EventLinks": [
+                          [
+                            3,
+                            229,
+                            0
+                          ]
+                        ],
+                        "ID": 213,
+                        "LocationX": 1512,
+                        "LocationY": -308
+                      }
+                    },
+                    {
+                      "classname": "VisScriptCallModule",
+                      "properties": {
+                        "VisualScriptSystemName": "CI_03_ProwlerSpawn_Script",
+                        "ExternalCallName": "CI_03_Enable_Overseers",
+                        "ID": 214,
+                        "Comment": "Enable Overseers",
+                        "LocationX": 1308,
+                        "LocationY": -396
+                      }
+                    },
+                    {
+                      "classname": "VisScriptCallModule",
+                      "properties": {
+                        "VisualScriptSystemName": "CI_03_VSM_SetWatcherDialogue",
+                        "ExternalCallName": "SentToShadowRealm",
+                        "ID": 217,
+                        "Comment": "SentToShadowRealm",
+                        "LocationX": 1028,
+                        "LocationY": -286
+                      }
+                    },
+                    {
+                      "classname": "DelayModule",
+                      "properties": {
+                        "EventLinks": [
+                          [
+                            0,
+                            217,
+                            0
+                          ]
+                        ],
+                        "ID": 218,
+                        "LocationX": 856,
+                        "LocationY": -286
+                      }
+                    },
+                    {
+                      "classname": "SaveDataModule",
+                      "properties": {
+                        "FlagInfoList": [
+                          {
+                            "classname": "FlagInfo",
+                            "properties": {
+                              "FlagLevel": "CI_03",
+                              "FlagName": "GateSequenceFinished"
+                            }
+                          }
+                        ],
+                        "ID": 222,
+                        "Comment": "GateSequenceFinished",
+                        "LocationX": 503,
+                        "LocationY": -1431
+                      }
+                    },
+                    {
+                      "classname": "base/commitsavedatamodule",
+                      "properties": {
+                        "EventLinks": [
+                          [
+                            0,
+                            224,
+                            0
+                          ]
+                        ],
+                        "ID": 223,
+                        "LocationX": 451,
+                        "LocationY": -1564
+                      }
+                    },
+                    {
+                      "classname": "base/autosavemodule",
+                      "properties": {
+                        "ID": 224,
+                        "LocationX": 704,
+                        "LocationY": -1564
+                      }
+                    },
+                    {
+                      "classname": "SaveDataModule",
+                      "properties": {
+                        "FlagInfoList": [
+                          {
+                            "classname": "FlagInfo",
+                            "properties": {
+                              "FlagLevel": "CI_03",
+                              "FlagName": "CI_03ProwlerQuestStarted"
+                            }
+                          }
+                        ],
+                        "EventLinks": [
+                          [
+                            0,
+                            106,
+                            0
+                          ],
+                          [
+                            1,
+                            228,
+                            0
+                          ]
+                        ],
+                        "ID": 226,
+                        "Comment": "Got Quest Already?",
+                        "LocationX": 91,
+                        "LocationY": -501
+                      }
+                    },
+                    {
+                      "classname": "SaveDataModule",
+                      "properties": {
+                        "FlagInfoList": [
+                          {
+                            "classname": "FlagInfo",
+                            "properties": {
+                              "FlagLevel": "CI_03",
+                              "FlagName": "CI_03ProwlerQuestStarted"
+                            }
+                          }
+                        ],
+                        "EventLinks": [
+                          [
+                            3,
+                            213,
+                            1
+                          ]
+                        ],
+                        "ID": 227,
+                        "LocationX": 1302,
+                        "LocationY": -331
+                      }
+                    },
+                    {
+                      "classname": "base/storesavedatamodule",
+                      "properties": {
+                        "EventLinks": [
+                          [
+                            0,
+                            174,
+                            0
+                          ]
+                        ],
+                        "ID": 228,
+                        "LocationX": 291,
+                        "LocationY": -478
+                      }
+                    },
+                    {
+                      "classname": "base/commitsavedatamodule",
+                      "properties": {
+                        "EventLinks": [
+                          [
+                            0,
+                            231,
+                            0
+                          ]
+                        ],
+                        "ID": 229,
+                        "LocationX": 1714,
+                        "LocationY": -262
+                      }
+                    },
+                    {
+                      "classname": "base/autosavemodule",
+                      "properties": {
+                        "EventLinks": [
+                          [
+                            0,
+                            245,
+                            0
+                          ]
+                        ],
+                        "ID": 231,
+                        "LocationX": 1937,
+                        "LocationY": -262
+                      }
+                    },
+                    {
+                      "classname": "base/gatemodule",
+                      "properties": {
+                        "EventLinks": [
+                          [
+                            0,
+                            226,
+                            0
+                          ],
+                          [
+                            0,
+                            244,
+                            0
+                          ]
+                        ],
+                        "ID": 243,
+                        "LocationX": -75,
+                        "LocationY": -501
+                      }
+                    },
+                    {
+                      "classname": "base/oneshotmodule",
+                      "properties": {
+                        "EventLinks": [
+                          [
+                            0,
+                            243,
+                            2
+                          ]
+                        ],
+                        "ID": 244,
+                        "LocationX": -70,
+                        "LocationY": -336
+                      }
+                    },
+                    {
+                      "classname": "VisScriptCallModule",
+                      "properties": {
+                        "VisualScriptSystemName": "CI_03_TormentedGate_Script",
+                        "ExternalCallName": "enableopenGate",
+                        "ID": 245,
+                        "LocationX": 2134,
+                        "LocationY": -262
+                      }
+                    },
+                    {
+                      "classname": "ExternalCallModule",
+                      "properties": {
+                        "EventName": "enableopenGate",
+                        "EventLinks": [
+                          [
+                            0,
+                            243,
+                            1
+                          ],
+                          [
+                            0,
+                            244,
+                            1
+                          ]
+                        ],
+                        "ID": 246,
+                        "LocationX": -324,
+                        "LocationY": -312
+                      }
+                    },
+                    {
+                      "classname": "VisScriptCallModule",
+                      "properties": {
+                        "VisualScriptSystemName": "CI_03_TormentedGate_Script",
+                        "ExternalCallName": "enableopenGate",
+                        "ID": 247,
+                        "LocationX": 1363,
+                        "LocationY": -677
+                      }
+                    },
+                    {
+                      "classname": "LoaderModule",
+                      "properties": {
+                        "Unload": [
+                          [
+                            4,
+                            16
+                          ],
+                          [
+                            4,
+                            20
+                          ]
+                        ],
+                        "ID": 249,
+                        "Comment": "Unload TGate Layer",
+                        "LocationX": 3139,
+                        "LocationY": -1342
+                      }
+                    },
+                    {
+                      "classname": "VisScriptCallModule",
+                      "properties": {
+                        "VisualScriptSystemName": "CI_03_VSM_SetWatcherDialogue",
+                        "ExternalCallName": "CI_06_Exposed",
+                        "ID": 252,
+                        "Comment": "Set Watcher Dialogue",
+                        "LocationX": 499,
+                        "LocationY": -1263
+                      }
+                    },
+                    {
+                      "classname": "DelayModule",
+                      "properties": {
+                        "Delay": 0.5,
+                        "EventLinks": [
+                          [
+                            0,
+                            255,
+                            0
+                          ]
+                        ],
+                        "ID": 254,
+                        "LocationX": 263,
+                        "LocationY": -1738
+                      }
+                    },
+                    {
+                      "classname": "base/giveitemmodule",
+                      "properties": {
+                        "Item": "items/item_wrathstone",
+                        "HidePopup": false,
+                        "ID": 255,
+                        "LocationX": 470,
+                        "LocationY": -1738
+                      }
+                    },
+                    {
+                      "classname": "DelayModule",
+                      "properties": {
+                        "EventLinks": [
+                          [
+                            0,
+                            223,
+                            0
+                          ]
+                        ],
+                        "ID": 256,
+                        "LocationX": 263,
+                        "LocationY": -1564
+                      }
+                    },
+                    {
+                      "classname": "SpawnMonsterEventModule",
+                      "properties": {
+                        "EncounterName": "SkipArenaByKillingMe",
+                        "EventLinks": [
+                          [
+                            2,
+                            265,
+                            1
+                          ]
+                        ],
+                        "ID": 258,
+                        "Comment": "Hook up to onLoad to allow a quick bypass of arenas",
+                        "LocationX": 1497,
+                        "LocationY": 19
+                      }
+                    },
+                    {
+                      "classname": "SaveDataModule",
+                      "properties": {
+                        "FlagInfoList": [
+                          {
+                            "classname": "FlagInfo",
+                            "properties": {
+                              "FlagLevel": "CI_03",
+                              "FlagName": "CI_03FoundAllProwlers"
+                            }
+                          }
+                        ],
+                        "ID": 265,
+                        "LocationX": 1795,
+                        "LocationY": 43
+                      }
+                    },
+                    {
+                      "classname": "SaveDataModule",
+                      "properties": {
+                        "FlagInfoList": [
+                          {
+                            "classname": "FlagInfo",
+                            "properties": {
+                              "FlagLevel": "CI_03",
+                              "FlagName": "CI_03_GateSequenceComplete"
+                            }
+                          }
+                        ],
+                        "EventLinks": [
+                          [
+                            3,
+                            275,
+                            1
+                          ]
+                        ],
+                        "ID": 266,
+                        "Comment": "CI_03_GateSequenceComplete",
+                        "LocationX": 2092,
+                        "LocationY": -1832
+                      }
+                    },
+                    {
+                      "classname": "VisScriptCallModule",
+                      "properties": {
+                        "VisualScriptSystemName": "CI_03_Enc08_Script",
+                        "ExternalCallName": "TorturedGateEnd",
+                        "ID": 267,
+                        "Comment": "UnPause AI",
+                        "LocationX": 1737,
+                        "LocationY": -1603
+                      }
+                    },
+                    {
+                      "classname": "LoaderModule",
+                      "properties": {
+                        "Load": [
+                          [
+                            4,
+                            10
+                          ],
+                          [
+                            16,
+                            0
+                          ],
+                          [
+                            16,
+                            1
+                          ],
+                          [
+                            311,
+                            -1
+                          ]
+                        ],
+                        "Unload": [
+                          [
+                            4,
+                            27
+                          ],
+                          [
+                            295,
+                            -1
+                          ]
+                        ],
+                        "ID": 268,
+                        "Comment": "Unload SR Arena Region",
+                        "LocationX": 1734,
+                        "LocationY": -1516
+                      }
+                    },
+                    {
+                      "classname": "base/commitsavedatamodule",
+                      "properties": {
+                        "EventLinks": [
+                          [
+                            0,
+                            270,
+                            0
+                          ]
+                        ],
+                        "ID": 269,
+                        "LocationX": 2496,
+                        "LocationY": -1762
+                      }
+                    },
+                    {
+                      "classname": "base/autosavemodule",
+                      "properties": {
+                        "ID": 270,
+                        "LocationX": 2710,
+                        "LocationY": -1762
+                      }
+                    },
+                    {
+                      "classname": "VisScriptCallModule",
+                      "properties": {
+                        "VisualScriptSystemName": "CI_03_VSM_SetWatcherDialogue",
+                        "ExternalCallName": "CI_06_Exposed",
+                        "ID": 271,
+                        "Comment": "Set Watcher Dialogue",
+                        "LocationX": 1739,
+                        "LocationY": -1400
+                      }
+                    },
+                    {
+                      "classname": "DelayModule",
+                      "properties": {
+                        "Delay": 0.5,
+                        "EventLinks": [
+                          [
+                            0,
+                            273,
+                            0
+                          ]
+                        ],
+                        "ID": 272,
+                        "LocationX": 1739,
+                        "LocationY": -1809
+                      }
+                    },
+                    {
+                      "classname": "base/giveitemmodule",
+                      "properties": {
+                        "Item": "weapon_enhancements/common_desecration",
+                        "HidePopup": false,
+                        "EventLinks": [
+                          [
+                            0,
+                            266,
+                            1
+                          ]
+                        ],
+                        "ID": 273,
+                        "LocationX": 1912,
+                        "LocationY": -1809
+                      }
+                    },
+                    {
+                      "classname": "SaveDataModule",
+                      "properties": {
+                        "FlagInfoList": [
+                          {
+                            "classname": "FlagInfo",
+                            "properties": {
+                              "FlagLevel": "CI_03",
+                              "FlagName": "GateSequenceFinished"
+                            }
+                          }
+                        ],
+                        "EventLinks": [
+                          [
+                            3,
+                            269,
+                            0
+                          ]
+                        ],
+                        "ID": 275,
+                        "Comment": "GateSequenceFinished",
+                        "LocationX": 2305,
+                        "LocationY": -1809
+                      }
+                    },
+                    {
+                      "classname": "DelayModule",
+                      "properties": {
+                        "Delay": 3.0,
+                        "EventLinks": [
+                          [
+                            0,
+                            195,
+                            0
+                          ],
+                          [
+                            0,
+                            137,
+                            1
+                          ]
+                        ],
+                        "ID": 280,
+                        "LocationX": 1119,
+                        "LocationY": -1296
+                      }
+                    },
+                    {
+                      "classname": "SpawnMonsterEventModule",
+                      "properties": {
+                        "NumberToSpawn": 1,
+                        "EventLinks": [
+                          [
+                            0,
+                            147,
+                            2
+                          ],
+                          [
+                            0,
+                            211,
+                            0
+                          ]
+                        ],
+                        "VariableLinks": [
+                          [
+                            false,
+                            2,
+                            286
+                          ],
+                          [
+                            true,
+                            0,
+                            287
+                          ]
+                        ],
+                        "ID": 284,
+                        "LocationX": 2140,
+                        "LocationY": -1296
+                      }
+                    },
+                    {
+                      "classname": "PopSpawnPointsModule",
+                      "properties": {
+                        "EncounterName": "CI_03_TormentedGate_Walk",
+                        "EventLinks": [
+                          [
+                            0,
+                            284,
+                            0
+                          ]
+                        ],
+                        "VariableLinks": [
+                          [
+                            false,
+                            0,
+                            287
+                          ]
+                        ],
+                        "ID": 285,
+                        "LocationX": 1903,
+                        "LocationY": -1296
+                      }
+                    },
+                    {
+                      "classname": "VisScriptVariableWorldObjectList",
+                      "properties": {
+                        "ID": 286,
+                        "Comment": "Save the gate object",
+                        "LocationX": 2365,
+                        "LocationY": -994
+                      }
+                    },
+                    {
+                      "classname": "VisScriptVariableWorldObjectList",
+                      "properties": {
+                        "ID": 287,
+                        "LocationX": 1916,
+                        "LocationY": -1115
+                      }
+                    }
+                  ],
+                  "ViewXOffset": -654.33496,
+                  "ViewYOffset": 1409.4148,
+                  "ViewZoom": 0.70999986,
+                  "ModuleIDGen": 1684828783
+                }
+              },
+              "Position": [
+                12644.1455,
+                -13501.4375,
+                324.6902
+              ],
+              "ObjectID": 40,
+              "RegionID": 4,
+              "LayerID": 16,
+              "Name": "CI_03_TormentedGate_Script"
+            }
+          },
+          {
+            "classname": "base/waypoint",
+            "properties": {
+              "Position": [
+                12423.446,
+                -13508.029,
+                248.6903
+              ],
+              "Rotation": [
+                0.0,
+                0.0,
+                -90.0
+              ],
+              "ObjectID": 39,
+              "RegionID": 4,
+              "LayerID": 16,
+              "Name": "CI_03_TormentedGate_RevealViewpoint"
+            }
+          },
+          {
+            "classname": "base/cinematic",
+            "properties": {
+              "Position": [
+                12430.863,
+                -13337.628,
+                248.0
+              ],
+              "Director": {
+                "classname": "DirectorCinematicGroup",
+                "properties": {
+                  "Length": 32.5,
+                  "VisualScriptSystem": "CI_03_TormentedGate_Script",
+                  "AnimationSequence": {
+                    "classname": "AnimationSequence",
+                    "properties": {
+                      "Tracks": [
+                        {
+                          "classname": "JumpTriggerTrack",
+                          "properties": {}
+                        },
+                        {
+                          "classname": "StringPropTrack",
+                          "properties": {
+                            "Keys": [
+                              [
+                                0.0,
+                                "WalkCamera"
+                              ]
+                            ],
+                            "PropertyName": "Active Camera Group"
+                          }
+                        },
+                        {
+                          "classname": "FloatPropTrack",
+                          "properties": {
+                            "PropertyName": "Simulation Speed"
+                          }
+                        },
+                        {
+                          "classname": "BoolPropTrack",
+                          "properties": {
+                            "Keys": [
+                              [
+                                0.0,
+                                true
+                              ]
+                            ],
+                            "PropertyName": "Disable Input"
+                          }
+                        },
+                        {
+                          "classname": "BoolPropTrack",
+                          "properties": {
+                            "PropertyName": "Disable Attacks"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              "Groups": [
+                {
+                  "classname": "CinematicGroup",
+                  "properties": {
+                    "AnimationSequence": {
+                      "classname": "AnimationSequence",
+                      "properties": {
+                        "Tracks": [
+                          {
+                            "classname": "SoundTrack",
+                            "properties": {
+                              "SoundDescFile": "base/tortured_gate_dialogue",
+                              "ApplyToObject": true,
+                              "Keys": [
+                                {
+                                  "classname": "SoundTrackKey",
+                                  "properties": {
+                                    "Time": 7.0,
+                                    "SoundID": 19
+                                  }
+                                },
+                                {
+                                  "classname": "SoundTrackKey",
+                                  "properties": {
+                                    "Time": 10.0,
+                                    "SoundID": 20
+                                  }
+                                },
+                                {
+                                  "classname": "SoundTrackKey",
+                                  "properties": {
+                                    "Time": 15.0,
+                                    "SoundID": 21
+                                  }
+                                },
+                                {
+                                  "classname": "SoundTrackKey",
+                                  "properties": {
+                                    "Time": 24.0,
+                                    "SoundID": 22
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "ObjectName": "CI_03_TormentedGate"
+                  }
+                }
+              ],
+              "CameraGroups": [
+                {
+                  "classname": "CameraCinematicGroup",
+                  "properties": {
+                    "AnimationSequence": {
+                      "classname": "AnimationSequence",
+                      "properties": {
+                        "Tracks": [
+                          {
+                            "classname": "FloatPropTrack",
+                            "properties": {
+                              "Keys": [
+                                [
+                                  0.0,
+                                  45.0
+                                ]
+                              ],
+                              "PropertyName": "FOV"
+                            }
+                          },
+                          {
+                            "classname": "Vector3PropTrack",
+                            "properties": {
+                              "Keys": [
+                                [
+                                  0.0,
+                                  [
+                                    11434.003,
+                                    -13966.831,
+                                    632.8268
+                                  ]
+                                ],
+                                [
+                                  31.5,
+                                  [
+                                    12050.16,
+                                    -13472.525,
+                                    569.13184
+                                  ]
+                                ],
+                                [
+                                  31.52,
+                                  [
+                                    11434.003,
+                                    -13966.831,
+                                    632.8268
+                                  ]
+                                ]
+                              ],
+                              "PropertyName": "Position"
+                            }
+                          },
+                          {
+                            "classname": "Vector3PropTrack",
+                            "properties": {
+                              "Keys": [
+                                [
+                                  0.0,
+                                  [
+                                    85.006195,
+                                    0.0000034150949,
+                                    -73.33392
+                                  ]
+                                ],
+                                [
+                                  31.5,
+                                  [
+                                    98.599846,
+                                    0.0000051226416,
+                                    -91.61579
+                                  ]
+                                ],
+                                [
+                                  31.52,
+                                  [
+                                    94.999794,
+                                    0.000005122642,
+                                    88.78419
+                                  ]
+                                ]
+                              ],
+                              "PropertyName": "Rotation"
+                            }
+                          },
+                          {
+                            "classname": "StringPropTrack",
+                            "properties": {
+                              "PropertyName": "Look Target"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "ObjectName": "WalkCamera"
+                  }
+                }
+              ],
+              "ObjectID": 38,
+              "RegionID": 4,
+              "LayerID": 16,
+              "Name": "CI_03_TormentedGate_Cinematic_Walk"
+            }
+          },
+          {
+            "classname": "base/cinematic",
+            "properties": {
+              "Position": [
+                12426.42,
+                -13448.093,
+                247.99994
+              ],
+              "Director": {
+                "classname": "DirectorCinematicGroup",
+                "properties": {
+                  "Length": 86.0,
+                  "VisualScriptSystem": "CI_03_TormentedGate_Script",
+                  "AnimationSequence": {
+                    "classname": "AnimationSequence",
+                    "properties": {
+                      "Tracks": [
+                        {
+                          "classname": "JumpTriggerTrack",
+                          "properties": {}
+                        },
+                        {
+                          "classname": "StringPropTrack",
+                          "properties": {
+                            "Keys": [
+                              [
+                                0.0,
+                                "RevealCamera"
+                              ]
+                            ],
+                            "PropertyName": "Active Camera Group"
+                          }
+                        },
+                        {
+                          "classname": "FloatPropTrack",
+                          "properties": {
+                            "PropertyName": "Simulation Speed"
+                          }
+                        },
+                        {
+                          "classname": "BoolPropTrack",
+                          "properties": {
+                            "Keys": [
+                              [
+                                0.0,
+                                true
+                              ]
+                            ],
+                            "PropertyName": "Disable Input"
+                          }
+                        },
+                        {
+                          "classname": "BoolPropTrack",
+                          "properties": {
+                            "PropertyName": "Disable Attacks"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              "Groups": [
+                {
+                  "classname": "CinematicGroup",
+                  "properties": {
+                    "AnimationSequence": {
+                      "classname": "AnimationSequence",
+                      "properties": {
+                        "Tracks": [
+                          {
+                            "classname": "SoundTrack",
+                            "properties": {
+                              "SoundDescFile": "base/tortured_gate_dialogue",
+                              "ApplyToObject": true,
+                              "Keys": [
+                                {
+                                  "classname": "SoundTrackKey",
+                                  "properties": {
+                                    "Time": 7.71,
+                                    "SoundID": 6
+                                  }
+                                },
+                                {
+                                  "classname": "SoundTrackKey",
+                                  "properties": {
+                                    "Time": 12.2,
+                                    "SoundID": 7
+                                  }
+                                },
+                                {
+                                  "classname": "SoundTrackKey",
+                                  "properties": {
+                                    "Time": 25.2,
+                                    "SoundID": 8
+                                  }
+                                },
+                                {
+                                  "classname": "SoundTrackKey",
+                                  "properties": {
+                                    "Time": 52.2,
+                                    "SoundID": 9
+                                  }
+                                },
+                                {
+                                  "classname": "SoundTrackKey",
+                                  "properties": {
+                                    "Time": 78.2,
+                                    "SoundID": 10
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "ObjectName": "CI_03_TormentedGate"
+                  }
+                },
+                {
+                  "classname": "CinematicGroup",
+                  "properties": {
+                    "AnimationSequence": {
+                      "classname": "AnimationSequence",
+                      "properties": {
+                        "Tracks": [
+                          {
+                            "classname": "SoundTrack",
+                            "properties": {
+                              "SoundDescFile": "base/war_dialogue",
+                              "ApplyToObject": true,
+                              "Keys": [
+                                {
+                                  "classname": "SoundTrackKey",
+                                  "properties": {
+                                    "Time": 10.2,
+                                    "SoundID": 1
+                                  }
+                                },
+                                {
+                                  "classname": "SoundTrackKey",
+                                  "properties": {
+                                    "Time": 23.2,
+                                    "SoundID": 2
+                                  }
+                                },
+                                {
+                                  "classname": "SoundTrackKey",
+                                  "properties": {
+                                    "Time": 48.2,
+                                    "SoundID": 3
+                                  }
+                                },
+                                {
+                                  "classname": "SoundTrackKey",
+                                  "properties": {
+                                    "Time": 76.2,
+                                    "SoundID": 4
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "ObjectName": "War"
+                  }
+                }
+              ],
+              "CameraGroups": [
+                {
+                  "classname": "CameraCinematicGroup",
+                  "properties": {
+                    "AnimationSequence": {
+                      "classname": "AnimationSequence",
+                      "properties": {
+                        "Tracks": [
+                          {
+                            "classname": "FloatPropTrack",
+                            "properties": {
+                              "Keys": [
+                                [
+                                  0.0,
+                                  60.0
+                                ]
+                              ],
+                              "PropertyName": "FOV"
+                            }
+                          },
+                          {
+                            "classname": "Vector3PropTrack",
+                            "properties": {
+                              "Keys": [
+                                [
+                                  0.0,
+                                  [
+                                    12079.724,
+                                    -13448.193,
+                                    589.882
+                                  ]
+                                ],
+                                [
+                                  10.0,
+                                  [
+                                    12079.724,
+                                    -13448.193,
+                                    334.28198
+                                  ]
+                                ]
+                              ],
+                              "PropertyName": "Position"
+                            }
+                          },
+                          {
+                            "classname": "Vector3PropTrack",
+                            "properties": {
+                              "Keys": [
+                                [
+                                  0.0,
+                                  [
+                                    104.2008,
+                                    -0.0,
+                                    -93.712
+                                  ]
+                                ],
+                                [
+                                  10.0,
+                                  [
+                                    99.001274,
+                                    -0.0,
+                                    -93.312035
+                                  ]
+                                ]
+                              ],
+                              "PropertyName": "Rotation"
+                            }
+                          },
+                          {
+                            "classname": "StringPropTrack",
+                            "properties": {
+                              "PropertyName": "Look Target"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "ObjectName": "RevealCamera"
+                  }
+                }
+              ],
+              "ObjectID": 37,
+              "RegionID": 4,
+              "LayerID": 16,
+              "Name": "CI_03_TormentedGate_Cinematic_Reveal"
+            }
+          },
+          {
+            "classname": "base/cinematic",
+            "properties": {
+              "Position": [
+                12431.42,
+                -13396.093,
+                247.99994
+              ],
+              "Director": {
+                "classname": "DirectorCinematicGroup",
+                "properties": {
+                  "Length": 12.0,
+                  "VisualScriptSystem": "CI_03_TormentedGate_Script",
+                  "AnimationSequence": {
+                    "classname": "AnimationSequence",
+                    "properties": {
+                      "Tracks": [
+                        {
+                          "classname": "JumpTriggerTrack",
+                          "properties": {}
+                        },
+                        {
+                          "classname": "StringPropTrack",
+                          "properties": {
+                            "Keys": [
+                              [
+                                0.0,
+                                "RevealCamera"
+                              ]
+                            ],
+                            "PropertyName": "Active Camera Group"
+                          }
+                        },
+                        {
+                          "classname": "FloatPropTrack",
+                          "properties": {
+                            "PropertyName": "Simulation Speed"
+                          }
+                        },
+                        {
+                          "classname": "BoolPropTrack",
+                          "properties": {
+                            "Keys": [
+                              [
+                                0.0,
+                                true
+                              ]
+                            ],
+                            "PropertyName": "Disable Input"
+                          }
+                        },
+                        {
+                          "classname": "BoolPropTrack",
+                          "properties": {
+                            "PropertyName": "Disable Attacks"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              "Groups": [
+                {
+                  "classname": "CinematicGroup",
+                  "properties": {
+                    "AnimationSequence": {
+                      "classname": "AnimationSequence",
+                      "properties": {
+                        "Tracks": [
+                          {
+                            "classname": "SoundTrack",
+                            "properties": {
+                              "SoundDescFile": "base/tortured_gate_dialogue",
+                              "ApplyToObject": true,
+                              "Keys": [
+                                {
+                                  "classname": "SoundTrackKey",
+                                  "properties": {
+                                    "Time": 4.67,
+                                    "SoundID": 17
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "ObjectName": "CI_03_TormentedGate"
+                  }
+                }
+              ],
+              "CameraGroups": [
+                {
+                  "classname": "CameraCinematicGroup",
+                  "properties": {
+                    "AnimationSequence": {
+                      "classname": "AnimationSequence",
+                      "properties": {
+                        "Tracks": [
+                          {
+                            "classname": "FloatPropTrack",
+                            "properties": {
+                              "Keys": [
+                                [
+                                  0.0,
+                                  60.0
+                                ]
+                              ],
+                              "PropertyName": "FOV"
+                            }
+                          },
+                          {
+                            "classname": "Vector3PropTrack",
+                            "properties": {
+                              "Keys": [
+                                [
+                                  0.0,
+                                  [
+                                    12079.724,
+                                    -13448.193,
+                                    589.882
+                                  ]
+                                ],
+                                [
+                                  10.0,
+                                  [
+                                    12079.724,
+                                    -13448.193,
+                                    334.28198
+                                  ]
+                                ]
+                              ],
+                              "PropertyName": "Position"
+                            }
+                          },
+                          {
+                            "classname": "Vector3PropTrack",
+                            "properties": {
+                              "Keys": [
+                                [
+                                  0.0,
+                                  [
+                                    98.206604,
+                                    -0.0000051226416,
+                                    -93.73688
+                                  ]
+                                ],
+                                [
+                                  10.0,
+                                  [
+                                    89.406555,
+                                    -0.0000034150944,
+                                    -89.73686
+                                  ]
+                                ]
+                              ],
+                              "PropertyName": "Rotation"
+                            }
+                          },
+                          {
+                            "classname": "StringPropTrack",
+                            "properties": {
+                              "PropertyName": "Look Target"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "ObjectName": "RevealCamera"
+                  }
+                }
+              ],
+              "ObjectID": 36,
+              "RegionID": 4,
+              "LayerID": 16,
+              "Name": "CI_03_TormentedGate_Cinematic_Return"
+            }
+          },
+          {
+            "classname": "base/blocker",
+            "properties": {
+              "Position": [
+                13129.37,
+                -13507.06,
+                399.69
+              ],
+              "Scale": [
+                100.0,
+                836.0,
+                1000.0
+              ],
+              "ObjectID": 35,
+              "RegionID": 4,
+              "LayerID": 16,
+              "Name": "CI_03_TormentedGate_Blocker"
+            }
+          }
+        ]
+      }
+    },
+    "NextObjectID": 56
+  }
+}

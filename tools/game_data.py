@@ -83,13 +83,15 @@ def _flag_names(obj: dict[str, Any]) -> list[str]:
     Sword pieces / quest objects persist this way instead of a WorldObject
     ``Values`` key (e.g. ``SwordPiece_05`` under ``QuestItems``)."""
     names: list[str] = []
+    seen: set[str] = set()
 
     def walk(node: Any) -> None:
         if isinstance(node, dict):
             if node.get("classname") == "FlagInfo":
                 props = node.get("properties") or {}
                 name = props.get("FlagName")
-                if isinstance(name, str) and name:
+                if isinstance(name, str) and name and name not in seen:
+                    seen.add(name)
                     names.append(name)
             for value in node.values():
                 walk(value)

@@ -11,6 +11,7 @@ of the Keen `.json` schema. The dashboard and `tools/identify` read every
 | `Chests.json` | A region dump containing chest objects (and a few waypoints / statics). |
 | `Artifacts.json` | A region dump containing artifact `ItemActor`s. |
 | `Sword.json` | A sword-altar region dump — quest objects carry a `SaveDataModule` flag (e.g. `SwordPiece_05`), not a `Values` flag. |
+| `TGate.json` | The Tormented Gate encounter (`CI_03_TormentedGate`) — one vis-script object holding many quest flags (`CI_03_GateSequenceComplete`, `CI_03FoundAllProwlers`, `GateSequenceFinished`, …). |
 | `*.s` | Chest/rarechest Keen scripts — only read to confirm the persist key (`Triggered`). |
 | `Scripts.json`, `scripts (1).json` | Region dumps of vis-script/tutorial objects (also scanned; mostly quest flags). |
 | `*.dds` | Minimap tiles. Ignored. |
