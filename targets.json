@@ -291,6 +291,83 @@
       "notes": "TEMPLATE \u2014 count watch. Separate AP item from Beholder Key."
     },
     {
+      "id": "item_empty_vessel",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "inventory",
+      "label": "Empty Vessel",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "uint32",
+      "notes": "TEMPLATE — container consumable (buy from Vulgrim). Count watch; map with scan --item."
+    },
+    {
+      "id": "item_life_essence",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "inventory",
+      "label": "Life Essence",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "uint32",
+      "notes": "TEMPLATE — restores 3 Lifestones. Writes Health (see stat row). Restore apply; map with scan."
+    },
+    {
+      "id": "item_greater_life_essence",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "inventory",
+      "label": "Greater Life Essence",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "uint32",
+      "notes": "TEMPLATE — fully restores Lifestones. Writes Health (see stat row). Restore apply."
+    },
+    {
+      "id": "item_possession",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "inventory",
+      "label": "Possession",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "uint32",
+      "notes": "TEMPLATE — maxes Chaos level. Writes Chaos (see stat row). Restore apply."
+    },
+    {
+      "id": "item_rage_essence",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "inventory",
+      "label": "Rage Essence",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "uint32",
+      "notes": "TEMPLATE — restores some Wrath. Writes Wrath (see stat row). Restore apply."
+    },
+    {
+      "id": "item_greater_rage_essence",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "inventory",
+      "label": "Greater Rage Essence",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "uint32",
+      "notes": "TEMPLATE — fully restores Wrath. Writes Wrath (see stat row). Restore apply."
+    },
+    {
+      "id": "item_undying",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "inventory",
+      "label": "Undying",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "uint8",
+      "notes": "TEMPLATE — equippable; on fatal strike restores Health + Wrath. Equip flag."
+    },
+    {
       "id": "soul_count",
       "enabled": true,
       "event_type": "MEMORY_STATE",
@@ -306,6 +383,39 @@
       "type": "float",
       "notes": "pointer path to 0x1F7B2A56AC0",
       "module": "darksiders1.exe"
+    },
+    {
+      "id": "health",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "stat",
+      "label": "Health",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "int32",
+      "notes": "TEMPLATE — PlayerSaveData.Health (Lifestones). Life essences write here. Type guess; scan --type int32."
+    },
+    {
+      "id": "wrath",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "stat",
+      "label": "Wrath",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "float",
+      "notes": "TEMPLATE — PlayerSaveData.Wrath meter. Rage essences write here. Type guess; scan --type float."
+    },
+    {
+      "id": "chaos",
+      "enabled": false,
+      "event_type": "MEMORY_STATE",
+      "category": "stat",
+      "label": "Chaos",
+      "region": "",
+      "offsets": ["0x0"],
+      "type": "int32",
+      "notes": "TEMPLATE — PlayerSaveData.Chaos / ChaosLevel. Possession writes here. Type guess; scan --type int32."
     }
   ]
 }
