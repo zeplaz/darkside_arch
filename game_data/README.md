@@ -10,6 +10,7 @@ of the Keen `.json` schema. The dashboard and `tools/identify` read every
 |------|---------------|
 | `Chests.json` | A region dump containing chest objects (and a few waypoints / statics). |
 | `Artifacts.json` | A region dump containing artifact `ItemActor`s. |
+| `Sword.json` | A sword-altar region dump (`CI_03_SwordAltar`) — quest objects carry a `SaveDataModule` flag (e.g. `SwordPiece_05`), not a `Values` flag. |
 | `*.s` | Chest/rarechest Keen scripts — only read to confirm the persist key (`Triggered`). |
 | `Scripts.json`, `scripts (1).json` | Reference dumps. Not scanned by `tools`. |
 | `*.dds` | Minimap tiles. Ignored. |

@@ -1,0 +1,188 @@
+{
+  "classname": "RegionLayer",
+  "properties": {
+    "Root": {
+      "classname": "WorldGroup",
+      "properties": {
+        "Objects": [
+          {
+            "classname": "corrupted_anvil/corrupted_anvil",
+            "properties": {
+              "Heading": 126.0,
+              "HitPoints": 75.0,
+              "Inventory": {
+                "classname": "Inventory",
+                "properties": {}
+              },
+              "Position": [
+                9818.67,
+                -12511.2,
+                1051.83
+              ],
+              "Rotation": [
+                0.0,
+                0.0,
+                126.0
+              ],
+              "MaskOfShadowsState": 1,
+              "ObjectID": 10,
+              "RegionID": 4,
+              "LayerID": 22,
+              "Name": "CI_03_SwordAltar"
+            }
+          },
+          {
+            "classname": "base/visscriptmodulesystem",
+            "properties": {
+              "ModuleSystem": {
+                "classname": "ModuleSystem",
+                "properties": {
+                  "EntityIDGen": 51,
+                  "Entities": [
+                    {
+                      "classname": "StartModule",
+                      "properties": {
+                        "EventLinks": [
+                          [
+                            0,
+                            48,
+                            0
+                          ]
+                        ],
+                        "ID": 42,
+                        "LocationX": -122,
+                        "LocationY": 89
+                      }
+                    },
+                    {
+                      "classname": "SoundModule",
+                      "properties": {
+                        "SoundDescFile": "base/Music",
+                        "SoundID": 916,
+                        "ID": 44,
+                        "LocationX": 886,
+                        "LocationY": 44
+                      }
+                    },
+                    {
+                      "classname": "base/storesavedatamodule",
+                      "properties": {
+                        "EventLinks": [
+                          [
+                            0,
+                            44,
+                            0
+                          ]
+                        ],
+                        "ID": 46,
+                        "LocationX": 679,
+                        "LocationY": 44
+                      }
+                    },
+                    {
+                      "classname": "AttachEventModule",
+                      "properties": {
+                        "ObjectNames": [
+                          "CI_03_SwordAltar"
+                        ],
+                        "EventNames": [
+                          "onInteractive",
+                          "onInteractiveComplete"
+                        ],
+                        "EventLinks": [
+                          [
+                            0,
+                            46,
+                            0
+                          ],
+                          [
+                            0,
+                            51,
+                            0
+                          ]
+                        ],
+                        "ID": 47,
+                        "LocationX": 346,
+                        "LocationY": 78
+                      }
+                    },
+                    {
+                      "classname": "SaveDataModule",
+                      "properties": {
+                        "FlagInfoList": [
+                          {
+                            "classname": "FlagInfo",
+                            "properties": {
+                              "FlagLevel": "QuestItems",
+                              "FlagName": "SwordPiece_05"
+                            }
+                          }
+                        ],
+                        "EventLinks": [
+                          [
+                            0,
+                            47,
+                            2
+                          ],
+                          [
+                            1,
+                            47,
+                            0
+                          ]
+                        ],
+                        "ID": 48,
+                        "Comment": "SwordPiece_05 = true?",
+                        "LocationX": 58,
+                        "LocationY": 89
+                      }
+                    },
+                    {
+                      "classname": "VisScriptCallModule",
+                      "properties": {
+                        "VisualScriptSystemName": "Watcher_VSM_SwordPiecesCheck",
+                        "ExternalCallName": "Got_Sword_05",
+                        "ID": 50,
+                        "Comment": "Got_Sword_05",
+                        "LocationX": 1064,
+                        "LocationY": 249
+                      }
+                    },
+                    {
+                      "classname": "DelayModule",
+                      "properties": {
+                        "EventLinks": [
+                          [
+                            0,
+                            50,
+                            0
+                          ]
+                        ],
+                        "ID": 51,
+                        "LocationX": 887,
+                        "LocationY": 249
+                      }
+                    }
+                  ],
+                  "ViewXOffset": -628.9049,
+                  "ViewYOffset": 134.03546,
+                  "ViewZoom": 1.1800005,
+                  "ModuleIDGen": 1065353216
+                }
+              },
+              "Position": [
+                9899.914,
+                -12584.437,
+                1070.8547
+              ],
+              "ObjectID": 1,
+              "RegionID": 4,
+              "LayerID": 22,
+              "Name": "CI_03_VSM_SwordPiece"
+            }
+          }
+        ]
+      }
+    },
+    "NextObjectID": 10
+  }
+}
